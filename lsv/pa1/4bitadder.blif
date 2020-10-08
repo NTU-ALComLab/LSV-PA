@@ -1,0 +1,30 @@
+# 4-bit adder from BLIF manual
+.model 4bitadder
+.inputs A3 A2 A1 A0 B3 B2 B1 B0 CIN
+.outputs COUT S3 S2 S1 S0
+.subckt fulladder a=A0 b=B0 cin=CIN s=S0 cout=CARRY1
+.subckt fulladder a=A3 b=B3 cin=CARRY3 s=S3 cout=COUT
+.subckt fulladder a=A1 b=B1 cin=CARRY1 s=XX cout=CARRY2
+.subckt fulladder a=JJ b=B2 cin=CARRY2 s=S2 cout=CARRY3
+
+.names XX S1
+1 1
+.names A2 JJ
+1 1
+.end
+
+.model fulladder
+.inputs a b cin
+.outputs s cout
+.names a b k
+10 1
+01 1
+.names k cin s
+10 1
+01 1
+.names a b cin cout
+11- 1
+1-1 1
+-11 1
+.end
+
