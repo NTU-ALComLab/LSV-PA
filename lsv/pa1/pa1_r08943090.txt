@@ -1,0 +1,20 @@
+Part 1.
+Circuit BLIF file:
+  4bitadder.blif
+Results of show amd show_bdd (open with gv):
+  4bitadder.blif.gv
+  4bitadder.aig.gv
+  4bitadder.bdd.gv
+
+Part 2.
+(a)
+aig: convert each node into single aig (cube -> aig), the number of nodes will be the same.
+strash: convert the combinational circuit into one aig. The logic nodes will be tansformed into and-inverter nodes.
+bdd: similar to command aig, but cubes are converted into bdds.
+collapse: convert the whole circuit into bdd. 
+
+(b)
+read 4bitadder.blif  # read circuit
+strash               # convert to structurally hashed AIG
+renode               # convert to logic network
+sop                  # convert node function to sop
