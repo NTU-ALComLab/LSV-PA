@@ -1,0 +1,22 @@
+.model 4bitadder
+.inputs a[3] a[2] a[1] a[0] b[3] b[2] b[1] b[0] CIN
+.outputs COUT s[3] s[2] s[1] s[0]
+.subckt fulladder a=a[0] b=b[0] cin=CIN s=s[0] cout=c[0]
+.subckt fulladder a=a[1] b=b[1] cin=c[0] s=s[1] cout=c[1]
+.subckt fulladder a=a[2] b=b[2] cin=c[1] s=s[2] cout=c[2]
+.subckt fulladder a=a[3] b=b[3] cin=c[2] s=s[3] cout=COUT
+.end
+
+.model fulladder
+.inputs a b cin
+.outputs s cout
+.names a b cin s
+100 1
+010 1
+001 1
+111 1
+.names a b cin cout
+11- 1
+1-1 1
+-11 1
+.end
