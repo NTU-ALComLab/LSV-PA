@@ -24,11 +24,11 @@ void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
     Abc_Obj_t* pFanin;
     int j;
     Abc_ObjForEachFanin(pObj, pFanin, j) {
-      printf("  Fanin-%d: Id = %d, name = %s\n", j, Abc_ObjId(pFanin),
-             Abc_ObjName(pFanin));
+      printf("  Fanin-%d: Id = %d, name = %s\n", j, Abc_ObjId(pFanin),//return unsigned
+             Abc_ObjName(pFanin)); //return char*
     }
     if (Abc_NtkHasSop(pNtk)) {
-      printf("The SOP of this node:\n%s", (char*)pObj->pData);
+      printf("The SOP of this node:\n%s", (char*)pObj->pData);//return void* can change to char*
     }
   }
 }
