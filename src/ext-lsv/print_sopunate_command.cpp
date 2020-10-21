@@ -90,10 +90,10 @@ int Lsv_CommandPrintSOPUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 			Abc_Obj_t* pFanin;
             int j;
             Abc_ObjForEachFanin(pObj, pFanin, j){
-                if( (record[j] == 1 && !flip) || (record[j] == 2 && flip) ){
+                if( (record[j] == 1 && !flip) || (record[j] == 2 && flip) || (record[j] == 0) ){
                     p_unate.push_back(Abc_ObjName(pFanin));
                 }
-				else if((record[j] == 2 && !flip) || (record[j] == 1 && flip) ){
+				else if((record[j] == 2 && !flip) || (record[j] == 1 && flip) || (record[j] == 0) ){
 					n_unate.push_back(Abc_ObjName(pFanin));
 				}
 				else{
