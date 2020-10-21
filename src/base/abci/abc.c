@@ -77,6 +77,7 @@ ABC_NAMESPACE_IMPL_START
 
 //#define USE_MINISAT22
 
+static int Abc_CommandLsvPrintSopunate       ( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Abc_CommandPrintStats             ( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Abc_CommandPrintExdc              ( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Abc_CommandPrintIo                ( Abc_Frame_t * pAbc, int argc, char ** argv );
@@ -800,6 +801,8 @@ Gia_Man_t * Abc_FrameGetGia( Abc_Frame_t * pAbc )
 ***********************************************************************/
 void Abc_Init( Abc_Frame_t * pAbc )
 {
+    Cmd_CommandAdd( pAbc, "Printing",     "lsv_print_sopunate",   Abc_CommandLsvPrintSopunate,       0 );
+    Cmd_CommandAdd( pAbc, "Printing",     "LPS",   Abc_CommandLsvPrintSopunate,       0 );
     Cmd_CommandAdd( pAbc, "Printing",     "print_stats",   Abc_CommandPrintStats,       0 );
     Cmd_CommandAdd( pAbc, "Printing",     "print_exdc",    Abc_CommandPrintExdc,        0 );
     Cmd_CommandAdd( pAbc, "Printing",     "print_io",      Abc_CommandPrintIo,          0 );
@@ -1357,6 +1360,204 @@ void Abc_End( Abc_Frame_t * pAbc )
     Gia_ManStopP( &pAbc->pGiaSaved );
     if ( Abc_NtkRecIsRunning3() )
         Abc_NtkRecStop3();
+}
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Abc_CommandLsvPrintSopunate( Abc_Frame_t * pAbc, int argc, char ** argv )
+{
+	// Abc_CommandStrash( pAbc, argc, argv );
+	// Abc_CommandLogic( pAbc, argc, argv );
+    Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
+    // int fFactor;
+    // int fSaveBest;
+    // int fDumpResult;
+    // int fUseLutLib;
+    // int fPrintTime;
+    // int fPrintMuxes;
+    // int fPower;
+    // int fGlitch;
+    // int fSkipBuf;
+    // int fSkipSmall;
+    // int fPrintMem;
+    int c;
+
+    // pNtk = Abc_FrameReadNtk(pAbc);
+
+    // set the defaults
+    // fFactor   = 0;
+    // fSaveBest = 0;
+    // fDumpResult = 0;
+    // fUseLutLib = 0;
+    // fPrintTime = 0;
+    // fPrintMuxes = 0;
+    // fPower = 0;
+    // fGlitch = 0;
+    // fSkipBuf = 0;
+    // fSkipSmall = 0;
+    // fPrintMem = 0;
+    // Extra_UtilGetoptReset();
+    while ( ( c = Extra_UtilGetopt( argc, argv, "h" ) ) != EOF )
+    {
+        switch ( c )
+        {
+        case 'h':
+            goto usage;
+        default:
+            goto usage;
+        }
+    }
+
+    if ( pNtk == NULL )
+    {
+        Abc_Print( -1, "Empty network.\n" );
+        return 1;
+    }
+	
+	Abc_Obj_t* pObj;
+	int i;
+	// char * pSop;
+	// Abc_NtkForEachNode( pNtk, pNode, i ) {
+		
+	// }
+	int temp[20000];
+	Abc_NtkForEachNode( pNtk, pObj, i ) {
+		// printf("Object Id = %d, name = %s\n", Abc_ObjId(pObj), Abc_ObjName(pObj));
+		printf("node %s:\n", Abc_ObjName(pObj));
+		
+		int j;
+		Abc_Obj_t* pFanin;
+		Abc_ObjForEachFanin(pObj, pFanin, j) {
+			temp[j] = 3;
+		}
+		
+		j = 0;
+		char * pCur;
+		for ( pCur = (char *)pObj->pData; *pCur; pCur++ ) {
+			// if ( *pCur != '\n' && *pCur != ' ' && *(pCur+1) != '\n') {
+			if ( *pCur != '\n' ) {
+				if(*(pCur) == '0'){
+					if(temp[j] == 3){
+						temp[j] = 0;
+					}else if(temp[j] == 1){
+						temp[j] = 2;
+					}
+				}
+				if(*(pCur) == '1'){
+					if(temp[j] == 3){
+						temp[j] = 1;
+					}else if(temp[j] == 0){
+						temp[j] = 2;
+					}
+				}
+				j++;
+			} else {
+				j = 0;
+			}
+		}
+		// Abc_SopIsComplement((char *)pObj->pData);
+		int com = Abc_SopIsComplement((char *)pObj->pData);
+		int first = 1;
+		Abc_ObjForEachFanin(pObj, pFanin, j) {
+			if((temp[j] == 1 && com == 0) || (temp[j] == 0 && com == 1) || temp[j] == 3){
+				if(first == 1){
+					first = 0;
+					printf("+unate inputs: ");
+				}else{
+					printf(",");
+				}
+				printf("%s",Abc_ObjName(pFanin));
+			}
+		}
+		if(first == 0){			
+			printf("\n");
+			first = 1;
+		}
+		
+		Abc_ObjForEachFanin(pObj, pFanin, j) {
+			if((temp[j] == 0 && com == 0) || (temp[j] == 1 && com == 1) || temp[j] == 3){
+				if(first == 1){
+					first = 0;
+					printf("-unate inputs: ");
+				}else{
+					printf(",");
+				}
+				printf("%s",Abc_ObjName(pFanin));
+			}
+		}
+		if(first == 0){			
+			printf("\n");
+			first = 1;
+		}
+		
+		Abc_ObjForEachFanin(pObj, pFanin, j) {
+			if(temp[j] == 2){
+				if(first == 1){
+					first = 0;
+					printf("binate inputs: ");
+				}else{
+					printf(",");
+				}
+				printf("%s",Abc_ObjName(pFanin));
+			}
+		}
+		if(first == 0){			
+			printf("\n");
+		}
+		printf("\n");
+		
+		// Abc_SopForEachCube( pSop, nFanins, pCube ) {
+			
+		// }
+		// printf( "SOP: %s", (char *)pObj->pData );
+		// Abc_NodeComplement(pObj);
+		// Abc_SopIsComplement((char *)pObj->pData);
+		// printf( "SOP: %s", (char *)pObj->pData );
+	}
+	
+	
+	
+    // if ( !Abc_NtkIsLogic(pNtk) && fUseLutLib )
+    // {
+        // Abc_Print( -1, "Cannot print LUT delay for a non-logic network.\n" );
+        // return 1;
+    // }
+    // Abc_NtkPrintStats( pNtk, fFactor, fSaveBest, fDumpResult, fUseLutLib, fPrintMuxes, fPower, fGlitch, fSkipBuf, fSkipSmall, fPrintMem );
+    // if ( fPrintTime )
+    // {
+        // pAbc->TimeTotal += pAbc->TimeCommand;
+        // Abc_Print( 1, "elapse: %3.2f seconds, total: %3.2f seconds\n", pAbc->TimeCommand, pAbc->TimeTotal );
+        // pAbc->TimeCommand = 0.0;
+    // }
+	// Abc_Print( -1, "We are rushing on this function....\n" );
+    return 0;
+
+usage:
+    Abc_Print( -2, "usage: lsv_print_sopunate [-h]\n" );
+    // Abc_Print( -2, "usage: print_stats [-fbdltmpgscuh]\n" );
+    Abc_Print( -2, "\t        prints the unate information for each node, whose function is expressed in the SOP form\n" );
+    // Abc_Print( -2, "\t-f    : toggles printing the literal count in the factored forms [default = %s]\n", fFactor? "yes": "no" );
+    // Abc_Print( -2, "\t-b    : toggles saving the best logic network in \"best.blif\" [default = %s]\n", fSaveBest? "yes": "no" );
+    // Abc_Print( -2, "\t-d    : toggles dumping statistics about the network into file [default = %s]\n", fDumpResult? "yes": "no" );
+    // Abc_Print( -2, "\t-l    : toggles printing delay of LUT mapping using LUT library [default = %s]\n", fSaveBest? "yes": "no" );
+    // Abc_Print( -2, "\t-t    : toggles printing runtime statistics [default = %s]\n", fPrintTime? "yes": "no" );
+    // Abc_Print( -2, "\t-m    : toggles printing MUX statistics [default = %s]\n", fPrintMuxes? "yes": "no" );
+    // Abc_Print( -2, "\t-p    : toggles printing power dissipation due to switching [default = %s]\n", fPower? "yes": "no" );
+    // Abc_Print( -2, "\t-g    : toggles printing percentage of increased power due to glitching [default = %s]\n", fGlitch? "yes": "no" );
+    // Abc_Print( -2, "\t-s    : toggles not counting single-output nodes as nodes [default = %s]\n", fSkipBuf? "yes": "no" );
+    // Abc_Print( -2, "\t-c    : toggles not counting constants and single-output nodes as nodes [default = %s]\n", fSkipSmall? "yes": "no" );
+    // Abc_Print( -2, "\t-u    : toggles printing memory usage [default = %s]\n", fPrintMem? "yes": "no" );
+    Abc_Print( -2, "\t-h    : print the command usage\n" );
+    return 1;
 }
 
 /**Function*************************************************************
@@ -15443,7 +15644,7 @@ int Abc_CommandIFraig( Abc_Frame_t * pAbc, int argc, char ** argv )
     nPartSize    = 0;
     nLevelMax    = 0;
     nConfLimit   = 100;
-    fDoSparse    = 1;
+    fDoSparse    = 0;
     fProve       = 0;
     fVerbose     = 0;
     Extra_UtilGetoptReset();
@@ -36287,7 +36488,6 @@ int Abc_CommandAbc9Fraig( Abc_Frame_t * pAbc, int argc, char ** argv )
     int c, fUseAlgo = 0, fUseAlgoG = 0;
     Cec_ManFraSetDefaultParams( pPars );
     pPars->fSatSweeping = 1;
-    pPars->nItersMax = 1000000;
     Extra_UtilGetoptReset();
     while ( ( c = Extra_UtilGetopt( argc, argv, "WRILDCrmdckngwvh" ) ) != EOF )
     {
