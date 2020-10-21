@@ -1,0 +1,23 @@
+.model 4bit_adder
+.inputs a1 a2 a3 a4 b1 b2 b3 b4 c-in
+.outputs c-out s4 s3 s2 s1
+.subckt full_adder a=a1 b=b1 c-in=c-in sum=s1 c-out=carry1
+.subckt full_adder a=a2 b=b2 c-in=carry1 sum=s2 c-out=carry2
+.subckt full_adder a=a3 b=b3 c-in=carry2 sum=s3 c-out=carry3
+.subckt full_adder a=a4 b=b4 c-in=carry3 sum=s4 c-out=c-out
+
+.end 
+
+.model full_adder
+.inputs a b c-in
+.outputs sum c-out 
+.names a b c-in sum
+001 1
+100 1
+111 1
+010 1
+.names a b c-in c-out
+11- 1
+1-1 1
+-11 1
+.end
