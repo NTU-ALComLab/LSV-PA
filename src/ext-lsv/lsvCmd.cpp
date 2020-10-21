@@ -109,10 +109,10 @@ void Lsv_NtkPrintNodeSOPUnate(Abc_Ntk_t *pNtk)
             {
                 binateNames.push_back(faninNames[ind]);
             }
-            else
-            {
-                printf("Wrong unate information!");
-            }
+            // else
+            // {
+            //     printf("Wrong unate information!");
+            // }
         }
         if (posUnateNames.size() > 0)
         {
