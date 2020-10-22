@@ -2,10 +2,13 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 
-static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
+#include <vector>
+using namespace std;
+
+static int Lsv_CommandPrintSopUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
-  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintSopUnate, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -33,7 +36,31 @@ void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
   }
 }
 
-int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
+void LSv_NtkPrintUnate(Abc_Ntk_t* pNtk) {
+  Abc_Obj_t* pObj;
+  int i;
+  Abc_NtkForEachNode(pNtk, pObj, i) {
+    // printf("Object Id = %d, name = %s\n", Abc_ObjId(pObj), Abc_ObjName(pObj));
+    printf("node %s:\n", Abc_ObjName(pObj));
+
+    Abc_Obj_t* pFanin;
+    int j;
+    Abc_ObjForEachFanin(pObj, pFanin, j) {
+      printf("  Fanin-%d: Id = %d, name = %s\n", j, Abc_ObjId(pFanin),
+             Abc_ObjName(pFanin));
+    }
+
+    vector <int> type(j+1);
+    // if (Abc_NtkHasSop(pNtk)) {
+    //   printf("The SOP of this node:\n%s", (char*)pObj->pData);
+    // }
+    printf("+unate inputs: \n");
+    printf("-unate inputs: \n");
+    printf("binate inputs: \n");
+  }
+}
+
+int Lsv_CommandPrintSopUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   int c;
   Extra_UtilGetoptReset();
@@ -49,7 +76,9 @@ int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_Print(-1, "Empty network.\n");
     return 1;
   }
-  Lsv_NtkPrintNodes(pNtk);
+  // Lsv_NtkPrintNodes(pNtk);
+  LSv_NtkPrintUnate(pNtk);
+  
   return 0;
 
 usage:
