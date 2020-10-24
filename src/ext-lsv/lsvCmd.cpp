@@ -74,13 +74,41 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
     }
     if (Abc_NtkHasSop(pNtk)) {
       printf("The SOP of this node:\n%s", (char*)pObj->pData);
+      /// initialize array of size j with 0 for storing the unate of variable
+      /// unatiness decription 
+      /// dont care => 0
+      /// positive unate => 1
+      /// negative unate => 2
+      /// binate => 3
+      int* unateness = (int*) calloc(j, sizeof(int));
+      /// initialize iteration
       char* t = (char*)pObj->pData;
       int SOPFlag = 0;
+      int varCount = 0;
+      /// iterate over pDate
       for (int i = 0; i < strlen(t); i++) {
         if (t[i] == ' ') SOPFlag = 1;
-        if (SOPFlag == 0) printf("SOP: %c\n", t[i]);        
+        /// deal with each SOP
+        if (SOPFlag == 0) {
+          //printf("SOP: %c\n", t[i]);
+          //printf("varCount: %i\n", varCount);
+          /// if 1  && 0 in array => positive unate
+          if (t[i] == '1' && unateness[varCount] == 0) unateness[varCount] = 1;
+          /// if 0 && 0 in array => negative unate
+          if (t[i] == '0' && unateness[varCount] == 0) unateness[varCount] = 2;
+          /// if 2 && 1 in array or 1 &&  2 in array => binate
+          if ((t[i] == '1' && unateness[varCount] == 2) || (t[i] == '0' && unateness[varCount] == 1)) unateness[varCount] = 3;
+          varCount++;
+          if (varCount == j) varCount = 0;
+        }
         if (t[i] == '\n') SOPFlag = 0;
       }
+      /// traverse all the variable
+      int k;
+      Abc_ObjForEachFanin(pObj, pFanin, k) {
+        printf("%i unateness: %i\n", k, unateness[k]);
+      }
+      free(unateness);
     }
   }
 }
