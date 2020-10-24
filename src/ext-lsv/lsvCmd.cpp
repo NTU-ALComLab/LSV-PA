@@ -75,8 +75,11 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
     if (Abc_NtkHasSop(pNtk)) {
       printf("The SOP of this node:\n%s", (char*)pObj->pData);
       char* t = (char*)pObj->pData;
+      int SOPFlag = 0;
       for (int i = 0; i < strlen(t); i++) {
-        printf("test %c\n", t[i]);
+        if (t[i] == ' ') SOPFlag = 1;
+        if (SOPFlag == 0) printf("SOP: %c\n", t[i]);        
+        if (t[i] == '\n') SOPFlag = 0;
       }
     }
   }
