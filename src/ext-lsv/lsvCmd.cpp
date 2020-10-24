@@ -7,7 +7,7 @@ static int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
-  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintNodes, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintSOPUnate, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -74,6 +74,10 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
     }
     if (Abc_NtkHasSop(pNtk)) {
       printf("The SOP of this node:\n%s", (char*)pObj->pData);
+      char* t = (char*)pObj->pData;
+      for (int i = 0; i < strlen(t); i++) {
+        printf("test %c\n", t[i]);
+      }
     }
   }
 }
