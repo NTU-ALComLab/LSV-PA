@@ -85,9 +85,13 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
       char* t = (char*)pObj->pData;
       int SOPFlag = 0;
       int varCount = 0;
+      int negateFlag = 0;
       /// iterate over pDate
       for (int i = 0; i < strlen(t); i++) {
-        if (t[i] == ' ') SOPFlag = 1;
+        if (t[i] == ' ') {
+          SOPFlag = 1;
+          if (t[i+1] == '0') negateFlag = 1;
+        }
         /// deal with each SOP
         if (SOPFlag == 0) {
           //printf("SOP: %c\n", t[i]);
@@ -117,7 +121,8 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
       int a;
       int a_count = 0;
       Abc_ObjForEachFanin(pObj, pFanin, a) {
-        if (unateness[a] == 1) {
+        int negation = (negateFlag == 0) ? 1 : 2;
+        if (unateness[a] == negation) {
           if (a_count == 0) {
             printf("+unate inputs: %s", Abc_ObjName(pFanin));
             a_count++;
@@ -132,7 +137,8 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
       int b;
       int b_count = 0;
       Abc_ObjForEachFanin(pObj, pFanin, b) {
-        if (unateness[b] == 2) {
+        int negation = (negateFlag == 0) ? 2 : 1;
+        if (unateness[b] == negation) {
           if (b_count == 0) {
             printf("-unate inputs: %s", Abc_ObjName(pFanin));
             b_count++;
