@@ -80,7 +80,7 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
       /// positive unate => 1
       /// negative unate => 2
       /// binate => 3
-      int* unateness = (int*) calloc(j, sizeof(int));
+      int* unateness = ABC_CALLOC(int, j);
       /// initialize iteration
       char* t = (char*)pObj->pData;
       int SOPFlag = 0;
@@ -103,12 +103,63 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
         }
         if (t[i] == '\n') SOPFlag = 0;
       }
+      /*
       /// traverse all the variable
       int k;
       Abc_ObjForEachFanin(pObj, pFanin, k) {
-        printf("%i unateness: %i\n", k, unateness[k]);
+        printf("%i %s unateness: %i\n", k, Abc_ObjName(pFanin), unateness[k]);        
       }
-      free(unateness);
+      */
+
+      /// print result
+      printf("node %s:\n", Abc_ObjName(pObj));
+      /// print positive unate
+      int a;
+      int a_count = 0;
+      Abc_ObjForEachFanin(pObj, pFanin, a) {
+        if (unateness[a] == 1) {
+          if (a_count == 0) {
+            printf("+unate inputs: %s", Abc_ObjName(pFanin));
+            a_count++;
+          }
+          else {
+            printf(",%s", Abc_ObjName(pFanin)); 
+          }
+        }
+      }
+      if (a_count == 1) printf("\n");
+      /// print negative unate
+      int b;
+      int b_count = 0;
+      Abc_ObjForEachFanin(pObj, pFanin, b) {
+        if (unateness[b] == 2) {
+          if (b_count == 0) {
+            printf("-unate inputs: %s", Abc_ObjName(pFanin));
+            b_count++;
+          }
+          else {
+            printf(",%s", Abc_ObjName(pFanin)); 
+          }
+        }
+      }
+      if (b_count == 1) printf("\n");
+      /// print binate
+      int c;
+      int c_count = 0;
+      Abc_ObjForEachFanin(pObj, pFanin, c) {
+        if (unateness[c] == 3) {
+          if (c_count == 0) {
+            printf("binate inputs: %s", Abc_ObjName(pFanin));
+            c_count++;
+          }
+          else {
+            printf(",%s", Abc_ObjName(pFanin)); 
+          }
+        }
+      }
+      if (c_count == 1) printf("\n");
+      /// free variable
+      ABC_FREE(unateness);
     }
   }
 }
