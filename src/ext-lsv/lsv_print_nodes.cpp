@@ -1,7 +1,10 @@
 
 #include "ext-lsv/lsv_cmd.h"
     
-void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
+namespace lsv
+{
+    
+static void NtkPrintNodes(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pObj;
   int i;
   Abc_NtkForEachNode(pNtk, pObj, i) {
@@ -18,7 +21,7 @@ void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
   }
 }
 
-int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
+int CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   int c;
   Extra_UtilGetoptReset();
@@ -34,7 +37,7 @@ int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_Print(-1, "Empty network.\n");
     return 1;
   }
-  Lsv_NtkPrintNodes(pNtk);
+  NtkPrintNodes(pNtk);
   return 0;
 
 usage:
@@ -42,4 +45,6 @@ usage:
   Abc_Print(-2, "\t        prints the nodes in the network\n");
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
+}
+
 }
