@@ -37,8 +37,8 @@ void Lsv_NtkPrintNodeSOPUnate(Abc_Ntk_t *pNtk)
     int i;
     Abc_NtkForEachNode(pNtk, pObj, i)
     {
-        // if(Abc_SopIsConst1((char *)pObj->pData)||Abc_SopIsConst0((char *)pObj->pData))
-        //     continue;
+        if(Abc_SopIsConst1((char *)pObj->pData)||Abc_SopIsConst0((char *)pObj->pData))
+            continue;
         printf("node %s:\n", Abc_ObjName(pObj));
         int numFanins = Abc_ObjFaninNum(pObj);
         faninNames = new char *[numFanins];
@@ -109,10 +109,11 @@ void Lsv_NtkPrintNodeSOPUnate(Abc_Ntk_t *pNtk)
             {
                 binateNames.push_back(faninNames[ind]);
             }
-            // else
-            // {
-            //     printf("Wrong unate information!");
-            // }
+            else
+            {
+                //printf("Wrong unate information!");
+                binateNames.push_back(faninNames[ind]);
+            }
         }
         if (posUnateNames.size() > 0)
         {
