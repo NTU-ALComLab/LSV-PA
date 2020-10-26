@@ -49,7 +49,9 @@ bool compare(pair< Abc_Obj_t*, short> a, pair< Abc_Obj_t*, short> b) {
 void Lsv_NtkPrintSopunate(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pObj;
   int i;
+  Abc_Obj_t* pObj_copy;
   Abc_NtkForEachNode(pNtk, pObj, i) {
+    pObj_copy = pObj;
     Abc_Obj_t* pFanin;
     int j;
     vector< pair< Abc_Obj_t*, short>  > allFanin; // int==0 means neg, int==1 means pos, int==2 means bi, int==3 means error
@@ -63,11 +65,11 @@ void Lsv_NtkPrintSopunate(Abc_Ntk_t* pNtk) {
         regex whitespace{R"(\s+)"};
         sregex_token_iterator it{s.begin(), s.end(), newline, -1};
         vector<string> lines{it, {}};
+        bool on = 0;
         for ( string const str: lines){
           sregex_token_iterator it{str.begin(), str.end(), whitespace, -1};
           vector<string> toks{it, {}};
           assert( toks.size() == 2);
-          bool on = 0; 
           stringstream sstr1( toks[1] ); 
           assert( toks[1].length() == 1);
           sstr1 >> on;
@@ -82,14 +84,19 @@ void Lsv_NtkPrintSopunate(Abc_Ntk_t* pNtk) {
               else if ( allFanin[i].second == -1) allFanin[i].second = 2;
             }
           }
-          if ( !on )
-            for ( auto& it: allFanin) it.second *= -1;
+        }
+        if ( !on ){
+          for ( auto& it: allFanin){
+            if( it.second == 2)continue;
+            it.second *= -1;
+          }
         }
       }
     }
+
     if (allFanin.size() == 0) return;
     sort(allFanin.begin(),allFanin.end(), compare);
-    printf("node %s:\n", Abc_ObjName(pObj));
+    printf("node %s:\n", Abc_ObjName(pObj_copy));
     vector<Abc_Obj_t*> Fanin2BPrinted;
     for ( short nateType: {1,-1,2}){
       Fanin2BPrinted.clear();
