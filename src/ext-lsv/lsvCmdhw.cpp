@@ -35,7 +35,7 @@ void Lsv_NtkPrintSOP(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pObj;
   int i;
   Abc_NtkForEachNode(pNtk, pObj, i) {
-    printf("node %s:\n", Abc_ObjName(pObj));
+    
     Abc_Obj_t* pFanin;
     int j;
     //get input
@@ -56,7 +56,9 @@ void Lsv_NtkPrintSOP(Abc_Ntk_t* pNtk) {
       SOP = (char*)pObj->pData;
     }
     //printf("SOP:\n%s",SOP);
-    if(SOP!=NULL){ //mean didn't have SOP
+    if(SOP!=NULL && strlen(SOP)>3){ //mean didn't have SOP or not const
+      //cout<<strlen(SOP)<<endl;
+      printf("node %s:\n", Abc_ObjName(pObj));
       //get information
       if(SOP[j+1]=='1')positiveSOP = true;
       SOPline = strlen(SOP)/(j+3);

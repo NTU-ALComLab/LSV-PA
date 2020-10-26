@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results/depth/div_depth_2020.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results//depth/div_depth_2020.blif; lsv_print_sopunate".
 
 node [20630]:
 +unate inputs: a[1],b[0],b[1]
