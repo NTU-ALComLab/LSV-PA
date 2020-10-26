@@ -73,7 +73,7 @@ static void compute_unateness( char* pData, int nFanins, std::vector<Unateness>*
     }
 }
 
-void print_sop_unateness(Abc_Ntk_t* pNtk)
+static void print_sop_unateness(Abc_Ntk_t* pNtk)
 {
     Abc_Obj_t* pObj;
     int i;
@@ -82,7 +82,6 @@ void print_sop_unateness(Abc_Ntk_t* pNtk)
         std::vector<Unateness> unate_vec;
         std::vector< std::string > FaninNames;
         
-        std::cout << "node " << Abc_ObjName( pObj ) << ":" << std::endl;
         
         int j;
         Abc_Obj_t* pFanin;
@@ -92,11 +91,13 @@ void print_sop_unateness(Abc_Ntk_t* pNtk)
         }
         
         int nFanins = j;
+        if( nFanins==0 ) continue;
         if( Abc_NtkHasSop(pNtk) )
         {
             /// SOP (pData) is just a string
             char* pData = (char*)pObj->pData;
             compute_unateness( pData, nFanins, &unate_vec );
+            std::cout << "node " << Abc_ObjName( pObj ) << ":" << std::endl;
             dump_unateness( unate_vec, FaninNames, POS_UNATE );
             dump_unateness( unate_vec, FaninNames, NEG_UNATE );
             dump_unateness( unate_vec, FaninNames, BINATE );
@@ -107,32 +108,32 @@ void print_sop_unateness(Abc_Ntk_t* pNtk)
 static void HelpCommandPrintSOPUnate()
 {  
     Abc_Print(-2, "usage: lsv_print_sopunate [-h]\n");
-    Abc_Print(-2, "\t        report unateness for each node\n");
+    Abc_Print(-2, "\t        report SOP unateness for each node\n");
     Abc_Print(-2, "\t-h    : print the command usage\n");
 }
 
 int CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv)
 {
-  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
-  int c;
-  Extra_UtilGetoptReset();
-  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+    int c;
+    Extra_UtilGetoptReset();
+    while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
     switch (c) {
-      case 'h':
-        HelpCommandPrintSOPUnate();
-        return 1;
-      default:
-        HelpCommandPrintSOPUnate();
+        case 'h':
+            HelpCommandPrintSOPUnate();
+            return 1;
+        default:
+            HelpCommandPrintSOPUnate();
+            return 1;
+    }
+    }
+    if (!pNtk) {
+        Abc_Print(-1, "Empty network.\n");
         return 1;
     }
-  }
-  if (!pNtk) {
-    Abc_Print(-1, "Empty network.\n");
-    return 1;
-  }
-  
-  print_sop_unateness(pNtk);
-  return 0;
+    
+    print_sop_unateness(pNtk);
+    return 0;
 }
 
 }   /// end of namespace lsv
