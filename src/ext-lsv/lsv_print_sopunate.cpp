@@ -4,44 +4,53 @@
 namespace lsv
 {
 
-static void dump_unateness( const std::vector<Unateness>& unate_vec, const std::vector< std::string >& FaninNames, Unateness unate_type )
+static void dump_unateness( const std::vector<Unateness>& unate_vec, const std::vector<Abc_Obj_t*>& fanin_vec, Unateness unate_type )
 {
-    bool empty = true;
+    
+    std::priority_queue< Abc_Obj_t*, std::vector< Abc_Obj_t* >, CompareAbcFaninPtr > sorted;
     for( int i=0; i<(int)unate_vec.size(); ++i )
     {
         if( unate_vec[i]==unate_type )
         {
-            if( empty )
-            {
-                switch( unate_type )
-                {
-                    case POS_UNATE :
-                        std::cout << "+unate inputs: ";
-                        break;
-                    case NEG_UNATE :
-                        std::cout << "-unate inputs: ";
-                        break;
-                    case BINATE :
-                        std::cout << "biunate inputs: ";
-                        break;
-                    default:
-                        std::cout << "non-unate inputs: ";
-                        break;
-                }
-                empty = false;
-            }
-            else{
-                std::cout << ",";
-            }
-            std::cout << FaninNames[i];
+            sorted.push( fanin_vec[i] );
         }
     }
-    if( !empty ) std::cout << std::endl;
+    
+    //
+    if( !sorted.empty() )
+    {
+        switch( unate_type )
+        {
+            case POS_UNATE :
+                std::cout << "+unate inputs: ";
+                break;
+            case NEG_UNATE :
+                std::cout << "-unate inputs: ";
+                break;
+            case BINATE :
+                std::cout << "binate inputs: ";
+                break;
+            default:
+                std::cout << "non-unate inputs: ";
+                break;
+        }
+        
+        while( !sorted.empty() )
+        {
+            auto* pObj = sorted.top();
+            sorted.pop();
+            std::cout << Abc_ObjName( pObj );
+            if( !sorted.empty() ) std::cout << ",";
+        }
+        std::cout << std::endl;
+    }
+    
 }
 
 static void compute_unateness( char* pData, int nFanins, std::vector<Unateness>* unate_vec )
 {
-    unate_vec->resize( nFanins, NONE );
+    unate_vec->resize( nFanins );
+    for( auto& u : *unate_vec ) u = NONE;
         
     bool isMaxterm = false;
     while( *pData )
@@ -77,20 +86,22 @@ static void print_sop_unateness(Abc_Ntk_t* pNtk)
 {
     Abc_Obj_t* pObj;
     int i;
+    std::vector<Unateness> unate_vec;
+    std::vector<Abc_Obj_t*> fanin_vec( 8, nullptr );
+    
     Abc_NtkForEachNode(pNtk, pObj, i)
-    {        
-        std::vector<Unateness> unate_vec;
-        std::vector< std::string > FaninNames;
-        
-        
-        int j;
+    {
+        int nFanins;
         Abc_Obj_t* pFanin;
-        Abc_ObjForEachFanin(pObj, pFanin, j)
+        Abc_ObjForEachFanin(pObj, pFanin, nFanins)
         {
-            FaninNames.push_back( Abc_ObjName(pFanin) );
+            if( nFanins > fanin_vec.size() )
+            {
+                fanin_vec.resize( nFanins );
+            }
+            fanin_vec[nFanins] = pFanin;
         }
         
-        int nFanins = j;
         if( nFanins==0 ) continue;
         if( Abc_NtkHasSop(pNtk) )
         {
@@ -98,9 +109,9 @@ static void print_sop_unateness(Abc_Ntk_t* pNtk)
             char* pData = (char*)pObj->pData;
             compute_unateness( pData, nFanins, &unate_vec );
             std::cout << "node " << Abc_ObjName( pObj ) << ":" << std::endl;
-            dump_unateness( unate_vec, FaninNames, POS_UNATE );
-            dump_unateness( unate_vec, FaninNames, NEG_UNATE );
-            dump_unateness( unate_vec, FaninNames, BINATE );
+            dump_unateness( unate_vec, fanin_vec, POS_UNATE );
+            dump_unateness( unate_vec, fanin_vec, NEG_UNATE );
+            dump_unateness( unate_vec, fanin_vec, BINATE );
         }
     }
 }

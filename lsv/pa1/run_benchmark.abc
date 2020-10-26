@@ -1,0 +1,2 @@
+read ../../benchmarks/best_results/depth/sin_depth_2018.blif
+lsv_print_sopunate
