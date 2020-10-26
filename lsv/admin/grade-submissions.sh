@@ -11,7 +11,7 @@ pa_dir="lsv/pa1"
 ref_dir="${pa_dir}/ref"
 out_dir="${pa_dir}/out"
 diff_dir="${pa_dir}/diff"
-bench_list=( $(find -L benchmarks/best_results/ -type f -name '*.blif') )
+bench_list=$(find -L benchmarks/best_results/ -type f -name '*.blif') 
 
 if [ "$1" = "ALL" ]; then
     echo "[INFO] Grading all students ..."
