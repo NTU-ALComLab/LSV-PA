@@ -91,7 +91,9 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
       int SOPFlag = 0;
       int varCount = 0;
       int negateFlag = 0;
+      int isConst = 0;
       /// iterate over pDate
+      if (strlen(t) == 3) isConst = 1;
       for (int i = 0; i < strlen(t); i++) {
         if (t[i] == ' ') {
           SOPFlag = 1;
@@ -150,7 +152,7 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
       }
 
       /// print result
-      printf("node %s:\n", Abc_ObjName(pObj));
+      if (isConst == 0) printf("node %s:\n", Abc_ObjName(pObj));
       /// print positive unat
       int a_count = 0;
       for (int i = 0; i < j; i++) {
