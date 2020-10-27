@@ -206,3 +206,12 @@ Temporary Items
 
 # Local History for Visual Studio Code
 .history/
+
+# lsv/pa1
+*.odt
+lsv/pa1/diff/
+lsv/pa1/out/
+lsv/pa1/ref/
+lsv/pa1/master.csv
+pa1-ref*
+!src/ext-lsv
