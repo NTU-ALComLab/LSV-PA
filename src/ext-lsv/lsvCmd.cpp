@@ -5,6 +5,8 @@
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
+bool debug = false;
+
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintSOPUnate, 0);
@@ -65,15 +67,15 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pObj;
   int i;
   Abc_NtkForEachNode(pNtk, pObj, i) {
-    printf("Object Id = %d, name = %s\n", Abc_ObjId(pObj), Abc_ObjName(pObj));
+    if (debug == true) printf("Object Id = %d, name = %s\n", Abc_ObjId(pObj), Abc_ObjName(pObj));
     Abc_Obj_t* pFanin;
     int j;
     Abc_ObjForEachFanin(pObj, pFanin, j) {
-      printf("  Fanin-%d: Id = %d, name = %s\n", j, Abc_ObjId(pFanin),
+      if (debug == true) printf("  Fanin-%d: Id = %d, name = %s\n", j, Abc_ObjId(pFanin),
              Abc_ObjName(pFanin));
     }
     if (Abc_NtkHasSop(pNtk)) {
-      printf("The SOP of this node:\n%s", (char*)pObj->pData);
+      if (debug == true) printf("The SOP of this node:\n%s", (char*)pObj->pData);
       /// initialize array of size j with 0 for storing the unate of variable
       /// unatiness decription 
       /// dont care => 0
