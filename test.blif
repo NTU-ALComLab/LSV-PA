@@ -1,0 +1,9 @@
+.model test
+.inputs a b c d
+.outputs f e
+
+.names a b c d e
+0000 1
+
+.names f
+1

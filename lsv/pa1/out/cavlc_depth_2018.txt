@@ -1,0 +1,199 @@
+ABC command line: "read benchmarks/best_results/depth/cavlc_depth_2018.blif; lsv_print_sopunate".
+
+node po00:
++unate inputs: n23,n29
+-unate inputs: pi7,n25
+binate inputs: pi6
+node n23:
+binate inputs: pi4,pi5,pi6,pi8,pi9,n24
+node n24:
+-unate inputs: pi0,pi1,pi2,pi3
+node n25:
++unate inputs: pi7
+-unate inputs: n28
+binate inputs: pi1,pi5,n26,n27
+node n26:
++unate inputs: pi2,pi3
+binate inputs: pi0,pi7,pi8,pi9
+node n27:
+binate inputs: pi0,pi2,pi3,pi7,pi8,pi9
+node n28:
+binate inputs: pi0,pi1,pi2,pi3,pi8,pi9
+node n29:
++unate inputs: n31
+-unate inputs: n30
+binate inputs: pi9
+node n30:
+binate inputs: pi0,pi1,pi2,pi3,pi5,pi8
+node n31:
+binate inputs: pi0,pi1,pi2,pi3,pi5,pi8
+node po01:
++unate inputs: n33,n39
+-unate inputs: pi7,n35
+binate inputs: pi6
+node n33:
+-unate inputs: pi6,pi8
+binate inputs: pi0,pi4,pi9,n34
+node n34:
+-unate inputs: pi1,pi2,pi3
+node n35:
++unate inputs: pi7,n38
+binate inputs: pi3,pi5,n36,n37
+node n36:
++unate inputs: pi1
+-unate inputs: pi7,pi9
+binate inputs: pi0,pi2,pi8
+node n37:
+binate inputs: pi0,pi1,pi2,pi7,pi8,pi9
+node n38:
+binate inputs: pi0,pi1,pi2,pi3,pi8,pi9
+node n39:
++unate inputs: n41
+-unate inputs: n40
+binate inputs: pi2
+node n40:
++unate inputs: pi8
+binate inputs: pi0,pi1,pi3,pi5,pi9
+node n41:
+-unate inputs: pi0
+binate inputs: pi1,pi3,pi5,pi8,pi9
+node po02:
+-unate inputs: n43,n47
+node n43:
++unate inputs: n44,n45
+binate inputs: pi3,pi4,pi8,n46
+node n44:
+binate inputs: pi0,pi1,pi2,pi5,pi6,pi9
+node n45:
+binate inputs: pi0,pi1,pi2,pi5,pi6,pi9
+node n46:
++unate inputs: pi8
+-unate inputs: pi0,pi1,pi2
+binate inputs: pi5,pi6
+node n47:
+binate inputs: pi3,pi5,pi7,n48,n49,n50
+node n48:
+binate inputs: pi0,pi1,pi2,pi6,pi8,pi9
+node n49:
++unate inputs: pi8
+-unate inputs: pi1
+binate inputs: pi0,pi6,pi7,pi9
+node n50:
++unate inputs: pi2
+binate inputs: pi0,pi1,pi6,pi8,pi9
+node po03:
++unate inputs: n52
+-unate inputs: pi7
+binate inputs: pi4,pi5,pi6,n34
+node n52:
++unate inputs: n55,n56
+-unate inputs: n53,n54
+binate inputs: pi3,pi5
+node n53:
+binate inputs: pi0,pi1,pi2,pi6,pi8,pi9
+node n54:
+binate inputs: pi0,pi1,pi2,pi6,pi8,pi9
+node n55:
+-unate inputs: pi5,pi6
+binate inputs: pi1,pi2,pi9
+node n56:
+binate inputs: pi0,pi1,pi5,pi6,pi8,pi9
+node po04:
++unate inputs: n59
+-unate inputs: pi7
+binate inputs: pi2,pi3,pi4,n58
+node n58:
+-unate inputs: pi0,pi1
+node n59:
++unate inputs: pi5,pi6
+node po05:
++unate inputs: n59
+-unate inputs: pi7
+binate inputs: pi2,pi3,pi4,n58
+node po06:
++unate inputs: pi7,n65
+-unate inputs: n62
+binate inputs: pi3,pi4
+node n62:
++unate inputs: pi6,n24,n64
+-unate inputs: n63
+binate inputs: pi4,pi5
+node n63:
+binate inputs: pi0,pi1,pi2,pi8,pi9
+node n64:
+binate inputs: pi0,pi1,pi2,pi6,pi8,pi9
+node n65:
+binate inputs: pi0,pi2,n66,n67,n68,n69
+node n66:
+binate inputs: pi1,pi2,pi5,pi7,pi8,pi9
+node n67:
++unate inputs: pi8
+binate inputs: pi2,pi5,pi6,pi7,pi9
+node n68:
+binate inputs: pi1,pi5,pi6,pi7,pi8,pi9
+node n69:
++unate inputs: pi8,pi9
+-unate inputs: pi1
+binate inputs: pi5,pi6,pi7
+node po07:
++unate inputs: pi4,n71
+-unate inputs: n24,n75
+node n71:
+-unate inputs: n74
+binate inputs: pi4,pi5,pi6,n72,n73
+node n72:
+binate inputs: pi0,pi1,pi2,pi3,pi8,pi9
+node n73:
++unate inputs: pi3
+binate inputs: pi0,pi1,pi2,pi8,pi9
+node n74:
+binate inputs: pi0,pi1,pi2,pi3,pi8,pi9
+node n75:
++unate inputs: n76
+-unate inputs: pi3,pi7
+binate inputs: pi1,pi6
+node n76:
++unate inputs: pi2
+binate inputs: pi0,pi7,pi8,pi9
+node po08:
++unate inputs: pi5,pi7,n78
+-unate inputs: n24,n82
+binate inputs: pi4
+node n78:
++unate inputs: pi6
+-unate inputs: n79,n80,n81
+binate inputs: pi3,pi5
+node n79:
+binate inputs: pi0,pi1,pi2,pi5,pi8,pi9
+node n80:
+-unate inputs: pi2
+binate inputs: pi0,pi1,pi8,pi9
+node n81:
++unate inputs: pi0
+binate inputs: pi1,pi2,pi6,pi8,pi9
+node n82:
+-unate inputs: pi0,pi1,pi2,pi6
+binate inputs: pi8,pi9
+node po09:
++unate inputs: n84
+-unate inputs: pi3,n86,n87
+binate inputs: pi4,n34
+node n84:
++unate inputs: pi3,n85
+-unate inputs: pi7
+binate inputs: pi2,pi5,pi6
+node n85:
+binate inputs: pi0,pi1,pi5,pi6,pi8,pi9
+node n86:
++unate inputs: pi8,pi9
+binate inputs: pi1,pi2,pi5,pi6
+node n87:
++unate inputs: pi7
+binate inputs: pi0,pi1,pi2,pi8,pi9
+node po10:
++unate inputs: n24,n89
+-unate inputs: pi5,pi6,pi7
+binate inputs: pi4
+node n89:
++unate inputs: pi0,pi1,pi2,pi3
+-unate inputs: pi8,pi9
