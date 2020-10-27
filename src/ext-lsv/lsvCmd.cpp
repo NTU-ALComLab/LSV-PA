@@ -8,7 +8,7 @@
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
-bool debug = true;
+bool debug = false;
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
@@ -129,8 +129,8 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
         faninId[e] = Abc_ObjId(pFanin);
         faninName[e] = Abc_ObjName(pFanin);
         faninUnate[e] = unateness[e];
-        printf("Name: %s, Id: %i, ", faninName[e].c_str(), faninId[e]);
-        printf("unateness: %i \n", faninUnate[e]);
+        if (debug == true) printf("Name: %s, Id: %i, ", faninName[e].c_str(), faninId[e]);
+        if (debug == true) printf("unateness: %i \n", faninUnate[e]);
       }
 
       for (int k = 0; k < j; k++) {
@@ -142,64 +142,62 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
           }
         }
       }
-      printf("\n");
       /// check
       int f;
       Abc_ObjForEachFanin(pObj, pFanin, f) {
-        printf("Name: %s, Id: %i, ", faninName[f].c_str(), faninId[f]);
-        printf("unateness: %i \n", faninUnate[f]);
+        if (debug == true) printf("Name: %s, Id: %i, ", faninName[f].c_str(), faninId[f]);
+        if (debug == true) printf("unateness: %i \n", faninUnate[f]);
       }
 
       /// print result
       printf("node %s:\n", Abc_ObjName(pObj));
-      /// print positive unate
-      int a;
+      /// print positive unat
       int a_count = 0;
-      Abc_ObjForEachFanin(pObj, pFanin, a) {
+      for (int i = 0; i < j; i++) {
         int negation = (negateFlag == 0) ? 1 : 2;
-        if (unateness[a] == negation) {
+        if (faninUnate[i] == negation) {
           if (a_count == 0) {
-            printf("+unate inputs: %s", Abc_ObjName(pFanin));
+            printf("+unate inputs: %s", faninName[i].c_str());
             a_count++;
           }
           else {
-            printf(",%s", Abc_ObjName(pFanin)); 
+            printf(",%s", faninName[i].c_str()); 
           }
         }
       }
       if (a_count == 1) printf("\n");
+
       /// print negative unate
-      int b;
       int b_count = 0;
-      Abc_ObjForEachFanin(pObj, pFanin, b) {
+      for (int i = 0; i < j; i++) {
         int negation = (negateFlag == 0) ? 2 : 1;
-        if (unateness[b] == negation) {
+        if (faninUnate[i] == negation) {
           if (b_count == 0) {
-            printf("-unate inputs: %s", Abc_ObjName(pFanin));
+            printf("-unate inputs: %s",  faninName[i].c_str());
             b_count++;
           }
           else {
-            printf(",%s", Abc_ObjName(pFanin)); 
+            printf(",%s", faninName[i].c_str()); 
           }
         }
       }
       if (b_count == 1) printf("\n");
+
       /// print binate
-      int c;
       int c_count = 0;
-      Abc_ObjForEachFanin(pObj, pFanin, c) {
-        if (unateness[c] == 3) {
+      for (int i = 0; i < j; i++) {
+        if (faninUnate[i]== 3) {
           if (c_count == 0) {
-            printf("binate inputs: %s", Abc_ObjName(pFanin));
+            printf("binate inputs: %s", faninName[i].c_str());
             c_count++;
           }
           else {
-            printf(",%s", Abc_ObjName(pFanin)); 
+            printf(",%s", faninName[i].c_str()); 
           }
         }
       }
       if (c_count == 1) printf("\n");
-      /// free variable
+      
       ABC_FREE(unateness);
     }
   }
