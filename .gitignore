@@ -19,6 +19,9 @@ src/aig/au/
 src/aig/ssm/
 src/aig/ddb/
 
+lsv/pa1/*/*.txt
+lsv/pa1/test.csv
+
 *~
 *.orig
 
@@ -55,6 +58,8 @@ tags
 
 /libabc.a
 /abc
+
+pa1-ref
 
 /arch_flags
 

@@ -60,7 +60,7 @@ void LSv_NtkPrintUnate(Abc_Ntk_t* pNtk) {
 
     
     if (Abc_NtkHasSop(pNtk)) {
-      printf("node %s:\n", Abc_ObjName(pObj));
+      
 
       string sop = (char*)pObj->pData;
 
@@ -102,24 +102,28 @@ void LSv_NtkPrintUnate(Abc_Ntk_t* pNtk) {
 
       for(int ii = 0; ii < fanins.size(); ++ii){
         if(fanins[ii]._type == 0){
-          pos_unate = pos_unate + fanins[ii]._name + ", ";
-          neg_unate = neg_unate + fanins[ii]._name + ", ";
+          pos_unate = pos_unate + fanins[ii]._name + ",";
+          neg_unate = neg_unate + fanins[ii]._name + ",";
         }else if(fanins[ii]._type == 1){
-          pos_unate = pos_unate + fanins[ii]._name + ", ";
+          pos_unate = pos_unate + fanins[ii]._name + ",";
         }else if(fanins[ii]._type == 2){
-          neg_unate = neg_unate + fanins[ii]._name + ", ";
+          neg_unate = neg_unate + fanins[ii]._name + ",";
         }else if(fanins[ii]._type == 3){
-          binate = binate + fanins[ii]._name + ", ";
+          binate = binate + fanins[ii]._name + ",";
         }
       }
 
       // trim " ,"
-      pos_unate = pos_unate.substr(0, pos_unate.length()-2);
-      neg_unate = neg_unate.substr(0, neg_unate.length()-2);
-      binate = binate.substr(0, binate.length()-2);
+      pos_unate = pos_unate.substr(0, pos_unate.length()-1);
+      neg_unate = neg_unate.substr(0, neg_unate.length()-1);
+      binate = binate.substr(0, binate.length()-1);
 
       // cout << sop.size() << ", " << col << ", " << row << endl;
       // return;
+
+      if(pos_unate.length() > 0 || neg_unate.length() > 0 || binate.length() > 0 ){
+        printf("node %s:\n", Abc_ObjName(pObj));
+      }
 
       if(sop_type=='0'){
         if(neg_unate.length() > 0){
