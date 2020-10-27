@@ -146,6 +146,8 @@ void Lsv_NtkPrintSopunate(Abc_Ntk_t* pNtk) {
     Abc_Obj_t* pObj; int i;
     Abc_NtkForEachNode(pNtk, pObj, i) {
         
+        if(Abc_ObjFaninNum( pObj ) == 0) continue;
+
         // traverse the cubes in sop to decide the unateness        
         resetUnateVec(UnateVec, pObj); 
         setUnateVec(UnateVec, pObj);        
@@ -160,6 +162,10 @@ void Lsv_NtkPrintSopunate(Abc_Ntk_t* pNtk) {
                 PosQueue.push(p);
             else if( UnateVec[j] == 2 ) //10
                 NegQueue.push(p);
+            else if (UnateVec[j] == 3){ //11
+                PosQueue.push(p);
+                NegQueue.push(p);
+            }
         }
        
         // print the unateness message for each node 
