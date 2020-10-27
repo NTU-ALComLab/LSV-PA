@@ -1,3 +1,3 @@
 SRC += \
     src/ext-lsv/lsvCmd.cpp \
-    src/ext-lsv/lsvunate.cp
+    src/ext-lsv/lsvunate.cpp
