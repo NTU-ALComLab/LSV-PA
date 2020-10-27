@@ -1,11 +1,14 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include <vector>
+#include <string>
+#include <algorithm>
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
-bool debug = false;
+bool debug = true;
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
@@ -116,6 +119,36 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
         printf("%i %s unateness: %i\n", k, Abc_ObjName(pFanin), unateness[k]);        
       }
       */
+
+      /// sort Fain
+      int e;
+      std::vector<int> faninId(j, 0);
+      std::vector<std::string> faninName(j);
+      std::vector<int> faninUnate(j, 0);
+      Abc_ObjForEachFanin(pObj, pFanin, e) {
+        faninId[e] = Abc_ObjId(pFanin);
+        faninName[e] = Abc_ObjName(pFanin);
+        faninUnate[e] = unateness[e];
+        printf("Name: %s, Id: %i, ", faninName[e].c_str(), faninId[e]);
+        printf("unateness: %i \n", faninUnate[e]);
+      }
+
+      for (int k = 0; k < j; k++) {
+        for (int l = k + 1; l < j; l++) {
+          if (faninId[l] < faninId[k]) {
+            std::swap(faninId[l], faninId[k]);
+            std::swap(faninName[l], faninName[k]);
+            std::swap(faninUnate[l], faninUnate[k]);
+          }
+        }
+      }
+      printf("\n");
+      /// check
+      int f;
+      Abc_ObjForEachFanin(pObj, pFanin, f) {
+        printf("Name: %s, Id: %i, ", faninName[f].c_str(), faninId[f]);
+        printf("unateness: %i \n", faninUnate[f]);
+      }
 
       /// print result
       printf("node %s:\n", Abc_ObjName(pObj));
