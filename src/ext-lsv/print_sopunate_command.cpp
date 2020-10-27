@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 namespace
@@ -57,6 +58,11 @@ void parseSOP(const string &str, vector<int> &record, bool &flip)
 	}//end for			
 }
 
+bool myCompare(Abc_Obj_t* n1, Abc_Obj_t* n2){
+	return Abc_ObjId(n1) < Abc_ObjId(n2);
+}
+
+
 int Lsv_CommandPrintSOPUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 {
     Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
@@ -64,14 +70,15 @@ int Lsv_CommandPrintSOPUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 
 	int i;
 	Abc_NtkForEachNode(pNtk, pObj, i) {
-		cout << "node " << Abc_ObjName(pObj) << ":" << endl;
+	//	cout << "node " << Abc_ObjName(pObj) << ":" << endl;
 
 		if (Abc_NtkHasSop(pNtk)) {
 			string str((char*)pObj->pData);
+			/*
 			cout << "-------------------------" << endl;
 			cout << str; 
 			cout << "-------------------------" << endl;
-
+			*/
 			//parse sop
 			bool flip = false;
 			int faninNum = Abc_ObjFaninNum(pObj);
@@ -80,49 +87,58 @@ int Lsv_CommandPrintSOPUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 			record.resize(faninNum);
 			parseSOP(str, record, flip);
 
-			vector<char*> p_unate;
+			vector<Abc_Obj_t*> p_unate;
 			p_unate.reserve(faninNum);
-			vector<char*> n_unate;
+			vector<Abc_Obj_t*> n_unate;
 			n_unate.reserve(faninNum);
-			vector<char*> binate;
+			vector<Abc_Obj_t*> binate;
 			binate.reserve(faninNum);
 
 			Abc_Obj_t* pFanin;
             int j;
             Abc_ObjForEachFanin(pObj, pFanin, j){
                 if( (record[j] == 1 && !flip) || (record[j] == 2 && flip) || (record[j] == 0) ){
-                    p_unate.push_back(Abc_ObjName(pFanin));
+                    p_unate.push_back(pFanin);
                 }
 				else if((record[j] == 2 && !flip) || (record[j] == 1 && flip) || (record[j] == 0) ){
-					n_unate.push_back(Abc_ObjName(pFanin));
+					n_unate.push_back(pFanin);
 				}
 				else{
-					binate.push_back(Abc_ObjName(pFanin));
+					binate.push_back(pFanin);
 				}
             }
 
 			//print ans
+			if(!(p_unate.empty() && n_unate.empty() && binate.empty())){
+				cout << "node " << Abc_ObjName(pObj) << ":" << endl;
+			}
 			if(!p_unate.empty()){
+				sort(p_unate.begin(), p_unate.end(), myCompare);
+
 				cout << "+unate inputs: ";
-				for(vector<char*>::iterator idx = p_unate.begin(); idx != p_unate.end(); ++idx){
-					if(idx == p_unate.begin()) cout << *idx;
-					else cout << "," << *idx;
+				for(vector<Abc_Obj_t*>::iterator idx = p_unate.begin(); idx != p_unate.end(); ++idx){
+					if(idx == p_unate.begin()) cout << Abc_ObjName(*idx);
+					else cout << "," << Abc_ObjName(*idx);
 				}
 				cout << endl;
 			}
 			if(!n_unate.empty()){
+				sort(n_unate.begin(), n_unate.end(), myCompare);
+
                 cout << "-unate inputs: ";
-                for(vector<char*>::iterator idx = n_unate.begin(); idx != n_unate.end(); ++idx){
-                    if(idx == n_unate.begin()) cout << *idx;
-                    else cout << "," << *idx;
+                for(vector<Abc_Obj_t*>::iterator idx = n_unate.begin(); idx != n_unate.end(); ++idx){
+                    if(idx == n_unate.begin())  cout << Abc_ObjName(*idx);
+                    else cout << "," << Abc_ObjName(*idx);
                 }
                 cout << endl;
             }
 			if(!binate.empty()){
+				sort(binate.begin(), binate.end(), myCompare);
+
                 cout << "binate inputs: ";
-                for(vector<char*>::iterator idx = binate.begin(); idx != binate.end(); ++idx){
-                    if(idx == binate.begin()) cout << *idx;
-                    else cout << "," << *idx;
+                for(vector<Abc_Obj_t*>::iterator idx = binate.begin(); idx != binate.end(); ++idx){
+                    if(idx == binate.begin()) cout << Abc_ObjName(*idx);
+                    else cout << "," << Abc_ObjName(*idx);
                 }
                 cout << endl;
             }
