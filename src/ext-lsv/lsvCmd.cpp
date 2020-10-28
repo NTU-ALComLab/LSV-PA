@@ -188,14 +188,14 @@ void compute(vector<int> &index, string &sop)
     {
       if (s[j] == '1')
       {
-        if (index[j] == 0)
+        if (index[j] == 0 || index[j] == 2)
           index[j] = 2;
         else
           index[j] = 1;
       }
       else if (s[j] == '0')
       {
-        if (index[j] == 1)
+        if (index[j] == 1 || index[j] == 2)
           index[j] = 2;
         else
           index[j] = 0;
