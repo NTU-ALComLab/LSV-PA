@@ -142,64 +142,72 @@ bool nodeIDComp(Abc_Obj_t* obj_1, Abc_Obj_t* obj_2){
 
 void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk){
   Abc_Obj_t* pObj;
-  int i;
-  Abc_NtkForEachNode(pNtk, pObj, i) {
-    
-   
-    std::vector<Abc_Obj_t*> vPUnate;
-    std::vector<Abc_Obj_t*> vNUnate;
-    std::vector<Abc_Obj_t*> vBinate;
-    std::vector<std::pair<bool,bool> > vCount(Abc_ObjFaninNum(pObj),std::make_pair(0,0));
-   // printf("Number of Fanin: %d\n", Abc_ObjFaninNum(pObj));
+  int idx;
+  Abc_NtkForEachNode(pNtk, pObj, idx) {
+    if (Abc_NtkHasSop(pNtk)) {
+      std::vector<Abc_Obj_t*> vPUnate;
+      std::vector<Abc_Obj_t*> vNUnate;
+      std::vector<Abc_Obj_t*> vBinate;
+      std::vector<std::pair<bool,bool> > vCount(Abc_ObjFaninNum(pObj),std::make_pair(0,0));
+    // printf("Number of Fanin: %d\n", Abc_ObjFaninNum(pObj));
 
-    int i = 0;
-    while(((char*)pObj->pData)[i] != '\0'){
-     
-      if(i % (Abc_ObjFaninNum(pObj)+3) >= Abc_ObjFaninNum(pObj)) {++i; continue;};
-     // printf("%d %c ", i, ((char*)pObj->pData)[i]);
-      if(((char*)pObj->pData)[i] == '1') vCount[i % (Abc_ObjFaninNum(pObj)+3)].first = true;
-      else if(((char*)pObj->pData)[i] == '0') vCount[i % (Abc_ObjFaninNum(pObj)+3)].second = true;
-      ++i;
-    }
-
-    Abc_Obj_t* pFanin;
-    int j;
-
-    Abc_ObjForEachFanin(pObj, pFanin, j) {
-      if(vCount[j].first == true && vCount[j].second == true) vBinate.push_back(pFanin);
-      else if(vCount[j].first == true) vPUnate.push_back(pFanin);
-      else if(vCount[j].second == true) vNUnate.push_back(pFanin);
-    }
-
-    sort(vPUnate.begin(), vPUnate.end(), nodeIDComp);
-    sort(vNUnate.begin(), vNUnate.end(), nodeIDComp);
-    sort(vBinate.begin(), vBinate.end(), nodeIDComp);
-
-    printf("node %s:\n", Abc_ObjName(pObj));
-
-    if(!vPUnate.empty()){
-      printf("+unate inputs:");
-      for(int i = 0; i < vPUnate.size(); ++i){
-        printf(" %s", Abc_ObjName(vPUnate[i]));
-        if(i != vPUnate.size() - 1) printf(",");
+      int i = 0;
+      bool invert = ((char*)pObj->pData)[Abc_ObjFaninNum(pObj)+1] == '0';
+      while(((char*)pObj->pData)[i] != '\0'){
+      
+        if(i % (Abc_ObjFaninNum(pObj)+3) >= Abc_ObjFaninNum(pObj)) {++i; continue;};
+      // printf("%d %c ", i, ((char*)pObj->pData)[i]);
+        if(((char*)pObj->pData)[i] == '1') {
+          if(!invert) vCount[i % (Abc_ObjFaninNum(pObj)+3)].first = true;
+          else vCount[i % (Abc_ObjFaninNum(pObj)+3)].second = true;
+        }
+        else if(((char*)pObj->pData)[i] == '0'){
+          if(!invert) vCount[i % (Abc_ObjFaninNum(pObj)+3)].second = true;
+          else vCount[i % (Abc_ObjFaninNum(pObj)+3)].first = true;
+        }
+        ++i;
       }
-      printf("\n");
-    }
-    if(!vNUnate.empty()){
-      printf("-unate inputs:");
-      for(int i = 0; i < vNUnate.size(); ++i){
-        printf(" %s", Abc_ObjName(vNUnate[i]));
-        if(i != vNUnate.size() - 1) printf(",");
+
+      Abc_Obj_t* pFanin;
+      int j;
+
+      Abc_ObjForEachFanin(pObj, pFanin, j) {
+        if(vCount[j].first == true && vCount[j].second == true) vBinate.push_back(pFanin);
+        else if(vCount[j].first == true) vPUnate.push_back(pFanin);
+        else if(vCount[j].second == true) vNUnate.push_back(pFanin);
       }
-      printf("\n");
-    }
-    if(!vBinate.empty()){
-      printf("binate inputs:");
-      for(int i = 0; i < vBinate.size(); ++i){
-        printf(" %s", Abc_ObjName(vBinate[i]));
-        if(i != vBinate.size() - 1) printf(",");
+
+      sort(vPUnate.begin(), vPUnate.end(), nodeIDComp);
+      sort(vNUnate.begin(), vNUnate.end(), nodeIDComp);
+      sort(vBinate.begin(), vBinate.end(), nodeIDComp);
+
+      if(vPUnate.empty() && vNUnate.empty() && vBinate.empty()) continue;
+      printf("node %s:\n", Abc_ObjName(pObj));
+
+      if(!vPUnate.empty()){
+        printf("+unate inputs:");
+        for(int i = 0; i < vPUnate.size(); ++i){
+          printf(" %s", Abc_ObjName(vPUnate[i]));
+          if(i != vPUnate.size() - 1) printf(",");
+        }
+        printf("\n");
       }
-      printf("\n");
+      if(!vNUnate.empty()){
+        printf("-unate inputs:");
+        for(int i = 0; i < vNUnate.size(); ++i){
+          printf(" %s", Abc_ObjName(vNUnate[i]));
+          if(i != vNUnate.size() - 1) printf(",");
+        }
+        printf("\n");
+      }
+      if(!vBinate.empty()){
+        printf("binate inputs:");
+        for(int i = 0; i < vBinate.size(); ++i){
+          printf(" %s", Abc_ObjName(vBinate[i]));
+          if(i != vBinate.size() - 1) printf(",");
+        }
+        printf("\n");
+      }
     }
   }
 }
