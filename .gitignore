@@ -13,7 +13,7 @@ lib/bip*
 docs/
 benchmarks
 
-src/ext*
+.ccls-cache
 src/xxx/
 src/aig/au/
 src/aig/ssm/
