@@ -15,9 +15,9 @@ void Lsv_NtkPrintUnate(Abc_Ntk_t *pNtk) {
         positive_unate.clear();
         negative_unate.clear();
         binate.clear();
-        std::cout << "node " << Abc_ObjName(pObj) << ":" << std::endl;
         char * sop = (char*)pObj->pData;
         if (Abc_SopIsConst0(sop) || Abc_SopIsConst1(sop)) continue;
+        std::cout << "node " << Abc_ObjName(pObj) << ":" << std::endl;
         char *pCube;
         Abc_SopForEachCube(sop, Abc_ObjFaninNum(pObj), pCube) {
             bool inv = Abc_SopIsComplement(pCube);
