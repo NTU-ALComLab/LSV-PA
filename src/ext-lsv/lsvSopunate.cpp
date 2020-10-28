@@ -4,6 +4,7 @@
 #include "misc/vec/vec.h"
 #include <vector>
 #include <string>
+#include <algorithm>
 using namespace std;
 
 static int Lsv_CommandPrintSopunate(Abc_Frame_t* pAbc, int argc, char** argv);
@@ -20,26 +21,33 @@ struct PackageRegistrationManager {
   PackageRegistrationManager() { Abc_FrameAddInitializer(&lsv_print_sopunate_initializer); }
 } lsv_print_sopunate_PackageRegistrationManager;
 
+
+bool pair_sort (pair<char *, int> p1, pair<char *, int> p2) {
+        return p1.second < p2.second ;
+}
+
 void Lsv_NtkPrintSopunate(Abc_Ntk_t* pNtk) {
 
   Abc_Obj_t* pObj;
   int i;
   Abc_NtkForEachNode(pNtk, pObj, i) {
     
-    printf("node %s:\n", Abc_ObjName(pObj));
+    
     if (Abc_NtkHasSop(pNtk)) {
       
       //Vec_Int_t * tArray = Vec_IntStart(Abc_ObjFaninNum(pObj));
       //Vec_Int_t * pArray;
       //Vec_Int_t * nArray;
       //Vec_Int_t * bArray;
-      
-      vector<char *> pArr, nArr, bArr;
-      
+      //printf("node %s:\n", Abc_ObjName(pObj));
+      //typedef pair<string, int> element;
+      //vector<char *> pArr, nArr, bArr;
+      vector<pair<char *, int> > pArr, nArr, bArr;
       char * pSop;
       pSop = (char *)pObj->pData;
       char * pCube;
       int nFanins = Abc_SopGetVarNum(pSop);
+      
       
       vector<int> Arr(nFanins, -1);
       Abc_SopForEachCube (pSop, nFanins, pCube)
@@ -70,70 +78,87 @@ void Lsv_NtkPrintSopunate(Abc_Ntk_t* pNtk) {
       int j;
       Abc_ObjForEachFanin(pObj, pFanin, j) {
         if (Arr[j] == 2) {
-          bArr.push_back(Abc_ObjName(pFanin));
+          //bArr.push_back(Abc_ObjName(pFanin));
+          bArr.push_back(pair<char *, int>(Abc_ObjName(pFanin), Abc_ObjId(pFanin)));
+          
+
         } else if (Arr[j] == 1) {
-          pArr.push_back(Abc_ObjName(pFanin));
+          pArr.push_back(pair<char *, int>(Abc_ObjName(pFanin), Abc_ObjId(pFanin)));
         } else if (Arr[j] == 0) {
-          nArr.push_back(Abc_ObjName(pFanin));
+          nArr.push_back(pair<char *, int>(Abc_ObjName(pFanin), Abc_ObjId(pFanin)));
         }else {
-          pArr.push_back(Abc_ObjName(pFanin));
-          nArr.push_back(Abc_ObjName(pFanin));
+          pArr.push_back(pair<char *, int>(Abc_ObjName(pFanin), Abc_ObjId(pFanin)));
+          nArr.push_back(pair<char *, int>(Abc_ObjName(pFanin), Abc_ObjId(pFanin)));
         }    
       }
+      
+      sort(pArr.begin(), pArr.end(), pair_sort);
+      sort(nArr.begin(), nArr.end(), pair_sort);
+      sort(bArr.begin(), bArr.end(), pair_sort);
+
+      if (!pArr.empty() || !nArr.empty() || !bArr.empty()) {
+        printf("node %s:\n", Abc_ObjName(pObj));
+      }
+
       if (Abc_SopIsComplement(pSop)) {
         
-
-        printf("+unate inputs:");
-        for (int k=0; k<nArr.size(); ++k) {
-          if (k==0) {
-            printf(" ");
-          }else{
-            printf(",");
+        if (nArr.size() != 0) {
+          printf("+unate inputs:");
+          for (int k=0; k<nArr.size(); ++k) {
+            if (k==0) {
+              printf(" ");
+            }else{
+              printf(",");
+            }
+            printf("%s", nArr[k].first);
           }
-          printf("%s", nArr[k]);
+          printf("\n");
         }
-        printf("\n");
-        printf("-unate inputs:");
-        for (int k=0; k<pArr.size(); ++k) {
-          if (k==0) {
-            printf(" ");
-          }else{
-            printf(",");
+        if (pArr.size() != 0) {
+          printf("-unate inputs:");
+          for (int k=0; k<pArr.size(); ++k) {
+            if (k==0) {
+              printf(" ");
+            }else{
+              printf(",");
+            }
+            printf("%s", pArr[k].first);
           }
-          printf("%s", pArr[k]);
         }
+        
         printf("\n");
-        printf("binate inputs:");
-        for (int k=0; k<bArr.size(); ++k) {
-          if (k==0) {
-            printf(" ");
-          }else{
-            printf(",");
-          }
-          printf("%s", bArr[k]);
-        }
-        printf("\n");
+        
       }else {
-        printf("+unate inputs:");
-        for (int k=0; k<pArr.size(); ++k) {
-          if (k==0) {
-            printf(" ");
-          }else{
-            printf(",");
+        if (pArr.size() != 0) {
+          printf("+unate inputs:");
+          for (int k=0; k<pArr.size(); ++k) {
+            if (k==0) {
+              printf(" ");
+            }else{
+              printf(",");
+            }
+            printf("%s", pArr[k].first);
           }
-          printf("%s", pArr[k]);
+          printf("\n");
         }
-        printf("\n");
-        printf("-unate inputs:");
-        for (int k=0; k<nArr.size(); ++k) {
-          if (k==0) {
-            printf(" ");
-          }else{
-            printf(",");
+        
+        if (nArr.size() != 0) {
+          printf("-unate inputs:");
+          for (int k=0; k<nArr.size(); ++k) {
+            if (k==0) {
+              printf(" ");
+            }else{
+              printf(",");
+            }
+            printf("%s", nArr[k].first);
           }
-          printf("%s", nArr[k]);
+          printf("\n");
         }
-        printf("\n");
+        
+        
+      }
+
+      if (bArr.size() != 0) {
         printf("binate inputs:");
         for (int k=0; k<bArr.size(); ++k) {
           if (k==0) {
@@ -141,7 +166,7 @@ void Lsv_NtkPrintSopunate(Abc_Ntk_t* pNtk) {
           }else{
             printf(",");
           }
-          printf("%s", bArr[k]);
+          printf("%s", bArr[k].first);
         }
         printf("\n");
       }
