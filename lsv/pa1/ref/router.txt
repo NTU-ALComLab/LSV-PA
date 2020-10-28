@@ -1,0 +1,627 @@
+ABC command line: "read benchmarks/best_results//new/router.blif; lsv_print_sopunate".
+
+node n92:
+-unate inputs: dest_x[9],dest_x[10]
+node n93:
++unate inputs: dest_x[9],dest_x[10]
+node n94:
+-unate inputs: n92,n93
+node n95:
++unate inputs: dest_x[11]
+-unate inputs: n92
+node n96:
++unate inputs: n92
+-unate inputs: dest_x[11]
+node n97:
+-unate inputs: n95,n96
+node n98:
+-unate inputs: dest_x[12],n95
+node n99:
++unate inputs: dest_x[12],n95
+node n100:
+-unate inputs: n98,n99
+node n101:
++unate inputs: n98
+-unate inputs: dest_x[13]
+node n102:
++unate inputs: dest_x[13]
+-unate inputs: n98
+node n103:
+-unate inputs: n101,n102
+node n104:
++unate inputs: dest_x[14]
+-unate inputs: n101
+node n105:
++unate inputs: n101
+-unate inputs: dest_x[14]
+node n106:
+-unate inputs: n104,n105
+node n107:
++unate inputs: dest_x[15]
+-unate inputs: n104
+node n108:
++unate inputs: n104
+-unate inputs: dest_x[15]
+node n109:
+-unate inputs: n107,n108
+node n110:
++unate inputs: dest_x[15],n104
+node n111:
+-unate inputs: dest_x[16],n110
+node n112:
++unate inputs: dest_x[16],n110
+node n113:
+-unate inputs: n111,n112
+node n114:
++unate inputs: dest_x[17]
+-unate inputs: n111
+node n115:
++unate inputs: n111
+-unate inputs: dest_x[17]
+node n116:
+-unate inputs: n114,n115
+node n117:
+-unate inputs: dest_x[18],n114
+node n118:
++unate inputs: dest_x[18],n114
+node n119:
+-unate inputs: n117,n118
+node n120:
++unate inputs: dest_x[19]
+-unate inputs: n117
+node n121:
++unate inputs: n117
+-unate inputs: dest_x[19]
+node n122:
+-unate inputs: n120,n121
+node n123:
++unate inputs: dest_x[20]
+-unate inputs: n120
+node n124:
++unate inputs: n120
+-unate inputs: dest_x[20]
+node n125:
+-unate inputs: n123,n124
+node n126:
++unate inputs: dest_x[20],n120
+node n127:
+-unate inputs: dest_x[21],n126
+node n128:
++unate inputs: dest_x[21],n126
+node n129:
+-unate inputs: n127,n128
+node n130:
++unate inputs: n127
+-unate inputs: dest_x[22]
+node n131:
++unate inputs: dest_x[22]
+-unate inputs: n127
+node n132:
+-unate inputs: n130,n131
+node n133:
++unate inputs: dest_x[23]
+-unate inputs: n130
+node n134:
++unate inputs: n130
+-unate inputs: dest_x[23]
+node n135:
+-unate inputs: n133,n134
+node n136:
++unate inputs: dest_x[24]
+-unate inputs: n133
+node n137:
++unate inputs: n133
+-unate inputs: dest_x[24]
+node n138:
+-unate inputs: n136,n137
+node n139:
++unate inputs: dest_x[24],n133
+node n140:
++unate inputs: dest_x[25]
+-unate inputs: n139
+node n141:
++unate inputs: n139
+-unate inputs: dest_x[25]
+node n142:
+-unate inputs: n140,n141
+node n143:
++unate inputs: dest_x[25],n139
+node n144:
+-unate inputs: dest_x[26],n143
+node n145:
++unate inputs: dest_x[26],n143
+node n146:
+-unate inputs: n144,n145
+node n147:
++unate inputs: dest_x[27]
+-unate inputs: n144
+node n148:
++unate inputs: n144
+-unate inputs: dest_x[27]
+node n149:
+-unate inputs: n147,n148
+node n150:
++unate inputs: dest_x[28]
+-unate inputs: n147
+node n151:
++unate inputs: n147
+-unate inputs: dest_x[28]
+node n152:
+-unate inputs: n150,n151
+node n153:
++unate inputs: dest_x[28],n147
+node n154:
++unate inputs: n153
+-unate inputs: dest_x[29]
+node n155:
++unate inputs: dest_x[29]
+-unate inputs: n153
+node n156:
+-unate inputs: n154,n155
+node n157:
+-unate inputs: dest_x[9],n156
+node n158:
++unate inputs: n157
+-unate inputs: n152
+node n159:
++unate inputs: n149,n158
+node n160:
++unate inputs: n159
+-unate inputs: n146
+node n161:
++unate inputs: n160
+-unate inputs: n142
+node n162:
++unate inputs: n161
+-unate inputs: n138
+node n163:
++unate inputs: n135,n162
+node n164:
++unate inputs: n163
+-unate inputs: n132
+node n165:
++unate inputs: n164
+-unate inputs: n129
+node n166:
++unate inputs: n165
+-unate inputs: n125
+node n167:
++unate inputs: n122,n166
+node n168:
++unate inputs: n167
+-unate inputs: n119
+node n169:
++unate inputs: n116,n168
+node n170:
++unate inputs: n169
+-unate inputs: n113
+node n171:
++unate inputs: n170
+-unate inputs: n109
+node n172:
++unate inputs: n106,n171
+node n173:
++unate inputs: n172
+-unate inputs: n103
+node n174:
++unate inputs: n173
+-unate inputs: n100
+node n175:
++unate inputs: n97,n174
+node n176:
++unate inputs: n175
+-unate inputs: n94
+node n177:
++unate inputs: dest_x[8],n176
+node n178:
++unate inputs: dest_x[7],n177
+node n179:
++unate inputs: dest_x[6],n178
+node n180:
++unate inputs: dest_x[5],n179
+node n181:
++unate inputs: dest_x[4],n180
+node n182:
++unate inputs: dest_x[3],n181
+node n183:
++unate inputs: dest_x[2],n182
+node n184:
++unate inputs: dest_x[1],n183
+node n185:
++unate inputs: dest_x[0],n184
+node n186:
++unate inputs: dest_x[29],n153
+node n187:
+-unate inputs: n185,n186
+node n188:
+-unate inputs: dest_x[1],dest_x[2]
+node n189:
++unate inputs: n188
+-unate inputs: dest_x[3]
+node n190:
++unate inputs: n189
+-unate inputs: dest_x[4]
+node n191:
++unate inputs: n190
+-unate inputs: dest_x[5]
+node n192:
++unate inputs: n191
+-unate inputs: dest_x[6]
+node n193:
++unate inputs: n192
+-unate inputs: dest_x[7]
+node n194:
++unate inputs: n193
+-unate inputs: dest_x[8]
+node n195:
++unate inputs: n94,n194
+node n196:
++unate inputs: n195
+-unate inputs: n97
+node n197:
++unate inputs: n100,n196
+node n198:
++unate inputs: n103,n197
+node n199:
++unate inputs: n198
+-unate inputs: n106
+node n200:
++unate inputs: n109,n199
+node n201:
++unate inputs: n113,n200
+node n202:
++unate inputs: n201
+-unate inputs: n116
+node n203:
++unate inputs: n119,n202
+node n204:
++unate inputs: n203
+-unate inputs: n122
+node n205:
++unate inputs: n125,n204
+node n206:
++unate inputs: n129,n205
+node n207:
++unate inputs: n132,n206
+node n208:
++unate inputs: n207
+-unate inputs: n135
+node n209:
++unate inputs: n138,n208
+node n210:
++unate inputs: n142,n209
+node n211:
++unate inputs: n146,n210
+node n212:
++unate inputs: n211
+-unate inputs: n149
+node n213:
++unate inputs: n152,n212
+node n214:
++unate inputs: dest_x[9],n213
+node n215:
++unate inputs: n186
+-unate inputs: n214
+node outport[0]:
++unate inputs: n187,n215
+node n217:
+-unate inputs: dest_y[9],dest_y[10]
+node n218:
++unate inputs: dest_y[11]
+-unate inputs: n217
+node n219:
+-unate inputs: dest_y[12],n218
+node n220:
++unate inputs: n219
+-unate inputs: dest_y[13]
+node n221:
++unate inputs: dest_y[14]
+-unate inputs: n220
+node n222:
++unate inputs: dest_y[15],n221
+node n223:
+-unate inputs: dest_y[16],n222
+node n224:
++unate inputs: dest_y[17]
+-unate inputs: n223
+node n225:
+-unate inputs: dest_y[18],n224
+node n226:
++unate inputs: dest_y[19]
+-unate inputs: n225
+node n227:
++unate inputs: dest_y[20],n226
+node n228:
+-unate inputs: dest_y[21],n227
+node n229:
++unate inputs: n228
+-unate inputs: dest_y[22]
+node n230:
++unate inputs: dest_y[23]
+-unate inputs: n229
+node n231:
++unate inputs: dest_y[24],n230
+node n232:
++unate inputs: dest_y[25],n231
+node n233:
+-unate inputs: dest_y[26],n232
+node n234:
++unate inputs: dest_y[27]
+-unate inputs: n233
+node n235:
++unate inputs: dest_y[28],n234
+node n236:
++unate inputs: dest_y[29],n235
+node n237:
++unate inputs: dest_x[0]
+-unate inputs: n236
+node n238:
+-unate inputs: dest_x[0],dest_y[0]
+node n239:
++unate inputs: n236
+-unate inputs: n238
+node n240:
++unate inputs: dest_y[9],dest_y[10]
+node n241:
+-unate inputs: n217,n240
+node n242:
++unate inputs: n217
+-unate inputs: dest_y[11]
+node n243:
+-unate inputs: n218,n242
+node n244:
++unate inputs: dest_y[12],n218
+node n245:
+-unate inputs: n219,n244
+node n246:
++unate inputs: dest_y[13]
+-unate inputs: n219
+node n247:
+-unate inputs: n220,n246
+node n248:
++unate inputs: n220
+-unate inputs: dest_y[14]
+node n249:
+-unate inputs: n221,n248
+node n250:
++unate inputs: dest_y[15]
+-unate inputs: n221
+node n251:
++unate inputs: n221
+-unate inputs: dest_y[15]
+node n252:
+-unate inputs: n250,n251
+node n253:
++unate inputs: dest_y[16],n222
+node n254:
+-unate inputs: n223,n253
+node n255:
++unate inputs: n223
+-unate inputs: dest_y[17]
+node n256:
+-unate inputs: n224,n255
+node n257:
++unate inputs: dest_y[18],n224
+node n258:
+-unate inputs: n225,n257
+node n259:
++unate inputs: n225
+-unate inputs: dest_y[19]
+node n260:
+-unate inputs: n226,n259
+node n261:
++unate inputs: dest_y[20]
+-unate inputs: n226
+node n262:
++unate inputs: n226
+-unate inputs: dest_y[20]
+node n263:
+-unate inputs: n261,n262
+node n264:
++unate inputs: dest_y[21],n227
+node n265:
+-unate inputs: n228,n264
+node n266:
++unate inputs: dest_y[22]
+-unate inputs: n228
+node n267:
+-unate inputs: n229,n266
+node n268:
++unate inputs: n229
+-unate inputs: dest_y[23]
+node n269:
+-unate inputs: n230,n268
+node n270:
++unate inputs: dest_y[24]
+-unate inputs: n230
+node n271:
++unate inputs: n230
+-unate inputs: dest_y[24]
+node n272:
+-unate inputs: n270,n271
+node n273:
++unate inputs: dest_y[25]
+-unate inputs: n231
+node n274:
++unate inputs: n231
+-unate inputs: dest_y[25]
+node n275:
+-unate inputs: n273,n274
+node n276:
++unate inputs: dest_y[26],n232
+node n277:
+-unate inputs: n233,n276
+node n278:
++unate inputs: n233
+-unate inputs: dest_y[27]
+node n279:
+-unate inputs: n234,n278
+node n280:
++unate inputs: dest_y[28]
+-unate inputs: n234
+node n281:
++unate inputs: n234
+-unate inputs: dest_y[28]
+node n282:
+-unate inputs: n280,n281
+node n283:
++unate inputs: dest_y[0]
+-unate inputs: dest_y[9]
+node n284:
++unate inputs: dest_y[29],n283
+node n285:
++unate inputs: n284
+-unate inputs: n282
+node n286:
++unate inputs: n279,n285
+node n287:
++unate inputs: n286
+-unate inputs: n277
+node n288:
++unate inputs: n287
+-unate inputs: n275
+node n289:
++unate inputs: n288
+-unate inputs: n272
+node n290:
++unate inputs: n269,n289
+node n291:
++unate inputs: n290
+-unate inputs: n267
+node n292:
++unate inputs: n291
+-unate inputs: n265
+node n293:
++unate inputs: n292
+-unate inputs: n263
+node n294:
++unate inputs: n260,n293
+node n295:
++unate inputs: n294
+-unate inputs: n258
+node n296:
++unate inputs: n256,n295
+node n297:
++unate inputs: n296
+-unate inputs: n254
+node n298:
++unate inputs: n297
+-unate inputs: n252
+node n299:
++unate inputs: n249,n298
+node n300:
++unate inputs: n299
+-unate inputs: n247
+node n301:
++unate inputs: n300
+-unate inputs: n245
+node n302:
++unate inputs: n243,n301
+node n303:
++unate inputs: n302
+-unate inputs: n241
+node n304:
++unate inputs: dest_y[8],n303
+node n305:
++unate inputs: dest_y[7],n304
+node n306:
++unate inputs: dest_y[6],n305
+node n307:
++unate inputs: dest_y[5],n306
+node n308:
++unate inputs: dest_y[4],n307
+node n309:
++unate inputs: dest_y[3],n308
+node n310:
++unate inputs: dest_y[2],n309
+node n311:
++unate inputs: dest_y[1],n310
+node n312:
+-unate inputs: dest_y[1],dest_y[2]
+node n313:
++unate inputs: n312
+-unate inputs: dest_y[3]
+node n314:
++unate inputs: n313
+-unate inputs: dest_y[4]
+node n315:
++unate inputs: n314
+-unate inputs: dest_y[5]
+node n316:
++unate inputs: n315
+-unate inputs: dest_y[6]
+node n317:
++unate inputs: n316
+-unate inputs: dest_y[7]
+node n318:
++unate inputs: n317
+-unate inputs: dest_y[8]
+node n319:
++unate inputs: n241,n318
+node n320:
++unate inputs: n319
+-unate inputs: n243
+node n321:
++unate inputs: n245,n320
+node n322:
++unate inputs: n247,n321
+node n323:
++unate inputs: n322
+-unate inputs: n249
+node n324:
++unate inputs: n252,n323
+node n325:
++unate inputs: n254,n324
+node n326:
++unate inputs: n325
+-unate inputs: n256
+node n327:
++unate inputs: n258,n326
+node n328:
++unate inputs: n327
+-unate inputs: n260
+node n329:
++unate inputs: n263,n328
+node n330:
++unate inputs: n265,n329
+node n331:
++unate inputs: n267,n330
+node n332:
++unate inputs: n331
+-unate inputs: n269
+node n333:
++unate inputs: n272,n332
+node n334:
++unate inputs: n275,n333
+node n335:
++unate inputs: n277,n334
+node n336:
++unate inputs: n335
+-unate inputs: n279
+node n337:
++unate inputs: n282,n336
+node n338:
++unate inputs: dest_y[9],n337
+node n339:
++unate inputs: n236
+-unate inputs: n338
+node n340:
+-unate inputs: n311,n339
+node n341:
++unate inputs: n340
+-unate inputs: n239
+node n342:
+-unate inputs: n187,n341
+node n343:
++unate inputs: n342
+-unate inputs: n237
+node outport[1]:
+-unate inputs: n215,n343
+node n345:
++unate inputs: dest_x[0],n236
+node n346:
++unate inputs: dest_y[0],n345
+node n347:
+-unate inputs: n339,n346
+node outport[2]:
+-unate inputs: outport[0],n347
