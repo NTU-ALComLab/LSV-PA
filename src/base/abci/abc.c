@@ -64,6 +64,11 @@
 #include "opt/nwk/nwkMerge.h"
 #include "base/acb/acbPar.h"
 
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -76,6 +81,8 @@ ABC_NAMESPACE_IMPL_START
 ////////////////////////////////////////////////////////////////////////
 
 //#define USE_MINISAT22
+
+static int Abc_CommandLsv_print_sopunate     ( Abc_Frame_t * pAbc, int argc, char ** argv );
 
 static int Abc_CommandPrintStats             ( Abc_Frame_t * pAbc, int argc, char ** argv );
 static int Abc_CommandPrintExdc              ( Abc_Frame_t * pAbc, int argc, char ** argv );
@@ -800,6 +807,7 @@ Gia_Man_t * Abc_FrameGetGia( Abc_Frame_t * pAbc )
 ***********************************************************************/
 void Abc_Init( Abc_Frame_t * pAbc )
 {
+    Cmd_CommandAdd( pAbc, "Printing",     "lsv_print_sopunate",           Abc_CommandLsv_print_sopunate,       0);
     Cmd_CommandAdd( pAbc, "Printing",     "print_stats",   Abc_CommandPrintStats,       0 );
     Cmd_CommandAdd( pAbc, "Printing",     "print_exdc",    Abc_CommandPrintExdc,        0 );
     Cmd_CommandAdd( pAbc, "Printing",     "print_io",      Abc_CommandPrintIo,          0 );
@@ -1357,6 +1365,157 @@ void Abc_End( Abc_Frame_t * pAbc )
     Gia_ManStopP( &pAbc->pGiaSaved );
     if ( Abc_NtkRecIsRunning3() )
         Abc_NtkRecStop3();
+}
+
+/**Function*************************************************************
+  Add new command
+  lsv_print_sopunate
+***********************************************************************/
+int cmpfunc( const void *a, const void *b) {
+    return *(int*)a - *(int*)b;
+}
+
+int Abc_CommandLsv_print_sopunate( Abc_Frame_t * pAbc, int argc, char ** argv )
+{
+    Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
+    Abc_Obj_t* pObj;
+
+
+    int i;
+    int cnt[5000];
+    int sort_fanin[5000];
+    Abc_NtkForEachNode(pNtk, pObj, i) {
+        int num = Abc_ObjFaninNum(pObj);
+        if(num != 0)
+            printf("node %s:\n", Abc_ObjName(pObj));
+        Abc_Obj_t* pFanin;
+        int j;
+        Abc_ObjForEachFanin(pObj, pFanin, j) {
+            // printf("  Fanin-%d: Id = %d, name = %s\n", j, Abc_ObjId(pFanin), Abc_ObjName(pFanin));
+            sort_fanin[j] = Abc_ObjId(pFanin);
+            cnt[j] = 3;
+        }
+        char* curr;
+        j = 0;
+        for(curr = (char*)pObj->pData; *curr; curr++){
+            if( *curr != '\n'){
+                if( *(curr) == '0' ){
+                    if( (cnt[j] == 3) || (cnt[j] == 4) ){
+                        cnt[j] = 0;
+                    }else if(cnt[j] == 1){
+                        cnt[j] = 2;
+                    }
+                }
+                if( *(curr) == '1' ){
+                    if( (cnt[j] == 3) || (cnt[j] == 4) ){
+                        cnt[j] = 1;
+                    }else if(cnt[j] == 0){
+                        cnt[j] = 2;
+                    }
+                }
+                if( *(curr) == '-' ){
+                    if(cnt[j] == 3){
+                        cnt[j] = 4;
+                    }
+                }
+                j++;
+            }else{
+                j = 0;
+            }
+        }
+ 
+        num = Abc_ObjFaninNum(pObj);
+		int ii;
+		int jj;
+		int insertion_temp;
+		for(ii = num - 2; ii>=0; ii--){
+			for(jj = ii; jj < num - 1; jj++){
+				if(sort_fanin[jj] > sort_fanin[jj+1]){
+					insertion_temp = sort_fanin[jj];
+					sort_fanin[jj] = sort_fanin[jj+1];
+					sort_fanin[jj+1] = insertion_temp;
+					insertion_temp = cnt[jj];
+					cnt[jj] = cnt[jj+1];
+					cnt[jj+1] = insertion_temp;
+				}
+			}
+		}
+
+
+        int isComplement = Abc_SopIsComplement((char*)pObj->pData);   //1 for end with 0
+        bool first = true;
+        // printf("+unate inputs: ");
+        Abc_ObjForEachFanin(pObj, pFanin, j) {
+            if((cnt[j] == 1 && isComplement == 0) || (cnt[j] == 0 && isComplement == 1) || (cnt[j] == 4 ) ){
+                if(first){
+                    first = false;
+                    printf("+unate inputs:");
+                    printf(" ");
+                }else{
+                    printf(",");
+                }
+                printf("%s",  Abc_ObjName(Abc_NtkObj( pNtk, sort_fanin[j])));
+            }
+        }
+        if(first != true){
+            printf("\n");
+        }
+
+        first = true;
+        // printf("-unate inputs: ");
+        Abc_ObjForEachFanin(pObj, pFanin, j) {
+            if((cnt[j] == 0 && isComplement == 0) || (cnt[j] == 1 && isComplement == 1) || (cnt[j] == 4 )  ){
+                if(first){
+                    first = false;
+                    printf("-unate inputs: ");
+                    printf(" ");
+                }else{
+                    printf(",");
+                }
+                printf("%s",  Abc_ObjName(Abc_NtkObj( pNtk, sort_fanin[j])));
+            }
+        }
+        if(first != true){
+            printf("\n");
+        }
+
+        first = true;
+        // printf("binate inputs: ");
+        Abc_ObjForEachFanin(pObj, pFanin, j) {
+            if(cnt[j] == 2){
+                if(first){
+                    first = false;
+                    printf("binate inputs: ");
+                    // printf(" ");
+                }else{
+                    printf(",");
+                }
+                printf("%s",  Abc_ObjName(Abc_NtkObj( pNtk, sort_fanin[j])));
+            }
+        }
+        if(first != true){
+            printf("\n");
+        }
+
+        // if (Abc_NtkHasSop(pNtk)) {
+        //     printf("The SOP of this node:\n%s", (char*)pObj->pData);
+        // }
+
+
+        
+
+
+        //Abc_SopComplement( pSop ) Char * pSop
+        //int Abc_SopIsComplement( char * pSop )
+        //int Abc_SopIsConst0( char * pSop )
+    }
+
+
+    if (!pNtk) {
+        Abc_Print(-1, "Empty network.\n");
+    }
+    return 0;
+
 }
 
 /**Function*************************************************************

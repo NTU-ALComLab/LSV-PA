@@ -1,0 +1,66 @@
+ABC command line: "read benchmarks/best_results/size/int2float_size_2020.blif; lsv_print_sopunate".
+
+node [13]:
++unate inputs: pi02
+binate inputs: pi04,pi05,pi06,pi07,pi08
+node [8]:
++unate inputs: pi02,pi03
+node [7]:
+binate inputs: pi00,pi01,pi02,pi03,pi04,pi05
+node [5]:
++unate inputs: pi07
+binate inputs: pi03,pi04,pi05,pi06,pi08
+node [3]:
++unate inputs: pi04,pi05
+node [1]:
+binate inputs: pi00,pi01,pi02,pi04,pi05
+node [0]:
++unate inputs: pi06,pi07
+node [16]:
++unate inputs: pi03,pi04,pi05,[0]
+binate inputs: pi08,pi09
+node [15]:
+-unate inputs: pi00
+binate inputs: pi01,pi04,pi05,pi06,[8]
+node [14]:
+-unate inputs: pi02,pi03,pi04,pi05,pi09,[0]
+node po3:
++unate inputs: pi03,pi09,pi10,[13]
+node [11]:
+binate inputs: pi02,pi03,pi04,pi05,pi06,[7]
+node [9]:
++unate inputs: pi08,pi09,[7]
+binate inputs: pi04,pi06,[8]
+node [2]:
++unate inputs: [1]
+binate inputs: pi02,pi03,pi04,pi06,pi07
+node po4:
++unate inputs: pi08,pi10,[16],[15],[14]
+-unate inputs: pi07
+node [12]:
++unate inputs: [11]
+binate inputs: pi03,pi06,pi07,pi08,[3]
+node [10]:
++unate inputs: [9]
+-unate inputs: [5]
+binate inputs: pi05,pi06,pi07,pi09
+node [4]:
++unate inputs: [2]
+binate inputs: pi04,pi05,pi06,pi08,pi09
+node [18]:
+binate inputs: pi00,pi01,pi04,pi05,pi06,[15]
+node po2:
+-unate inputs: [12]
+binate inputs: pi05,pi08,pi09,pi10,[0]
+node po1:
++unate inputs: pi09,[10]
+binate inputs: pi08,pi10,[0]
+node po0:
++unate inputs: pi08,pi09,[4]
+binate inputs: pi06,pi07,pi10
+node po6:
+binate inputs: pi05,pi07,pi08,pi09,pi10,[18]
+node po5:
++unate inputs: pi09,pi10,[18]
+-unate inputs: pi07,[14]
+binate inputs: pi08
