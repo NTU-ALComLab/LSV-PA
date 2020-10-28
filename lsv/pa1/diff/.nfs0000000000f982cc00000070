@@ -1,0 +1,7 @@
+--- lsv/pa1/ref/square_depth_2020.txt	2020-10-29 00:49:25.426953496 +0800
++++ lsv/pa1/out/square_depth_2020.txt	2020-10-29 00:49:25.475953494 +0800
+@@ -9144,3 +9144,4 @@
+ node po039:
+ +unate inputs: [95],[88],[96]
+ -unate inputs: [93],[94]
++node n4158:

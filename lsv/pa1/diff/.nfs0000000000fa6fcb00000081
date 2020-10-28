@@ -1,0 +1,33 @@
+--- lsv/pa1/ref/router_size_2018.txt	2020-10-29 00:49:27.764953441 +0800
++++ lsv/pa1/out/router_size_2018.txt	2020-10-29 00:49:27.797953441 +0800
+@@ -57,3 +57,30 @@
+ node po02:
+ +unate inputs: n92,n97,n103
+ -unate inputs: pi26,n104
++node n141:
++node n142:
++node n143:
++node n144:
++node n145:
++node n146:
++node n147:
++node n148:
++node n149:
++node n150:
++node n151:
++node n152:
++node n153:
++node n154:
++node n155:
++node n156:
++node n157:
++node n158:
++node n159:
++node n160:
++node n161:
++node n162:
++node n163:
++node n164:
++node n165:
++node n166:
++node n167:

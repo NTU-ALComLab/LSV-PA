@@ -1433,7 +1433,6 @@ int Abc_CommandLsvPrintSopunate( Abc_Frame_t * pAbc, int argc, char ** argv )
 	int temp[20000];
 	Abc_NtkForEachNode( pNtk, pObj, i ) {
 		// printf("Object Id = %d, name = %s\n", Abc_ObjId(pObj), Abc_ObjName(pObj));
-		printf("node %s:\n", Abc_ObjName(pObj));
 		
 		int j;
 		Abc_Obj_t* pFanin;
@@ -1471,6 +1470,9 @@ int Abc_CommandLsvPrintSopunate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		int i_sorted;
 		int j_sorting;
 		int insertion_temp;
+		if(num != 0){			
+			printf("node %s:\n", Abc_ObjName(pObj));
+		}
 		for(i_sorted = num - 2; i_sorted>=0; i_sorted--){
 			for(j_sorting = i_sorted; j_sorting < num - 1; j_sorting++){
 				if(fanInID[j_sorting] > fanInID[j_sorting+1]){

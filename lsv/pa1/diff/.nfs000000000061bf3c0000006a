@@ -1,0 +1,7 @@
+--- lsv/pa1/ref/mem_ctrl_depth_2018.txt	2020-10-29 00:49:18.581953654 +0800
++++ lsv/pa1/out/mem_ctrl_depth_2018.txt	2020-10-29 00:49:18.636953653 +0800
+@@ -7320,3 +7320,4 @@
+ +unate inputs: pi1200
+ node po1230:
+ +unate inputs: pi1184
++node n4894:

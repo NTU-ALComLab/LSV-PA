@@ -1,0 +1,7 @@
+--- lsv/pa1/ref/square_size_2018.txt	2020-10-29 00:49:28.123953433 +0800
++++ lsv/pa1/out/square_size_2018.txt	2020-10-29 00:49:28.181953432 +0800
+@@ -7380,3 +7380,4 @@
+ -unate inputs: n3428
+ node po000:
+ +unate inputs: pi00
++node n3434:

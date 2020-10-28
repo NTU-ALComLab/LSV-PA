@@ -1,0 +1,7 @@
+--- lsv/pa1/ref/ctrl_size_2017.txt	2020-10-29 00:49:26.074953481 +0800
++++ lsv/pa1/out/ctrl_size_2017.txt	2020-10-29 00:49:26.118953480 +0800
+@@ -78,3 +78,4 @@
+ node sel_wb:
+ +unate inputs: opcode[0],opcode[4]
+ -unate inputs: opcode[1],opcode[2],opcode[3]
++node n61:
