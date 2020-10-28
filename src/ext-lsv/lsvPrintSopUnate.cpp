@@ -35,10 +35,11 @@ void Lsv_NtkPrintSopUnate(Abc_Ntk_t* pNtk) {
   int i, j;
 
   Abc_NtkForEachNode(pNtk, pObj, i) {
+    int nFanins = Abc_ObjFaninNum(pObj);
+    if (nFanins == 0) continue;
     char * pSop = (char *)pObj->pData;
     char * pCube;
     char val;
-    int nFanins = Abc_ObjFaninNum(pObj);
     bool unateTable[nFanins][2] = {};
     Abc_SopForEachCube(pSop, nFanins, pCube) {
       bool isOnset = *(pCube + nFanins + 1) - '0';
