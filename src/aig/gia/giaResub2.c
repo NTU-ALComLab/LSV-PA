@@ -1099,7 +1099,8 @@ int Gia_RsbFindFaninToAddToCut( Gia_Man_t * p, Vec_Int_t * vIns )
     }
     // find fanin with the highest count
     for ( i = 0; i < nFanins; i++ )
-        if ( CountMax < pFaninCounts[i] )
+//        if ( CountMax < pFaninCounts[i] )
+        if ( CountMax < pFaninCounts[i] || (CountMax == pFaninCounts[i] && (Gia_ObjFanoutNumId(p, iFanMax) < Gia_ObjFanoutNumId(p, pFanins[i]))) )
         {
             CountMax = pFaninCounts[i];
             iFanMax  = pFanins[i];
@@ -1210,19 +1211,20 @@ Vec_Int_t * Gia_RsbFindOutputs( Gia_Man_t * p, Vec_Int_t * vWin, Vec_Int_t * vIn
 {
     Vec_Int_t * vOuts = Vec_IntAlloc( 100 );
     Gia_Obj_t * pObj; int i;
+    Gia_ManIncrementTravId( p );
+    Gia_ManForEachObjVec( vIns, p, pObj, i ) 
+        Gia_ObjSetTravIdCurrent( p, pObj );
     Gia_ManForEachObjVec( vWin, p, pObj, i ) 
-        if ( Gia_ObjIsAnd(pObj) )
+        if ( !Gia_ObjIsTravIdCurrent(p, pObj) && Gia_ObjIsAnd(pObj) )
         {
             Vec_IntAddToEntry( vRefs, Gia_ObjFaninId0p(p, pObj), 1 );
             Vec_IntAddToEntry( vRefs, Gia_ObjFaninId1p(p, pObj), 1 );
         }
-    Gia_ManForEachObjVec( vIns, p, pObj, i ) 
-        Vec_IntWriteEntry( vRefs, Gia_ObjId(p, pObj), Gia_ObjFanoutNum(p, pObj) );
     Gia_ManForEachObjVec( vWin, p, pObj, i )
-        if ( Gia_ObjFanoutNum(p, pObj) != Vec_IntEntry(vRefs, Gia_ObjId(p, pObj)) )
+        if ( !Gia_ObjIsTravIdCurrent(p, pObj) && Gia_ObjFanoutNum(p, pObj) != Vec_IntEntry(vRefs, Gia_ObjId(p, pObj)) )
             Vec_IntPush( vOuts, Gia_ObjId(p, pObj) );
     Gia_ManForEachObjVec( vWin, p, pObj, i )
-        if ( Gia_ObjIsAnd(pObj) )
+        if ( !Gia_ObjIsTravIdCurrent(p, pObj) && Gia_ObjIsAnd(pObj) )
         {
             Vec_IntAddToEntry( vRefs, Gia_ObjFaninId0p(p, pObj), -1 );
             Vec_IntAddToEntry( vRefs, Gia_ObjFaninId1p(p, pObj), -1 );
@@ -1322,7 +1324,7 @@ int Gia_ManVerifyTwoTruths( Gia_Man_t * p1, Gia_Man_t * p2 )
 void Gia_RsbEnumerateWindows( Gia_Man_t * p, int nInputsMax, int nLevelsMax )
 {
     int fVerbose = 0;
-    int fUseHash = 1;
+    int fUseHash = 0;
     int i, nWins = 0, nWinSize = 0, nInsSize = 0, nOutSize = 0, nNodeGain = 0;
     Vec_Wec_t * vLevels = Vec_WecStart( Gia_ManLevelNum(p)+1 );
     Vec_Int_t * vPaths = Vec_IntStart( Gia_ManObjNum(p) );
