@@ -22,8 +22,11 @@ int Lsv_NtkPrintSopUnate(Abc_Ntk_t *pNtk)
 
     Abc_NtkForEachNode(pNtk, pObj, i)
     {
-        printf("node %s:\n", Abc_ObjName(pObj));
         nFanins = Abc_ObjFaninNum(pObj);
+        if (nFanins == 0)
+            continue;
+
+        printf("node %s:\n", Abc_ObjName(pObj));
 
         vType = Vec_IntStart(nFanins);
 
@@ -110,7 +113,10 @@ int Lsv_NtkPrintSopUnate(Abc_Ntk_t *pNtk)
             Vec_IntForEachEntry(punate, id, j)
             {
                 name = Abc_ObjName(Abc_NtkObj(pNtk, id));
-                printf(" %s", name);
+                if (j == 0)
+                    printf(" %s", name);
+                else
+                    printf(",%s", name);
             }
             printf("\n");
         }
@@ -120,7 +126,10 @@ int Lsv_NtkPrintSopUnate(Abc_Ntk_t *pNtk)
             Vec_IntForEachEntry(nunate, id, j)
             {
                 name = Abc_ObjName(Abc_NtkObj(pNtk, id));
-                printf(" %s", name);
+                if (j == 0)
+                    printf(" %s", name);
+                else
+                    printf(",%s", name);
             }
             printf("\n");
         }
@@ -130,7 +139,10 @@ int Lsv_NtkPrintSopUnate(Abc_Ntk_t *pNtk)
             Vec_IntForEachEntry(binate, id, j)
             {
                 name = Abc_ObjName(Abc_NtkObj(pNtk, id));
-                printf(" %s", name);
+                if (j == 0)
+                    printf(" %s", name);
+                else
+                    printf(",%s", name);
             }
             printf("\n");
         }
