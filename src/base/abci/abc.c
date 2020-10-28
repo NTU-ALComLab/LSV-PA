@@ -1429,6 +1429,7 @@ int Abc_CommandLsvPrintSopunate( Abc_Frame_t * pAbc, int argc, char ** argv )
 	// Abc_NtkForEachNode( pNtk, pNode, i ) {
 		
 	// }
+	int fanInID[20000];
 	int temp[20000];
 	Abc_NtkForEachNode( pNtk, pObj, i ) {
 		// printf("Object Id = %d, name = %s\n", Abc_ObjId(pObj), Abc_ObjName(pObj));
@@ -1437,6 +1438,7 @@ int Abc_CommandLsvPrintSopunate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		int j;
 		Abc_Obj_t* pFanin;
 		Abc_ObjForEachFanin(pObj, pFanin, j) {
+			fanInID[j] = Abc_ObjId(pFanin);
 			temp[j] = 3;
 		}
 		
@@ -1464,7 +1466,30 @@ int Abc_CommandLsvPrintSopunate( Abc_Frame_t * pAbc, int argc, char ** argv )
 				j = 0;
 			}
 		}
-		// Abc_SopIsComplement((char *)pObj->pData);
+		
+		int num = Abc_ObjFaninNum(pObj);
+		int i_sorted;
+		int j_sorting;
+		int insertion_temp;
+		for(i_sorted = num - 2; i_sorted>=0; i_sorted--){
+			for(j_sorting = i_sorted; j_sorting < num - 1; j_sorting++){
+				if(fanInID[j_sorting] > fanInID[j_sorting+1]){
+					insertion_temp = fanInID[j_sorting];
+					fanInID[j_sorting] = fanInID[j_sorting+1];
+					fanInID[j_sorting+1] = insertion_temp;
+					
+					insertion_temp = temp[j_sorting];
+					temp[j_sorting] = temp[j_sorting+1];
+					temp[j_sorting+1] = insertion_temp;
+				}
+			}
+		}
+		// for(i_sorted=0;i_sorted<num;i_sorted++){
+			// printf("%d ", fanInID[i_sorted]);
+		// }
+		// printf("\n");
+		
+		// Abc_SopIsComplement((char *)pObj->pData);		
 		int com = Abc_SopIsComplement((char *)pObj->pData);
 		int first = 1;
 		Abc_ObjForEachFanin(pObj, pFanin, j) {
@@ -1475,7 +1500,7 @@ int Abc_CommandLsvPrintSopunate( Abc_Frame_t * pAbc, int argc, char ** argv )
 				}else{
 					printf(",");
 				}
-				printf("%s",Abc_ObjName(pFanin));
+				printf("%s",Abc_ObjName(Abc_NtkObj( pNtk, fanInID[j] )));
 			}
 		}
 		if(first == 0){			
@@ -1491,7 +1516,7 @@ int Abc_CommandLsvPrintSopunate( Abc_Frame_t * pAbc, int argc, char ** argv )
 				}else{
 					printf(",");
 				}
-				printf("%s",Abc_ObjName(pFanin));
+				printf("%s",Abc_ObjName(Abc_NtkObj( pNtk, fanInID[j] )));
 			}
 		}
 		if(first == 0){			
@@ -1507,13 +1532,13 @@ int Abc_CommandLsvPrintSopunate( Abc_Frame_t * pAbc, int argc, char ** argv )
 				}else{
 					printf(",");
 				}
-				printf("%s",Abc_ObjName(pFanin));
+				printf("%s",Abc_ObjName(Abc_NtkObj( pNtk, fanInID[j] )));
 			}
 		}
 		if(first == 0){			
 			printf("\n");
 		}
-		printf("\n");
+		// printf("\n");
 		
 		// Abc_SopForEachCube( pSop, nFanins, pCube ) {
 			
