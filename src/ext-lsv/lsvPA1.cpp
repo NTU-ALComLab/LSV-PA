@@ -108,7 +108,7 @@ void Lsv_NtkPrintUnates(Abc_Ntk_t* pNtk){
 
       printf("+unate inputs: %s", Abc_ObjName(pos_unates[0]));
       for (int k = 1; k < N_pos_unate; k ++){
-        printf(", %s", Abc_ObjName(pos_unates[k]));
+        printf(",%s", Abc_ObjName(pos_unates[k]));
       }
       printf("\n");
     }
@@ -117,7 +117,7 @@ void Lsv_NtkPrintUnates(Abc_Ntk_t* pNtk){
 
       printf("-unate inputs: %s", Abc_ObjName(neg_unates[0]));
       for (int k = 1; k < N_neg_unate; k ++){
-        printf(", %s", Abc_ObjName(neg_unates[k]));
+        printf(",%s", Abc_ObjName(neg_unates[k]));
       }
       printf("\n");
 
@@ -127,7 +127,7 @@ void Lsv_NtkPrintUnates(Abc_Ntk_t* pNtk){
 
       printf("binate inputs: %s", Abc_ObjName(binates[0]));
       for (int k = 1; k < N_binate; k++){
-        printf(", %s", Abc_ObjName(binates[k]));
+        printf(",%s", Abc_ObjName(binates[k]));
       }
       printf("\n");
     }
@@ -159,4 +159,3 @@ usage:
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
 }
-
