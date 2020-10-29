@@ -13,7 +13,6 @@ lib/bip*
 docs/
 benchmarks
 
-src/ext*
 src/xxx/
 src/aig/au/
 src/aig/ssm/
