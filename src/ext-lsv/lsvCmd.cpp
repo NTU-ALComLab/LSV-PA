@@ -5,21 +5,29 @@
 #include <string>
 using namespace std;
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
-static int Lsv_CommandPrintUnates(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
-  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintUnates, 0);
-}
 
+static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
+
+void init(Abc_Frame_t* pAbc) {
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+}
+static int Lsv_CommandPrintUnates(Abc_Frame_t* pAbc, int argc, char** argv);
+  void init1(Abc_Frame_t* pAbc) {
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintUnates, 0);
+  }
 void destroy(Abc_Frame_t* pAbc) {}
 
 Abc_FrameInitializer_t frame_initializer = {init, destroy};
-
+Abc_FrameInitializer_t frame_initializer1 = {init1, destroy};
 struct PackageRegistrationManager {
   PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer); }
 } lsvPackageRegistrationManager;
-
+struct PackageRegistrationManager {
+  PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer1); }
+} lsvPackageRegistrationManager1;
 void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pObj;
   int i;
