@@ -1,7 +1,0 @@
---- lsv/pa1/ref/mem_ctrl_size_2018.txt	2020-10-29 00:49:27.394953450 +0800
-+++ lsv/pa1/out/mem_ctrl_size_2018.txt	2020-10-29 00:49:27.452953449 +0800
-@@ -6694,3 +6694,4 @@
- +unate inputs: pi1200
- node po1230:
- +unate inputs: pi1184
-+node n4711:

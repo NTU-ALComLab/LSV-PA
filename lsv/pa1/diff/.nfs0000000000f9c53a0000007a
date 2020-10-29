@@ -1,7 +1,0 @@
---- lsv/pa1/ref/i2c_size_2018.txt	2020-10-29 00:49:26.931953461 +0800
-+++ lsv/pa1/out/i2c_size_2018.txt	2020-10-29 00:49:26.975953460 +0800
-@@ -682,3 +682,4 @@
- +unate inputs: pi130
- node po014:
- +unate inputs: pi128
-+node n504:
