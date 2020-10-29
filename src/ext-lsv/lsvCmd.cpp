@@ -106,7 +106,7 @@ int Lsv_print_unatness(Abc_Frame_t *pAbc, int argc, char **argv)
       _id.push_back(Abc_ObjId(pFanin)); //record type for sorting
     }
 
-    if (Abc_NtkHasSop(pNtk))
+    if (Abc_NtkHasSop(pNtk) && nVars != 0)
     {
       string sop = (char *)pObj->pData;
       compute(index, sop);
