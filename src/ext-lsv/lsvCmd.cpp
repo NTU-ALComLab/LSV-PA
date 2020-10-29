@@ -124,24 +124,58 @@ int Lsv_CommandPrintUnates(Abc_Frame_t* pAbc, int argc, char** argv) {
 		//for(int iter=0;iter<fanin.size();iter++){
 		//	printf("Vertex %s,%d\n",fanin[iter].second,unate[iter].second);	
 		//}
+    int p = 0,n=0,b=0;
+		for(int iter=0;iter<Fanin_Size;iter++){
+			if(unate[iter].second==1)
+        p = p +1;
+		}
+		for(int iter=0;iter<Fanin_Size;iter++){
+			if(unate[iter].second==0)
+        n = n +1;
+		}
+		for(int iter=0;iter<Fanin_Size;iter++){
+			if(unate[iter].second==-1)
+        b = b +1;
+		}
 
+    // printf("p=%d ,n=%d ,b=%d",p,n,b);
+
+    int counter = 0;
 		printf("node %s\n",Abc_ObjName(pObj));
 		printf("+unate inputs: ");
 		for(int iter=0;iter<Fanin_Size;iter++){
-			if(unate[iter].second==1)
-				printf("%s  ",fanin[iter].second);
+			if(unate[iter].second==1){
+        counter = counter +1;
+        if(counter==p){
+          printf("%s",fanin[iter].second);
+        }else{
+          printf("%s,",fanin[iter].second);
+        }
+      }
 		}
-
+    counter = 0;
 		printf("\n-unate inputs: ");
 		for(int iter=0;iter<Fanin_Size;iter++){
-			if(unate[iter].second==0)
-				printf("%s  ",fanin[iter].second);
+			if(unate[iter].second==0){
+        counter = counter +1;
+        if(counter==n){
+          printf("%s",fanin[iter].second);
+        }else{
+          printf("%s,",fanin[iter].second);
+        }
+      }
 		}
-
+    counter = 0;
 		printf("\nbinate inputs: ");
 		for(int iter=0;iter<Fanin_Size;iter++){
-			if(unate[iter].second==-1)
-				printf("%s  ",fanin[iter].second);
+			if(unate[iter].second==-1){
+        counter = counter +1;
+        if(counter==b){
+          printf("%s",fanin[iter].second);
+        }else{
+          printf("%s,",fanin[iter].second);
+        }
+        }
 		}
 		printf("\n");
 
@@ -151,6 +185,4 @@ int Lsv_CommandPrintUnates(Abc_Frame_t* pAbc, int argc, char** argv) {
 	//
 	//}
 	return 0;
-
-
 }
