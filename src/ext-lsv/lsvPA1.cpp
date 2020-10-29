@@ -18,12 +18,7 @@ struct PackageRegistrationManager {
 } lsvPackageRegistrationManager;
 
 int cmp(Abc_Obj_t* obj1, Abc_Obj_t* obj2){
-  if (Abc_ObjId(obj1) < Abc_ObjId(obj2))
-    return -1;
-  else if (Abc_ObjId(obj1) == Abc_ObjId(obj2)) 
-    return 0;
-  else 
-    return 1;
+  return Abc_ObjId(obj1) < Abc_ObjId(obj2);
 }
 
 void Lsv_NtkPrintUnates(Abc_Ntk_t* pNtk){
