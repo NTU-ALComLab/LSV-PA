@@ -124,8 +124,7 @@ int Lsv_CommandPrintUnates(Abc_Frame_t* pAbc, int argc, char** argv) {
 		//for(int iter=0;iter<fanin.size();iter++){
 		//	printf("Vertex %s,%d\n",fanin[iter].second,unate[iter].second);	
 		//}
-
-int p = 0,n=0,b=0;
+    int p = 0,n=0,b=0;
 		for(int iter=0;iter<Fanin_Size;iter++){
 			if(unate[iter].second==1)
         p = p +1;
@@ -180,13 +179,12 @@ int p = 0,n=0,b=0;
 		}
 		printf("\n");
 
-
 	}
 	//for(int i = 0;i<Objs.size();i++){
 	//	printf("Node: %d Object Id = %d, name = %s\n",i+1,Objs[i].first,Objs[i].second);
 	//
 	//}
 	return 0;
-
-
 }
+
+
