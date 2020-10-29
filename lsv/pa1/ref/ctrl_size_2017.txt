@@ -1,0 +1,80 @@
+ABC command line: "read benchmarks/best_results/size/ctrl_size_2017.blif; lsv_print_sopunate".
+
+node sel_reg_dst[0]:
++unate inputs: opcode[0],opcode[1],opcode[2]
+binate inputs: opcode[3],opcode[4]
+node sel_reg_dst[1]:
+-unate inputs: opcode[0]
+binate inputs: opcode[1],opcode[2],opcode[3],opcode[4]
+node sel_alu_opB[0]:
+-unate inputs: opcode[0],opcode[2]
+binate inputs: opcode[1],opcode[3],opcode[4]
+node sel_alu_opB[1]:
+-unate inputs: opcode[0],opcode[1],opcode[2]
+binate inputs: opcode[3],opcode[4]
+node alu_op[0]:
++unate inputs: opcode[0],opcode[1],n40
+binate inputs: opcode[2],opcode[3],opcode[4]
+node n40:
++unate inputs: opcode[3],op_ext[0],op_ext[1]
+-unate inputs: opcode[0],opcode[1]
+node alu_op[1]:
++unate inputs: opcode[1],op_ext[1]
+binate inputs: opcode[2],opcode[3],opcode[4]
+node alu_op[2]:
++unate inputs: opcode[0],opcode[1]
+binate inputs: opcode[2],opcode[3],opcode[4]
+node alu_op_ext[0]:
+-unate inputs: n40
+binate inputs: opcode[0],opcode[1],opcode[2],opcode[3],opcode[4]
+node alu_op_ext[1]:
++unate inputs: opcode[1]
+-unate inputs: opcode[0]
+binate inputs: opcode[2],opcode[3],opcode[4]
+node alu_op_ext[2]:
+-unate inputs: opcode[0]
+binate inputs: opcode[1],opcode[2],opcode[3],opcode[4]
+node alu_op_ext[3]:
++unate inputs: opcode[0]
+binate inputs: opcode[1],opcode[2],opcode[3],opcode[4]
+node halt:
+-unate inputs: opcode[0],opcode[1],opcode[2],opcode[3],opcode[4]
+node reg_write:
++unate inputs: opcode[0],opcode[1],opcode[4]
+binate inputs: opcode[2],opcode[3]
+node sel_pc_opA:
++unate inputs: opcode[0],jump
+node jump:
++unate inputs: opcode[2]
+-unate inputs: opcode[3],opcode[4]
+node sel_pc_opB:
++unate inputs: opcode[2]
+-unate inputs: opcode[0],opcode[3],opcode[4]
+node beqz:
++unate inputs: opcode[2],opcode[3]
+-unate inputs: opcode[0],opcode[1],opcode[4]
+node bnez:
++unate inputs: opcode[0],opcode[2],opcode[3]
+-unate inputs: opcode[1],opcode[4]
+node bgez:
++unate inputs: opcode[0],opcode[1],opcode[2],opcode[3]
+-unate inputs: opcode[4]
+node bltz:
++unate inputs: opcode[1],opcode[2],opcode[3]
+-unate inputs: opcode[0],opcode[4]
+node Cin:
++unate inputs: opcode[3],op_ext[0]
+binate inputs: opcode[0],opcode[1],opcode[2],opcode[4]
+node invA:
++unate inputs: opcode[0],opcode[4],Cin
+-unate inputs: opcode[1],opcode[2],op_ext[1]
+node invB:
++unate inputs: opcode[3],n40
+binate inputs: opcode[0],opcode[1],opcode[2],opcode[4]
+node mem_write:
++unate inputs: opcode[4]
+-unate inputs: opcode[2],opcode[3]
+binate inputs: opcode[0],opcode[1]
+node sel_wb:
++unate inputs: opcode[0],opcode[4]
+-unate inputs: opcode[1],opcode[2],opcode[3]
