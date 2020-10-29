@@ -1,10 +1,3 @@
-/****************************************************************************
-  FileName     [ lsvCmd.cpp ]
-  PackageName  [ print_sopunate ]
-  Synopsis     [ Define print_sopunate commands ]
-  Author       [ Qi-Yu Chen (r07943034) ]
-  Copyright    [ Copyleft(c) Alcom, GIEE, NTU, Taiwan ]
- ****************************************************************************/
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
@@ -23,80 +16,64 @@ struct PackageRegistrationManager {
   PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer); }
 } lsvPackageRegistrationManager;
 
-void PrintUnateInfo(char* str, Vec_Ptr_t* vec){
-  Abc_Obj_t* pEntry;
-  int i;
-  
-  if(Vec_PtrSize(vec) == 0)
-    return;
+void Lsv_printInputs(const char * str, Vec_Ptr_t * vec) {
+  Abc_Obj_t * pEntry;
+  int i, sz = Vec_PtrSize(vec);
+
+  if (sz == 0) return;
   printf("%s: ", str);
-  Vec_PtrForEachEntry(Abc_Obj_t* , vec, pEntry, i){
-    printf("%s", Abc_ObjName(pEntry));
-    if(i == Vec_PtrSize(vec) - 1)
-      printf("%c", '\n');
-    else
-      printf("%c", ',');
-  }
+  Vec_PtrForEachEntry( Abc_Obj_t *, vec, pEntry, i )
+    printf("%s%c", Abc_ObjName(pEntry), i != sz-1? ',':'\n');
 }
 
-static int Vec_PtrSortCompare(Abc_Obj_t** pp1, Abc_Obj_t** pp2){
-  return Abc_ObjId(*pp1) > Abc_ObjId(*pp2);
+int Lsv_sortCompare(Abc_Obj_t ** a, Abc_Obj_t ** b) {
+  return Abc_ObjId(*a) > Abc_ObjId(*b);
 }
 
-void Lsv_NtkPrintSopUnate(Abc_Ntk_t* pNtk){
-  Abc_Obj_t* pObj;
-  int i;
+void Lsv_NtkPrintSopUnate(Abc_Ntk_t* pNtk) {
+  Abc_Obj_t * pObj;
+  int i, j;
 
-  Abc_NtkForEachNode(pNtk, pObj, i){
-    char* pSop = (char*)pObj->pData;
+  Abc_NtkForEachNode(pNtk, pObj, i) {
+    char * pSop = (char *)pObj->pData;
+    char * pCube;
+    char val;
     int nFanins = Abc_ObjFaninNum(pObj);
-    char* pCube;
-    bool unateTable[nFanins][2] = {0};
-    
-    Abc_SopForEachCube(pSop, nFanins, pCube){
-      char Value;
-      int j;
+    bool unateTable[nFanins][2] = {};
+    Abc_SopForEachCube(pSop, nFanins, pCube) {
       bool isOnset = *(pCube + nFanins + 1) - '0';
-      
-      Abc_CubeForEachVar(pCube, Value, j){
-        if(Value == '-')
-          continue;
-        if(Value - '0' == isOnset)
-          unateTable[j][1] = 1;
-        else
-          unateTable[j][0] = 1;
+      Abc_CubeForEachVar(pCube, val, j) {
+        if (val == '-') continue;
+        bool isOne = val - '0';
+        unateTable[j][isOne == isOnset] = 1;
       }
     }
     
-    if(nFanins == 0)
-      continue;
-    Vec_Ptr_t* Vec_posUnate = Vec_PtrAlloc(nFanins);
-    Vec_Ptr_t* Vec_negUnate = Vec_PtrAlloc(nFanins);
-    Vec_Ptr_t* Vec_binate = Vec_PtrAlloc(nFanins);
-    
-    Abc_Obj_t* pFanin;
-    int k;
-    Abc_ObjForEachFanin(pObj, pFanin, k){
-      if(!unateTable[k][0])
-        Vec_PtrPush(Vec_posUnate, pFanin);
-      if(!unateTable[k][1])
-        Vec_PtrPush(Vec_negUnate, pFanin);
-      if(unateTable[k][0] && unateTable[k][1])
-        Vec_PtrPush(Vec_binate, pFanin);
+    Vec_Ptr_t * posUnateVec = Vec_PtrAlloc( nFanins );
+    Vec_Ptr_t * negUnateVec = Vec_PtrAlloc( nFanins );
+    Vec_Ptr_t * binateVec = Vec_PtrAlloc( nFanins );
+    Abc_Obj_t * pFanin;
+    Abc_ObjForEachFanin(pObj, pFanin, j) {
+      if (unateTable[j][0] && unateTable[j][1]) 
+        Vec_PtrPush( binateVec, pFanin );
+      else {
+        if (!unateTable[j][0]) Vec_PtrPush( posUnateVec, pFanin );
+        if (!unateTable[j][1]) Vec_PtrPush( negUnateVec, pFanin );
+      }
     }
 
-    Vec_PtrSort(Vec_posUnate, (int (*)()) Vec_PtrSortCompare);
-    Vec_PtrSort(Vec_negUnate, (int (*)()) Vec_PtrSortCompare);
-    Vec_PtrSort(Vec_binate, (int (*)()) Vec_PtrSortCompare);
+    Vec_PtrSort( posUnateVec, (int (*)()) Lsv_sortCompare );
+    Vec_PtrSort( negUnateVec, (int (*)()) Lsv_sortCompare );
+    Vec_PtrSort( binateVec, (int (*)()) Lsv_sortCompare );
 
     printf("node %s:\n", Abc_ObjName(pObj));
-    PrintUnateInfo("+unate inputs", Vec_posUnate);
-    PrintUnateInfo("-unate inputs", Vec_negUnate);
-    PrintUnateInfo("binate inputs", Vec_binate);
+    Lsv_printInputs( "+unate inputs", posUnateVec );
+    Lsv_printInputs( "-unate inputs", negUnateVec );
+    Lsv_printInputs( "binate inputs", binateVec );
 
-    Vec_PtrFree(Vec_posUnate);
-    Vec_PtrFree(Vec_negUnate);
-    Vec_PtrFree(Vec_binate);
+    Vec_PtrFree( posUnateVec );
+    Vec_PtrFree( negUnateVec );
+    Vec_PtrFree( binateVec );
   }
 }
 
