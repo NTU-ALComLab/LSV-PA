@@ -13,7 +13,7 @@ pa_dir="lsv/pa1"
 ref_dir="${pa_dir}/ref"
 out_dir="${pa_dir}/out"
 diff_dir="${pa_dir}/diff"
-bench_list=( $(find -L benchmarks/best_results/ -type f -name '*.blif') )
+bench_list=( $(find -L benchmarks/ -type f -name '*.blif') )
 students=( $(cut -d, -f1 < lsv/admin/participants-id.csv | tail -n +3) )
 
 grade_one_branch () {
