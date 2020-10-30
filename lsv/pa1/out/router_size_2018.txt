@@ -1,0 +1,202 @@
+ABC command line: "read benchmarks/best_results/size/router_size_2018.blif; lsv_print_sopunate".
+
+node po00
++unate inputs: n92,n97
+-unate inputs: n99,pi26
+binate inputs: 
+node n92
++unate inputs: pi14,pi15,pi11,n96
+-unate inputs: n93,n95
+binate inputs: 
+node n93
++unate inputs: n94
+-unate inputs: pi16,pi18
+binate inputs: 
+node n94
++unate inputs: 
+-unate inputs: pi12,pi13,pi14,pi15,pi21,pi22
+binate inputs: 
+node n95
++unate inputs: 
+-unate inputs: pi17,pi18,pi19,pi20,pi21,pi22
+binate inputs: 
+node n96
++unate inputs: pi23,pi24,pi25,pi27,pi28,pi29
+-unate inputs: 
+binate inputs: 
+node n97
++unate inputs: n98,n93
+-unate inputs: pi06,pi05,pi09,pi10
+binate inputs: 
+node n98
++unate inputs: 
+-unate inputs: pi01,pi02,pi03,pi04,pi07,pi08
+binate inputs: 
+node n99
++unate inputs: pi07,pi08,n100,pi06,pi09
+-unate inputs: 
+binate inputs: 
+node n100
++unate inputs: pi00,pi01,pi02,pi03,pi04,pi05
+-unate inputs: 
+binate inputs: 
+node po01
++unate inputs: pi27,pi28,pi29,pi26,n102
+-unate inputs: 
+binate inputs: 
+node n102
++unate inputs: n105,n103,n92
+-unate inputs: n111,n104,n97
+binate inputs: 
+node n103
++unate inputs: pi57,pi58,pi59
+-unate inputs: n99
+binate inputs: 
+node n104
++unate inputs: n107
+-unate inputs: pi40,pi42,pi43,n109,n105
+binate inputs: 
+node n105
++unate inputs: n106,pi44,pi45,pi47,pi49,pi50
+-unate inputs: 
+binate inputs: 
+node n106
++unate inputs: pi41,pi42,pi43,pi53,pi54,pi55
+-unate inputs: 
+binate inputs: 
+node n107
++unate inputs: pi51,pi56,pi54,pi55,pi53
+-unate inputs: n108
+binate inputs: 
+node n108
++unate inputs: pi46,pi47,pi48,pi52,pi50,pi49
+-unate inputs: 
+binate inputs: 
+node n109
++unate inputs: n110
+-unate inputs: pi36,pi37,pi38,pi35,pi39
+binate inputs: 
+node n110
++unate inputs: 
+-unate inputs: pi00,pi30,pi31,pi32,pi33,pi34
+binate inputs: 
+node n111
++unate inputs: n112,pi33,pi34,pi39,pi30
+-unate inputs: 
+binate inputs: pi00
+node n112
++unate inputs: pi31,pi32,pi35,pi36,pi37,pi38
+-unate inputs: 
+binate inputs: 
+node po02
++unate inputs: n103,n92,n97
+-unate inputs: n104,pi26
+binate inputs: 
+node n141
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n142
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n143
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n144
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n145
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n146
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n147
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n148
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n149
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n150
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n151
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n152
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n153
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n154
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n155
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n156
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n157
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n158
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n159
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n160
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n161
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n162
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n163
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n164
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n165
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n166
++unate inputs: 
+-unate inputs: 
+binate inputs: 
+node n167
++unate inputs: 
+-unate inputs: 
+binate inputs: 
