@@ -13,11 +13,14 @@ lib/bip*
 docs/
 benchmarks
 
-src/ext*
+#src/ext*
 src/xxx/
 src/aig/au/
 src/aig/ssm/
 src/aig/ddb/
+
+lsv/pa1
+pa1-ref
 
 *~
 *.orig
