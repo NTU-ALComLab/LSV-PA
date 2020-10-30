@@ -1,2 +1,2 @@
 SRC += \
-    src/ext-lsv/lsvCmd.cpp
+    src/ext-lsv/pa1_sopunate.cpp
