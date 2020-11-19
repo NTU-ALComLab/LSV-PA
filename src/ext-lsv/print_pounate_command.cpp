@@ -12,8 +12,7 @@ namespace
 
 int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 {
-	cout << "successfully add new command: print_pounate" << endl;
-	/*
+/*	
     Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
     Abc_Obj_t* pObj;
 
@@ -30,7 +29,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 			
 		}//end if sop
 	}//end for each node
-	*/
+*/	
     return 0;
 }
 
