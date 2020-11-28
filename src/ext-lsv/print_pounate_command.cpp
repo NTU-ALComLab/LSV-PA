@@ -5,31 +5,59 @@
 #include <stdlib.h>
 #include <vector>
 #include <algorithm>
+#include "sat/cnf/cnf.h"
 using namespace std;
+
+extern "C" Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
 
 namespace
 {
 
 int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 {
-/*	
-    Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
-    Abc_Obj_t* pObj;
+	Abc_Ntk_t* abcNtk = Abc_FrameReadNtk(pAbc);
+	Aig_Man_t* aigMan	= Abc_NtkToDar( abcNtk, 0, 0 );
+	
+	cout << "aigMan: " << endl;
+	Aig_ManPrintStats(aigMan);
+	cout << endl;
+	
+	Cnf_Dat_t* ntkCnf = Cnf_Derive( aigMan, Aig_ManCoNum(aigMan) );
+	//Cnf_Man_t* cnfMan = Cnf_ManRead();
 
+	Aig_Obj_t* aigObj;
 	int i;
-	Abc_NtkForEachNode(pNtk, pObj, i) {
-	//	cout << "node " << Abc_ObjName(pObj) << ":" << endl;
+	Aig_ManForEachObj(aigMan, aigObj, i){
+		cout << "ID: " << Aig_ObjId(aigObj) << endl;
+		cout << "Type: " << Aig_ObjType(aigObj) << endl;
+		cout << "FaininId0: " << Aig_ObjFaninId0(aigObj) << endl;
+        cout << "FaininId1: " << Aig_ObjFaninId1(aigObj) << endl;
+		cout << "FaininC0: " << Aig_ObjFaninC0(aigObj) << endl;
+        cout << "FaininC1: " << Aig_ObjFaninC1(aigObj) << endl;
+		cout << "Lit: " << Aig_ObjToLit(aigObj) << endl;
+		cout << endl;
+	}
 
-		if (Abc_NtkHasSop(pNtk)) {
-			string str((char*)pObj->pData);
-			
-			cout << "-------------------------" << endl;
-			cout << str; 
-			cout << "-------------------------" << endl;
-			
-		}//end if sop
-	}//end for each node
-*/	
+	int *pBeg, *pEnd;
+	Cnf_CnfForClause(ntkCnf, pBeg, pEnd, i ){
+		for(int* pLit = pBeg; pLit != pEnd; ++pLit){
+			cout << (Abc_LitIsCompl(*pLit)? "-": "") << Abc_Lit2Var(*pLit) << " ";
+		}
+		cout << endl;
+	}
+	//sat_solver2 * pSat = (sat_solver2 *)Cnf_DataWriteIntoSolver2( pCnf, 1, 0 );	
+/*
+	Aig_ManForEachCo(aigMan, aigObj, i ){
+		cout << "ID: " << Aig_ObjId(aigObj) << endl;
+		cout << "FaininId0: " << Aig_ObjFaninId0(aigObj) << endl;
+		cout << "FaininId1: " << Aig_ObjFaninId1(aigObj) << endl;
+		//Cnf_CutPrint(aigObj->pData);
+
+		//Cnf_Cut_t* cnfCut = Cnf_CutCreate(cnfMan, Aig_ObjChild0(aigObj));
+		//Cnf_CutPrint(cnfCut);
+		cout << endl;
+	}
+*/
     return 0;
 }
 
