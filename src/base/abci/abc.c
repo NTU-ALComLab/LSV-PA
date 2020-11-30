@@ -25417,6 +25417,8 @@ int Abc_CommandDSat( Abc_Frame_t * pAbc, int argc, char ** argv )
         pAbc->pCex = Abc_CexCreate( 0, Abc_NtkPiNum(pNtk), pNtk->pModel, 0, 0, 0 );
     }
     pAbc->Status = RetValue;
+	//my debug
+	Abc_CexPrint( pAbc->pCex );
     if ( !fSilent )
     {
         if ( RetValue == -1 )
