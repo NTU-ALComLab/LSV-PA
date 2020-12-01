@@ -8,9 +8,10 @@
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintSopunate, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "p", Lsv_CommandPrintPounate, 0);
 }
 
-void destroy(Abc_Frame_t* pAbc) {}
+void destroy(Abc_Frame_t* pAbc) {};
 
 Abc_FrameInitializer_t frame_initializer = {init, destroy};
 
@@ -65,6 +66,40 @@ int Lsv_CommandPrintSopunate(Abc_Frame_t* pAbc, int argc, char** argv) {
 
 usage:
   Abc_Print(-2, "usage: lsv_print_sopunate [-h]\n");
+  Abc_Print(-2, "\t        prints the nodes in the network\n");
+  Abc_Print(-2, "\t-h    : print the command usage\n");
+  return 1;
+}
+
+
+int Lsv_CommandPrintPounate(Abc_Frame_t* pAbc, int argc, char** argv) {
+  Abc_Ntk_t* pNtk1 = Abc_FrameReadNtk(pAbc);
+  Abc_Ntk_t* pNtk2 = Abc_FrameReadNtk(pAbc);
+  // cout << pNtk1 << " " << pNtk2 << endl;
+  int c;
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    switch (c) {
+      case 'h':
+        goto usage;
+      default:
+        goto usage;
+    }
+  }
+  if (!pNtk1 || !pNtk2) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  if ( !Abc_NtkIsStrash(pNtk1) || !Abc_NtkIsStrash(pNtk2) )
+  {
+      Abc_Print( -1, "Currently only works for structurally hashed circuits.\n" );
+      return 0;
+  }
+  Lsv_NtkPrintPounate(pNtk1, pNtk2);
+  return 0;
+
+usage:
+  Abc_Print(-2, "usage: lsv_print_pounate [-h]\n");
   Abc_Print(-2, "\t        prints the nodes in the network\n");
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
