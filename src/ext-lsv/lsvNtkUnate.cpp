@@ -161,18 +161,22 @@ int Lsv_NtkPrintPoUnate(Abc_Ntk_t *pNtk)
         Aig_ManForEachCi(pMan, pPi, j)
         {
             // printf("%s\n", Abc_ObjName(Abc_NtkPi(pNtk, j)));
+            int binate_flag = 1;
+
             // positive unate
             if (proofUnate(pMan, pSat, pCnfPos, pCnfNeg, i, j, alphas, 1))
             {
                 Vec_IntPush(punate, Abc_ObjId(Abc_NtkPi(pNtk, j)));
+                binate_flag = 0;
             }
             // negative unate
-            else if (proofUnate(pMan, pSat, pCnfPos, pCnfNeg, i, j, alphas, 0))
+            if (proofUnate(pMan, pSat, pCnfPos, pCnfNeg, i, j, alphas, 0))
             {
                 Vec_IntPush(nunate, Abc_ObjId(Abc_NtkPi(pNtk, j)));
+                binate_flag = 0;
             }
             // binate
-            else
+            if (binate_flag)
             {
                 Vec_IntPush(binate, Abc_ObjId(Abc_NtkPi(pNtk, j)));
             }
