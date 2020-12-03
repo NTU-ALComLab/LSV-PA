@@ -230,8 +230,6 @@ int Lsv_NtkPrintPoUnate(Abc_Ntk_t *pNtk, int fEachPo)
                 sat_solver_add_buffer_enable(pSat, pCnfPos->pVarNums[Aig_ObjId(pObj)], pCnfNeg->pVarNums[Aig_ObjId(pObj)], alphas[j], 0);
             }
 
-            printf("%d %d %d\n", i, Abc_NtkPiNum(pNtk), Abc_NtkPiNum(pNtkCone));
-
             // start proving
             k = 0; // pi counter of po cone
             Abc_NtkForEachPi(pNtk, pNode, j)
@@ -246,33 +244,33 @@ int Lsv_NtkPrintPoUnate(Abc_Ntk_t *pNtk, int fEachPo)
                         // positive unate
                         if (proofUnate(pMan, pSat, pCnfPos, pCnfNeg, 0, k, alphas, 1 ^ Abc_ObjFaninC0(pObjPo)))
                         {
-                            Vec_IntPush(punate, Abc_ObjId(pObjPi));
+                            Vec_IntPush(punate, Abc_ObjId(pNode));
                             binate_flag = 0;
                         }
                         // negative unate
                         if (proofUnate(pMan, pSat, pCnfPos, pCnfNeg, 0, k, alphas, 0 ^ Abc_ObjFaninC0(pObjPo)))
                         {
-                            Vec_IntPush(nunate, Abc_ObjId(pObjPi));
+                            Vec_IntPush(nunate, Abc_ObjId(pNode));
                             binate_flag = 0;
                         }
                         // binate
                         if (binate_flag)
                         {
-                            Vec_IntPush(binate, Abc_ObjId(pObjPi));
+                            Vec_IntPush(binate, Abc_ObjId(pNode));
                         }
                         k++;
                     }
                     // if not use, both pos unate and neg unate
                     else
                     {
-                        Vec_IntPush(punate, Abc_ObjId(pObjPi));
-                        Vec_IntPush(nunate, Abc_ObjId(pObjPi));
+                        Vec_IntPush(punate, Abc_ObjId(pNode));
+                        Vec_IntPush(nunate, Abc_ObjId(pNode));
                     }
                 }
                 else
                 {
-                    Vec_IntPush(punate, Abc_ObjId(pObjPi));
-                    Vec_IntPush(nunate, Abc_ObjId(pObjPi));
+                    Vec_IntPush(punate, Abc_ObjId(pNode));
+                    Vec_IntPush(nunate, Abc_ObjId(pNode));
                 }
             }
 
