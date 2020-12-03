@@ -90,13 +90,13 @@ endfunction()
 
 set(ABC_MAIN_SRC src/base/main/main.c)
 list(REMOVE_ITEM ABC_SRC ${ABC_MAIN_SRC})
-include_directories( src/ext-lsv/ )
 
 add_library(libabc EXCLUDE_FROM_ALL ${ABC_SRC})
 abc_properties(libabc PUBLIC)
 set_property(TARGET libabc PROPERTY OUTPUT_NAME abc)
 
 add_executable(abc ${ABC_MAIN_SRC} ${ABC_SRC})
+target_link_libraries(abc PRIVATE libabc)
 abc_properties(abc PRIVATE)
 
 add_library(libabc-pic EXCLUDE_FROM_ALL ${ABC_SRC})
