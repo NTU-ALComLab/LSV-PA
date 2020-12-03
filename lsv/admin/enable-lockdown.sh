@@ -1,10 +1,16 @@
-if [ -f ".github/workflows/lockdown.yml.disabled" ]; then
-    git sw master
-    mv .github/workflows/lockdown.yml.disabled .github/workflows/lockdown.yml
-    git a .github/workflows
-    git cm "Enable lockdown"
-    git push
-    lsv/admin/update-branches.sh
-else
-    echo "[WARNING] Lockdown is NOT disabled!"
-fi
+#!/bin/bash
+students=( $(cut -d, -f1 < lsv/admin/participants-id.csv | tail -n +3) )
+for student in "${students[@]}"; do
+    git switch "${student}"
+    echo "Enable lockdown for branch ${student} ..."
+    if [ -f ".github/workflows/lockdown.yml.disabled" ]; then
+        mv .github/workflows/lockdown.yml.disabled .github/workflows/lockdown.yml
+        git add .github/workflows
+        git commit -m "Enable lockdown"
+        git push
+    else
+        echo "[ERROR] Lockdown is NOT disabled!"
+        exit 1
+    fi
+done
+git switch master
