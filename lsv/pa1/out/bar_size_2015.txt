@@ -1,0 +1,1551 @@
+ABC command line: "read benchmarks/best_results/size/bar_size_2015.blif; lsv_print_sopunate".
+
+node result[0]:
+-unate inputs: n265,n286
+binate inputs: shift[6]
+node n265:
++unate inputs: n266,n271,n276,n281
+binate inputs: shift[4],shift[5]
+node n266:
++unate inputs: n267,n268,n269,n270
+binate inputs: shift[2],shift[3]
+node n267:
+-unate inputs: a[13],a[14],a[15],a[16]
+binate inputs: shift[0],shift[1]
+node n268:
+-unate inputs: a[9],a[10],a[11],a[12]
+binate inputs: shift[0],shift[1]
+node n269:
+-unate inputs: a[1],a[2],a[3],a[4]
+binate inputs: shift[0],shift[1]
+node n270:
+-unate inputs: a[5],a[6],a[7],a[8]
+binate inputs: shift[0],shift[1]
+node n271:
++unate inputs: n272,n273,n274,n275
+binate inputs: shift[2],shift[3]
+node n272:
+-unate inputs: a[29],a[30],a[31],a[32]
+binate inputs: shift[0],shift[1]
+node n273:
+-unate inputs: a[25],a[26],a[27],a[28]
+binate inputs: shift[0],shift[1]
+node n274:
+-unate inputs: a[17],a[18],a[19],a[20]
+binate inputs: shift[0],shift[1]
+node n275:
+-unate inputs: a[21],a[22],a[23],a[24]
+binate inputs: shift[0],shift[1]
+node n276:
++unate inputs: n277,n278,n279,n280
+binate inputs: shift[2],shift[3]
+node n277:
+-unate inputs: a[61],a[62],a[63],a[64]
+binate inputs: shift[0],shift[1]
+node n278:
+-unate inputs: a[57],a[58],a[59],a[60]
+binate inputs: shift[0],shift[1]
+node n279:
+-unate inputs: a[49],a[50],a[51],a[52]
+binate inputs: shift[0],shift[1]
+node n280:
+-unate inputs: a[53],a[54],a[55],a[56]
+binate inputs: shift[0],shift[1]
+node n281:
++unate inputs: n282,n283,n284
+-unate inputs: n285
+binate inputs: shift[2],shift[3]
+node n282:
+-unate inputs: a[45],a[46],a[47],a[48]
+binate inputs: shift[0],shift[1]
+node n283:
+-unate inputs: a[41],a[42],a[43],a[44]
+binate inputs: shift[0],shift[1]
+node n284:
+-unate inputs: a[33],a[34],a[35],a[36]
+binate inputs: shift[0],shift[1]
+node n285:
++unate inputs: a[37],a[38],a[39],a[40]
+binate inputs: shift[0],shift[1]
+node n286:
++unate inputs: n287,n292,n297,n302
+binate inputs: shift[4],shift[5]
+node n287:
++unate inputs: n288,n289,n290,n291
+binate inputs: shift[2],shift[3]
+node n288:
+-unate inputs: a[77],a[78],a[79],a[80]
+binate inputs: shift[0],shift[1]
+node n289:
+-unate inputs: a[73],a[74],a[75],a[76]
+binate inputs: shift[0],shift[1]
+node n290:
+-unate inputs: a[65],a[66],a[67],a[68]
+binate inputs: shift[0],shift[1]
+node n291:
+-unate inputs: a[69],a[70],a[71],a[72]
+binate inputs: shift[0],shift[1]
+node n292:
++unate inputs: n293,n294,n295,n296
+binate inputs: shift[2],shift[3]
+node n293:
+-unate inputs: a[93],a[94],a[95],a[96]
+binate inputs: shift[0],shift[1]
+node n294:
+-unate inputs: a[89],a[90],a[91],a[92]
+binate inputs: shift[0],shift[1]
+node n295:
+-unate inputs: a[81],a[82],a[83],a[84]
+binate inputs: shift[0],shift[1]
+node n296:
+-unate inputs: a[85],a[86],a[87],a[88]
+binate inputs: shift[0],shift[1]
+node n297:
++unate inputs: n298,n299,n300,n301
+binate inputs: shift[2],shift[3]
+node n298:
+-unate inputs: a[0],a[125],a[126],a[127]
+binate inputs: shift[0],shift[1]
+node n299:
+-unate inputs: a[121],a[122],a[123],a[124]
+binate inputs: shift[0],shift[1]
+node n300:
+-unate inputs: a[113],a[114],a[115],a[116]
+binate inputs: shift[0],shift[1]
+node n301:
+-unate inputs: a[117],a[118],a[119],a[120]
+binate inputs: shift[0],shift[1]
+node n302:
++unate inputs: n303,n304,n305,n306
+binate inputs: shift[2],shift[3]
+node n303:
+-unate inputs: a[109],a[110],a[111],a[112]
+binate inputs: shift[0],shift[1]
+node n304:
+-unate inputs: a[105],a[106],a[107],a[108]
+binate inputs: shift[0],shift[1]
+node n305:
+-unate inputs: a[97],a[98],a[99],a[100]
+binate inputs: shift[0],shift[1]
+node n306:
+-unate inputs: a[101],a[102],a[103],a[104]
+binate inputs: shift[0],shift[1]
+node result[1]:
+-unate inputs: n308,n329
+binate inputs: shift[6]
+node n308:
++unate inputs: n309,n314,n319,n324
+binate inputs: shift[4],shift[5]
+node n309:
+-unate inputs: n310,n311,n312,n313
+binate inputs: shift[2],shift[3]
+node n310:
++unate inputs: a[62],a[63],a[64],a[65]
+binate inputs: shift[0],shift[1]
+node n311:
++unate inputs: a[58],a[59],a[60],a[61]
+binate inputs: shift[0],shift[1]
+node n312:
++unate inputs: a[50],a[51],a[52],a[53]
+binate inputs: shift[0],shift[1]
+node n313:
++unate inputs: a[54],a[55],a[56],a[57]
+binate inputs: shift[0],shift[1]
+node n314:
+-unate inputs: n315,n316,n317,n318
+binate inputs: shift[2],shift[3]
+node n315:
++unate inputs: a[14],a[15],a[16],a[17]
+binate inputs: shift[0],shift[1]
+node n316:
++unate inputs: a[10],a[11],a[12],a[13]
+binate inputs: shift[0],shift[1]
+node n317:
++unate inputs: a[2],a[3],a[4],a[5]
+binate inputs: shift[0],shift[1]
+node n318:
++unate inputs: a[6],a[7],a[8],a[9]
+binate inputs: shift[0],shift[1]
+node n319:
++unate inputs: n321,n323
+-unate inputs: n320,n322
+binate inputs: shift[2],shift[3]
+node n320:
++unate inputs: a[46],a[47],a[48],a[49]
+binate inputs: shift[0],shift[1]
+node n321:
+-unate inputs: a[42],a[43],a[44],a[45]
+binate inputs: shift[0],shift[1]
+node n322:
++unate inputs: a[34],a[35],a[36],a[37]
+binate inputs: shift[0],shift[1]
+node n323:
+-unate inputs: a[38],a[39],a[40],a[41]
+binate inputs: shift[0],shift[1]
+node n324:
+-unate inputs: n325,n326,n327,n328
+binate inputs: shift[2],shift[3]
+node n325:
++unate inputs: a[30],a[31],a[32],a[33]
+binate inputs: shift[0],shift[1]
+node n326:
++unate inputs: a[26],a[27],a[28],a[29]
+binate inputs: shift[0],shift[1]
+node n327:
++unate inputs: a[18],a[19],a[20],a[21]
+binate inputs: shift[0],shift[1]
+node n328:
++unate inputs: a[22],a[23],a[24],a[25]
+binate inputs: shift[0],shift[1]
+node n329:
++unate inputs: n330,n335,n340,n345
+binate inputs: shift[4],shift[5]
+node n330:
+-unate inputs: n331,n332,n333,n334
+binate inputs: shift[2],shift[3]
+node n331:
++unate inputs: a[78],a[79],a[80],a[81]
+binate inputs: shift[0],shift[1]
+node n332:
++unate inputs: a[74],a[75],a[76],a[77]
+binate inputs: shift[0],shift[1]
+node n333:
++unate inputs: a[66],a[67],a[68],a[69]
+binate inputs: shift[0],shift[1]
+node n334:
++unate inputs: a[70],a[71],a[72],a[73]
+binate inputs: shift[0],shift[1]
+node n335:
+-unate inputs: n336,n337,n338,n339
+binate inputs: shift[2],shift[3]
+node n336:
++unate inputs: a[94],a[95],a[96],a[97]
+binate inputs: shift[0],shift[1]
+node n337:
++unate inputs: a[90],a[91],a[92],a[93]
+binate inputs: shift[0],shift[1]
+node n338:
++unate inputs: a[82],a[83],a[84],a[85]
+binate inputs: shift[0],shift[1]
+node n339:
++unate inputs: a[86],a[87],a[88],a[89]
+binate inputs: shift[0],shift[1]
+node n340:
+-unate inputs: n341,n342,n343,n344
+binate inputs: shift[2],shift[3]
+node n341:
++unate inputs: a[0],a[1],a[126],a[127]
+binate inputs: shift[0],shift[1]
+node n342:
++unate inputs: a[122],a[123],a[124],a[125]
+binate inputs: shift[0],shift[1]
+node n343:
++unate inputs: a[114],a[115],a[116],a[117]
+binate inputs: shift[0],shift[1]
+node n344:
++unate inputs: a[118],a[119],a[120],a[121]
+binate inputs: shift[0],shift[1]
+node n345:
+-unate inputs: n346,n347,n348,n349
+binate inputs: shift[2],shift[3]
+node n346:
++unate inputs: a[110],a[111],a[112],a[113]
+binate inputs: shift[0],shift[1]
+node n347:
++unate inputs: a[106],a[107],a[108],a[109]
+binate inputs: shift[0],shift[1]
+node n348:
++unate inputs: a[98],a[99],a[100],a[101]
+binate inputs: shift[0],shift[1]
+node n349:
++unate inputs: a[102],a[103],a[104],a[105]
+binate inputs: shift[0],shift[1]
+node result[2]:
+-unate inputs: n351,n372
+binate inputs: shift[6]
+node n351:
++unate inputs: n352,n357,n362,n367
+binate inputs: shift[4],shift[5]
+node n352:
++unate inputs: n353,n354,n355,n356
+binate inputs: shift[2],shift[3]
+node n353:
+-unate inputs: a[63],a[64],a[65],a[66]
+binate inputs: shift[0],shift[1]
+node n354:
+-unate inputs: a[59],a[60],a[61],a[62]
+binate inputs: shift[0],shift[1]
+node n355:
+-unate inputs: a[51],a[52],a[53],a[54]
+binate inputs: shift[0],shift[1]
+node n356:
+-unate inputs: a[55],a[56],a[57],a[58]
+binate inputs: shift[0],shift[1]
+node n357:
++unate inputs: n358,n359,n360,n361
+binate inputs: shift[2],shift[3]
+node n358:
+-unate inputs: a[15],a[16],a[17],a[18]
+binate inputs: shift[0],shift[1]
+node n359:
+-unate inputs: a[11],a[12],a[13],a[14]
+binate inputs: shift[0],shift[1]
+node n360:
+-unate inputs: a[3],a[4],a[5],a[6]
+binate inputs: shift[0],shift[1]
+node n361:
+-unate inputs: a[7],a[8],a[9],a[10]
+binate inputs: shift[0],shift[1]
+node n362:
++unate inputs: n363,n364,n365,n366
+binate inputs: shift[2],shift[3]
+node n363:
+-unate inputs: a[47],a[48],a[49],a[50]
+binate inputs: shift[0],shift[1]
+node n364:
+-unate inputs: a[43],a[44],a[45],a[46]
+binate inputs: shift[0],shift[1]
+node n365:
+-unate inputs: a[35],a[36],a[37],a[38]
+binate inputs: shift[0],shift[1]
+node n366:
+-unate inputs: a[39],a[40],a[41],a[42]
+binate inputs: shift[0],shift[1]
+node n367:
++unate inputs: n368,n369,n370,n371
+binate inputs: shift[2],shift[3]
+node n368:
+-unate inputs: a[31],a[32],a[33],a[34]
+binate inputs: shift[0],shift[1]
+node n369:
+-unate inputs: a[27],a[28],a[29],a[30]
+binate inputs: shift[0],shift[1]
+node n370:
+-unate inputs: a[19],a[20],a[21],a[22]
+binate inputs: shift[0],shift[1]
+node n371:
+-unate inputs: a[23],a[24],a[25],a[26]
+binate inputs: shift[0],shift[1]
+node n372:
++unate inputs: n373,n378,n383,n388
+binate inputs: shift[4],shift[5]
+node n373:
++unate inputs: n374,n375,n376,n377
+binate inputs: shift[2],shift[3]
+node n374:
+-unate inputs: a[79],a[80],a[81],a[82]
+binate inputs: shift[0],shift[1]
+node n375:
+-unate inputs: a[75],a[76],a[77],a[78]
+binate inputs: shift[0],shift[1]
+node n376:
+-unate inputs: a[67],a[68],a[69],a[70]
+binate inputs: shift[0],shift[1]
+node n377:
+-unate inputs: a[71],a[72],a[73],a[74]
+binate inputs: shift[0],shift[1]
+node n378:
++unate inputs: n379,n380,n381,n382
+binate inputs: shift[2],shift[3]
+node n379:
+-unate inputs: a[95],a[96],a[97],a[98]
+binate inputs: shift[0],shift[1]
+node n380:
+-unate inputs: a[91],a[92],a[93],a[94]
+binate inputs: shift[0],shift[1]
+node n381:
+-unate inputs: a[83],a[84],a[85],a[86]
+binate inputs: shift[0],shift[1]
+node n382:
+-unate inputs: a[87],a[88],a[89],a[90]
+binate inputs: shift[0],shift[1]
+node n383:
++unate inputs: n384,n385,n386,n387
+binate inputs: shift[2],shift[3]
+node n384:
+-unate inputs: a[0],a[1],a[2],a[127]
+binate inputs: shift[0],shift[1]
+node n385:
+-unate inputs: a[123],a[124],a[125],a[126]
+binate inputs: shift[0],shift[1]
+node n386:
+-unate inputs: a[115],a[116],a[117],a[118]
+binate inputs: shift[0],shift[1]
+node n387:
+-unate inputs: a[119],a[120],a[121],a[122]
+binate inputs: shift[0],shift[1]
+node n388:
++unate inputs: n389,n390,n391,n392
+binate inputs: shift[2],shift[3]
+node n389:
+-unate inputs: a[111],a[112],a[113],a[114]
+binate inputs: shift[0],shift[1]
+node n390:
+-unate inputs: a[107],a[108],a[109],a[110]
+binate inputs: shift[0],shift[1]
+node n391:
+-unate inputs: a[99],a[100],a[101],a[102]
+binate inputs: shift[0],shift[1]
+node n392:
+-unate inputs: a[103],a[104],a[105],a[106]
+binate inputs: shift[0],shift[1]
+node result[3]:
+-unate inputs: n394,n415
+binate inputs: shift[6]
+node n394:
++unate inputs: n395,n400,n405,n410
+binate inputs: shift[4],shift[5]
+node n395:
+-unate inputs: n396,n397,n398,n399
+binate inputs: shift[2],shift[3]
+node n396:
++unate inputs: a[64],a[65],a[66],a[67]
+binate inputs: shift[0],shift[1]
+node n397:
++unate inputs: a[60],a[61],a[62],a[63]
+binate inputs: shift[0],shift[1]
+node n398:
++unate inputs: a[52],a[53],a[54],a[55]
+binate inputs: shift[0],shift[1]
+node n399:
++unate inputs: a[56],a[57],a[58],a[59]
+binate inputs: shift[0],shift[1]
+node n400:
++unate inputs: n402
+-unate inputs: n401,n403,n404
+binate inputs: shift[2],shift[3]
+node n401:
++unate inputs: a[48],a[49],a[50],a[51]
+binate inputs: shift[0],shift[1]
+node n402:
+-unate inputs: a[44],a[45],a[46],a[47]
+binate inputs: shift[0],shift[1]
+node n403:
++unate inputs: a[36],a[37],a[38],a[39]
+binate inputs: shift[0],shift[1]
+node n404:
++unate inputs: a[40],a[41],a[42],a[43]
+binate inputs: shift[0],shift[1]
+node n405:
+-unate inputs: n406,n407,n408,n409
+binate inputs: shift[2],shift[3]
+node n406:
++unate inputs: a[16],a[17],a[18],a[19]
+binate inputs: shift[0],shift[1]
+node n407:
++unate inputs: a[12],a[13],a[14],a[15]
+binate inputs: shift[0],shift[1]
+node n408:
++unate inputs: a[4],a[5],a[6],a[7]
+binate inputs: shift[0],shift[1]
+node n409:
++unate inputs: a[8],a[9],a[10],a[11]
+binate inputs: shift[0],shift[1]
+node n410:
+-unate inputs: n411,n412,n413,n414
+binate inputs: shift[2],shift[3]
+node n411:
++unate inputs: a[32],a[33],a[34],a[35]
+binate inputs: shift[0],shift[1]
+node n412:
++unate inputs: a[28],a[29],a[30],a[31]
+binate inputs: shift[0],shift[1]
+node n413:
++unate inputs: a[20],a[21],a[22],a[23]
+binate inputs: shift[0],shift[1]
+node n414:
++unate inputs: a[24],a[25],a[26],a[27]
+binate inputs: shift[0],shift[1]
+node n415:
++unate inputs: n416,n421,n426,n431
+binate inputs: shift[4],shift[5]
+node n416:
+-unate inputs: n417,n418,n419,n420
+binate inputs: shift[2],shift[3]
+node n417:
++unate inputs: a[112],a[113],a[114],a[115]
+binate inputs: shift[0],shift[1]
+node n418:
++unate inputs: a[108],a[109],a[110],a[111]
+binate inputs: shift[0],shift[1]
+node n419:
++unate inputs: a[100],a[101],a[102],a[103]
+binate inputs: shift[0],shift[1]
+node n420:
++unate inputs: a[104],a[105],a[106],a[107]
+binate inputs: shift[0],shift[1]
+node n421:
+-unate inputs: n422,n423,n424,n425
+binate inputs: shift[2],shift[3]
+node n422:
++unate inputs: a[96],a[97],a[98],a[99]
+binate inputs: shift[0],shift[1]
+node n423:
++unate inputs: a[92],a[93],a[94],a[95]
+binate inputs: shift[0],shift[1]
+node n424:
++unate inputs: a[84],a[85],a[86],a[87]
+binate inputs: shift[0],shift[1]
+node n425:
++unate inputs: a[88],a[89],a[90],a[91]
+binate inputs: shift[0],shift[1]
+node n426:
+-unate inputs: n427,n428,n429,n430
+binate inputs: shift[2],shift[3]
+node n427:
++unate inputs: a[0],a[1],a[2],a[3]
+binate inputs: shift[0],shift[1]
+node n428:
++unate inputs: a[124],a[125],a[126],a[127]
+binate inputs: shift[0],shift[1]
+node n429:
++unate inputs: a[116],a[117],a[118],a[119]
+binate inputs: shift[0],shift[1]
+node n430:
++unate inputs: a[120],a[121],a[122],a[123]
+binate inputs: shift[0],shift[1]
+node n431:
+-unate inputs: n432,n433,n434,n435
+binate inputs: shift[2],shift[3]
+node n432:
++unate inputs: a[80],a[81],a[82],a[83]
+binate inputs: shift[0],shift[1]
+node n433:
++unate inputs: a[76],a[77],a[78],a[79]
+binate inputs: shift[0],shift[1]
+node n434:
++unate inputs: a[68],a[69],a[70],a[71]
+binate inputs: shift[0],shift[1]
+node n435:
++unate inputs: a[72],a[73],a[74],a[75]
+binate inputs: shift[0],shift[1]
+node result[4]:
+-unate inputs: n437,n442
+binate inputs: shift[6]
+node n437:
++unate inputs: n438,n439,n440,n441
+binate inputs: shift[4],shift[5]
+node n438:
++unate inputs: n279,n282,n283
+-unate inputs: n285
+binate inputs: shift[2],shift[3]
+node n439:
++unate inputs: n277,n278,n280,n290
+binate inputs: shift[2],shift[3]
+node n440:
++unate inputs: n272,n273,n275,n284
+binate inputs: shift[2],shift[3]
+node n441:
++unate inputs: n267,n268,n270,n274
+binate inputs: shift[2],shift[3]
+node n442:
++unate inputs: n443,n444,n445,n446
+binate inputs: shift[4],shift[5]
+node n443:
++unate inputs: n288,n289,n291,n295
+binate inputs: shift[2],shift[3]
+node n444:
++unate inputs: n293,n294,n296,n305
+binate inputs: shift[2],shift[3]
+node n445:
++unate inputs: n269,n298,n299,n301
+binate inputs: shift[2],shift[3]
+node n446:
++unate inputs: n300,n303,n304,n306
+binate inputs: shift[2],shift[3]
+node result[5]:
+-unate inputs: n448,n453
+binate inputs: shift[6]
+node n448:
++unate inputs: n449,n450,n451,n452
+binate inputs: shift[4],shift[5]
+node n449:
++unate inputs: n321,n323
+-unate inputs: n312,n320
+binate inputs: shift[2],shift[3]
+node n450:
+-unate inputs: n310,n311,n313,n333
+binate inputs: shift[2],shift[3]
+node n451:
+-unate inputs: n322,n325,n326,n328
+binate inputs: shift[2],shift[3]
+node n452:
+-unate inputs: n315,n316,n318,n327
+binate inputs: shift[2],shift[3]
+node n453:
++unate inputs: n454,n455,n456,n457
+binate inputs: shift[4],shift[5]
+node n454:
+-unate inputs: n331,n332,n334,n338
+binate inputs: shift[2],shift[3]
+node n455:
+-unate inputs: n336,n337,n339,n348
+binate inputs: shift[2],shift[3]
+node n456:
+-unate inputs: n317,n341,n342,n344
+binate inputs: shift[2],shift[3]
+node n457:
+-unate inputs: n343,n346,n347,n349
+binate inputs: shift[2],shift[3]
+node result[6]:
+-unate inputs: n459,n464
+binate inputs: shift[6]
+node n459:
++unate inputs: n460,n461,n462,n463
+binate inputs: shift[4],shift[5]
+node n460:
++unate inputs: n355,n363,n364,n366
+binate inputs: shift[2],shift[3]
+node n461:
++unate inputs: n353,n354,n356,n376
+binate inputs: shift[2],shift[3]
+node n462:
++unate inputs: n365,n368,n369,n371
+binate inputs: shift[2],shift[3]
+node n463:
++unate inputs: n358,n359,n361,n370
+binate inputs: shift[2],shift[3]
+node n464:
++unate inputs: n465,n466,n467,n468
+binate inputs: shift[4],shift[5]
+node n465:
++unate inputs: n374,n375,n377,n381
+binate inputs: shift[2],shift[3]
+node n466:
++unate inputs: n379,n380,n382,n391
+binate inputs: shift[2],shift[3]
+node n467:
++unate inputs: n360,n384,n385,n387
+binate inputs: shift[2],shift[3]
+node n468:
++unate inputs: n386,n389,n390,n392
+binate inputs: shift[2],shift[3]
+node result[7]:
+-unate inputs: n470,n475
+binate inputs: shift[6]
+node n470:
++unate inputs: n471,n472,n473,n474
+binate inputs: shift[4],shift[5]
+node n471:
++unate inputs: n402
+-unate inputs: n398,n401,n404
+binate inputs: shift[2],shift[3]
+node n472:
+-unate inputs: n396,n397,n399,n434
+binate inputs: shift[2],shift[3]
+node n473:
+-unate inputs: n403,n411,n412,n414
+binate inputs: shift[2],shift[3]
+node n474:
+-unate inputs: n406,n407,n409,n413
+binate inputs: shift[2],shift[3]
+node n475:
++unate inputs: n476,n477,n478,n479
+binate inputs: shift[4],shift[5]
+node n476:
+-unate inputs: n424,n432,n433,n435
+binate inputs: shift[2],shift[3]
+node n477:
+-unate inputs: n419,n422,n423,n425
+binate inputs: shift[2],shift[3]
+node n478:
+-unate inputs: n408,n427,n428,n430
+binate inputs: shift[2],shift[3]
+node n479:
+-unate inputs: n417,n418,n420,n429
+binate inputs: shift[2],shift[3]
+node result[8]:
+-unate inputs: n481,n486
+binate inputs: shift[6]
+node n481:
++unate inputs: n482,n483,n484,n485
+binate inputs: shift[4],shift[5]
+node n482:
++unate inputs: n279,n280,n282,n283
+binate inputs: shift[2],shift[3]
+node n483:
++unate inputs: n277,n278,n290,n291
+binate inputs: shift[2],shift[3]
+node n484:
++unate inputs: n272,n273,n284
+-unate inputs: n285
+binate inputs: shift[2],shift[3]
+node n485:
++unate inputs: n267,n268,n274,n275
+binate inputs: shift[2],shift[3]
+node n486:
++unate inputs: n487,n488,n489,n490
+binate inputs: shift[4],shift[5]
+node n487:
++unate inputs: n288,n289,n295,n296
+binate inputs: shift[2],shift[3]
+node n488:
++unate inputs: n293,n294,n305,n306
+binate inputs: shift[2],shift[3]
+node n489:
++unate inputs: n269,n270,n298,n299
+binate inputs: shift[2],shift[3]
+node n490:
++unate inputs: n300,n301,n303,n304
+binate inputs: shift[2],shift[3]
+node result[9]:
+-unate inputs: n492,n497
+binate inputs: shift[6]
+node n492:
++unate inputs: n493,n494,n495,n496
+binate inputs: shift[4],shift[5]
+node n493:
++unate inputs: n321
+-unate inputs: n312,n313,n320
+binate inputs: shift[2],shift[3]
+node n494:
+-unate inputs: n310,n311,n333,n334
+binate inputs: shift[2],shift[3]
+node n495:
++unate inputs: n323
+-unate inputs: n322,n325,n326
+binate inputs: shift[2],shift[3]
+node n496:
+-unate inputs: n315,n316,n327,n328
+binate inputs: shift[2],shift[3]
+node n497:
++unate inputs: n498,n499,n500,n501
+binate inputs: shift[4],shift[5]
+node n498:
+-unate inputs: n331,n332,n338,n339
+binate inputs: shift[2],shift[3]
+node n499:
+-unate inputs: n336,n337,n348,n349
+binate inputs: shift[2],shift[3]
+node n500:
+-unate inputs: n317,n318,n341,n342
+binate inputs: shift[2],shift[3]
+node n501:
+-unate inputs: n343,n344,n346,n347
+binate inputs: shift[2],shift[3]
+node result[10]:
+-unate inputs: n503,n508
+binate inputs: shift[6]
+node n503:
++unate inputs: n504,n505,n506,n507
+binate inputs: shift[4],shift[5]
+node n504:
++unate inputs: n355,n356,n363,n364
+binate inputs: shift[2],shift[3]
+node n505:
++unate inputs: n353,n354,n376,n377
+binate inputs: shift[2],shift[3]
+node n506:
++unate inputs: n365,n366,n368,n369
+binate inputs: shift[2],shift[3]
+node n507:
++unate inputs: n358,n359,n370,n371
+binate inputs: shift[2],shift[3]
+node n508:
++unate inputs: n509,n510,n511,n512
+binate inputs: shift[4],shift[5]
+node n509:
++unate inputs: n374,n375,n381,n382
+binate inputs: shift[2],shift[3]
+node n510:
++unate inputs: n379,n380,n391,n392
+binate inputs: shift[2],shift[3]
+node n511:
++unate inputs: n360,n361,n384,n385
+binate inputs: shift[2],shift[3]
+node n512:
++unate inputs: n386,n387,n389,n390
+binate inputs: shift[2],shift[3]
+node result[11]:
+-unate inputs: n514,n519
+binate inputs: shift[6]
+node n514:
++unate inputs: n515,n516,n517,n518
+binate inputs: shift[4],shift[5]
+node n515:
++unate inputs: n402
+-unate inputs: n398,n399,n401
+binate inputs: shift[2],shift[3]
+node n516:
+-unate inputs: n396,n397,n434,n435
+binate inputs: shift[2],shift[3]
+node n517:
+-unate inputs: n403,n404,n411,n412
+binate inputs: shift[2],shift[3]
+node n518:
+-unate inputs: n406,n407,n413,n414
+binate inputs: shift[2],shift[3]
+node n519:
++unate inputs: n520,n521,n522,n523
+binate inputs: shift[4],shift[5]
+node n520:
+-unate inputs: n424,n425,n432,n433
+binate inputs: shift[2],shift[3]
+node n521:
+-unate inputs: n419,n420,n422,n423
+binate inputs: shift[2],shift[3]
+node n522:
+-unate inputs: n408,n409,n427,n428
+binate inputs: shift[2],shift[3]
+node n523:
+-unate inputs: n417,n418,n429,n430
+binate inputs: shift[2],shift[3]
+node result[12]:
+-unate inputs: n525,n530
+binate inputs: shift[6]
+node n525:
++unate inputs: n526,n527,n528,n529
+binate inputs: shift[4],shift[5]
+node n526:
++unate inputs: n278,n279,n280,n282
+binate inputs: shift[2],shift[3]
+node n527:
++unate inputs: n277,n289,n290,n291
+binate inputs: shift[2],shift[3]
+node n528:
++unate inputs: n272,n283,n284
+-unate inputs: n285
+binate inputs: shift[2],shift[3]
+node n529:
++unate inputs: n267,n273,n274,n275
+binate inputs: shift[2],shift[3]
+node n530:
++unate inputs: n531,n532,n533,n534
+binate inputs: shift[4],shift[5]
+node n531:
++unate inputs: n288,n294,n295,n296
+binate inputs: shift[2],shift[3]
+node n532:
++unate inputs: n293,n304,n305,n306
+binate inputs: shift[2],shift[3]
+node n533:
++unate inputs: n268,n269,n270,n298
+binate inputs: shift[2],shift[3]
+node n534:
++unate inputs: n299,n300,n301,n303
+binate inputs: shift[2],shift[3]
+node result[13]:
+-unate inputs: n536,n541
+binate inputs: shift[6]
+node n536:
++unate inputs: n537,n538,n539,n540
+binate inputs: shift[4],shift[5]
+node n537:
+-unate inputs: n311,n312,n313,n320
+binate inputs: shift[2],shift[3]
+node n538:
+-unate inputs: n310,n332,n333,n334
+binate inputs: shift[2],shift[3]
+node n539:
++unate inputs: n321,n323
+-unate inputs: n322,n325
+binate inputs: shift[2],shift[3]
+node n540:
+-unate inputs: n315,n326,n327,n328
+binate inputs: shift[2],shift[3]
+node n541:
++unate inputs: n542,n543,n544,n545
+binate inputs: shift[4],shift[5]
+node n542:
+-unate inputs: n331,n337,n338,n339
+binate inputs: shift[2],shift[3]
+node n543:
+-unate inputs: n336,n347,n348,n349
+binate inputs: shift[2],shift[3]
+node n544:
+-unate inputs: n316,n317,n318,n341
+binate inputs: shift[2],shift[3]
+node n545:
+-unate inputs: n342,n343,n344,n346
+binate inputs: shift[2],shift[3]
+node result[14]:
+-unate inputs: n547,n552
+binate inputs: shift[6]
+node n547:
++unate inputs: n548,n549,n550,n551
+binate inputs: shift[4],shift[5]
+node n548:
++unate inputs: n354,n355,n356,n363
+binate inputs: shift[2],shift[3]
+node n549:
++unate inputs: n353,n375,n376,n377
+binate inputs: shift[2],shift[3]
+node n550:
++unate inputs: n364,n365,n366,n368
+binate inputs: shift[2],shift[3]
+node n551:
++unate inputs: n358,n369,n370,n371
+binate inputs: shift[2],shift[3]
+node n552:
++unate inputs: n553,n554,n555,n556
+binate inputs: shift[4],shift[5]
+node n553:
++unate inputs: n374,n380,n381,n382
+binate inputs: shift[2],shift[3]
+node n554:
++unate inputs: n379,n390,n391,n392
+binate inputs: shift[2],shift[3]
+node n555:
++unate inputs: n359,n360,n361,n384
+binate inputs: shift[2],shift[3]
+node n556:
++unate inputs: n385,n386,n387,n389
+binate inputs: shift[2],shift[3]
+node result[15]:
+-unate inputs: n558,n563
+binate inputs: shift[6]
+node n558:
++unate inputs: n559,n560,n561,n562
+binate inputs: shift[4],shift[5]
+node n559:
+-unate inputs: n397,n398,n399,n401
+binate inputs: shift[2],shift[3]
+node n560:
+-unate inputs: n396,n433,n434,n435
+binate inputs: shift[2],shift[3]
+node n561:
++unate inputs: n402
+-unate inputs: n403,n404,n411
+binate inputs: shift[2],shift[3]
+node n562:
+-unate inputs: n406,n412,n413,n414
+binate inputs: shift[2],shift[3]
+node n563:
++unate inputs: n564,n565,n566,n567
+binate inputs: shift[4],shift[5]
+node n564:
+-unate inputs: n423,n424,n425,n432
+binate inputs: shift[2],shift[3]
+node n565:
+-unate inputs: n418,n419,n420,n422
+binate inputs: shift[2],shift[3]
+node n566:
+-unate inputs: n407,n408,n409,n427
+binate inputs: shift[2],shift[3]
+node n567:
+-unate inputs: n417,n428,n429,n430
+binate inputs: shift[2],shift[3]
+node result[16]:
+-unate inputs: n569,n570
+binate inputs: shift[6]
+node n569:
++unate inputs: n271,n276,n281,n287
+binate inputs: shift[4],shift[5]
+node n570:
++unate inputs: n266,n292,n297,n302
+binate inputs: shift[4],shift[5]
+node result[17]:
+-unate inputs: n572,n573
+binate inputs: shift[6]
+node n572:
++unate inputs: n309,n319,n324,n330
+binate inputs: shift[4],shift[5]
+node n573:
++unate inputs: n314,n335,n340,n345
+binate inputs: shift[4],shift[5]
+node result[18]:
+-unate inputs: n575,n576
+binate inputs: shift[6]
+node n575:
++unate inputs: n352,n362,n367,n373
+binate inputs: shift[4],shift[5]
+node n576:
++unate inputs: n357,n378,n383,n388
+binate inputs: shift[4],shift[5]
+node result[19]:
+-unate inputs: n578,n579
+binate inputs: shift[6]
+node n578:
++unate inputs: n395,n400,n410,n431
+binate inputs: shift[4],shift[5]
+node n579:
++unate inputs: n405,n416,n421,n426
+binate inputs: shift[4],shift[5]
+node result[20]:
+-unate inputs: n581,n582
+binate inputs: shift[6]
+node n581:
++unate inputs: n438,n439,n440,n443
+binate inputs: shift[4],shift[5]
+node n582:
++unate inputs: n441,n444,n445,n446
+binate inputs: shift[4],shift[5]
+node result[21]:
+-unate inputs: n584,n585
+binate inputs: shift[6]
+node n584:
++unate inputs: n449,n450,n451,n454
+binate inputs: shift[4],shift[5]
+node n585:
++unate inputs: n452,n455,n456,n457
+binate inputs: shift[4],shift[5]
+node result[22]:
+-unate inputs: n587,n588
+binate inputs: shift[6]
+node n587:
++unate inputs: n460,n461,n462,n465
+binate inputs: shift[4],shift[5]
+node n588:
++unate inputs: n463,n466,n467,n468
+binate inputs: shift[4],shift[5]
+node result[23]:
+-unate inputs: n590,n591
+binate inputs: shift[6]
+node n590:
++unate inputs: n471,n472,n473,n476
+binate inputs: shift[4],shift[5]
+node n591:
++unate inputs: n474,n477,n478,n479
+binate inputs: shift[4],shift[5]
+node result[24]:
+-unate inputs: n593,n594
+binate inputs: shift[6]
+node n593:
++unate inputs: n482,n483,n484,n487
+binate inputs: shift[4],shift[5]
+node n594:
++unate inputs: n485,n488,n489,n490
+binate inputs: shift[4],shift[5]
+node result[25]:
+-unate inputs: n596,n597
+binate inputs: shift[6]
+node n596:
++unate inputs: n493,n494,n495,n498
+binate inputs: shift[4],shift[5]
+node n597:
++unate inputs: n496,n499,n500,n501
+binate inputs: shift[4],shift[5]
+node result[26]:
+-unate inputs: n599,n600
+binate inputs: shift[6]
+node n599:
++unate inputs: n504,n505,n506,n509
+binate inputs: shift[4],shift[5]
+node n600:
++unate inputs: n507,n510,n511,n512
+binate inputs: shift[4],shift[5]
+node result[27]:
+-unate inputs: n602,n603
+binate inputs: shift[6]
+node n602:
++unate inputs: n515,n516,n517,n520
+binate inputs: shift[4],shift[5]
+node n603:
++unate inputs: n518,n521,n522,n523
+binate inputs: shift[4],shift[5]
+node result[28]:
+-unate inputs: n605,n606
+binate inputs: shift[6]
+node n605:
++unate inputs: n526,n527,n528,n531
+binate inputs: shift[4],shift[5]
+node n606:
++unate inputs: n529,n532,n533,n534
+binate inputs: shift[4],shift[5]
+node result[29]:
+-unate inputs: n608,n609
+binate inputs: shift[6]
+node n608:
++unate inputs: n537,n538,n539,n542
+binate inputs: shift[4],shift[5]
+node n609:
++unate inputs: n540,n543,n544,n545
+binate inputs: shift[4],shift[5]
+node result[30]:
+-unate inputs: n611,n612
+binate inputs: shift[6]
+node n611:
++unate inputs: n548,n549,n550,n553
+binate inputs: shift[4],shift[5]
+node n612:
++unate inputs: n551,n554,n555,n556
+binate inputs: shift[4],shift[5]
+node result[31]:
+-unate inputs: n614,n615
+binate inputs: shift[6]
+node n614:
++unate inputs: n559,n560,n561,n564
+binate inputs: shift[4],shift[5]
+node n615:
++unate inputs: n562,n565,n566,n567
+binate inputs: shift[4],shift[5]
+node result[32]:
+-unate inputs: n617,n618
+binate inputs: shift[6]
+node n617:
++unate inputs: n276,n281,n287,n292
+binate inputs: shift[4],shift[5]
+node n618:
++unate inputs: n266,n271,n297,n302
+binate inputs: shift[4],shift[5]
+node result[33]:
+-unate inputs: n620,n621
+binate inputs: shift[6]
+node n620:
++unate inputs: n309,n319,n330,n335
+binate inputs: shift[4],shift[5]
+node n621:
++unate inputs: n314,n324,n340,n345
+binate inputs: shift[4],shift[5]
+node result[34]:
+-unate inputs: n623,n624
+binate inputs: shift[6]
+node n623:
++unate inputs: n352,n362,n373,n378
+binate inputs: shift[4],shift[5]
+node n624:
++unate inputs: n357,n367,n383,n388
+binate inputs: shift[4],shift[5]
+node result[35]:
+-unate inputs: n626,n627
+binate inputs: shift[6]
+node n626:
++unate inputs: n395,n400,n421,n431
+binate inputs: shift[4],shift[5]
+node n627:
++unate inputs: n405,n410,n416,n426
+binate inputs: shift[4],shift[5]
+node result[36]:
+-unate inputs: n629,n630
+binate inputs: shift[6]
+node n629:
++unate inputs: n438,n439,n443,n444
+binate inputs: shift[4],shift[5]
+node n630:
++unate inputs: n440,n441,n445,n446
+binate inputs: shift[4],shift[5]
+node result[37]:
+-unate inputs: n632,n633
+binate inputs: shift[6]
+node n632:
++unate inputs: n449,n450,n454,n455
+binate inputs: shift[4],shift[5]
+node n633:
++unate inputs: n451,n452,n456,n457
+binate inputs: shift[4],shift[5]
+node result[38]:
+-unate inputs: n635,n636
+binate inputs: shift[6]
+node n635:
++unate inputs: n460,n461,n465,n466
+binate inputs: shift[4],shift[5]
+node n636:
++unate inputs: n462,n463,n467,n468
+binate inputs: shift[4],shift[5]
+node result[39]:
+-unate inputs: n638,n639
+binate inputs: shift[6]
+node n638:
++unate inputs: n471,n472,n476,n477
+binate inputs: shift[4],shift[5]
+node n639:
++unate inputs: n473,n474,n478,n479
+binate inputs: shift[4],shift[5]
+node result[40]:
+-unate inputs: n641,n642
+binate inputs: shift[6]
+node n641:
++unate inputs: n482,n483,n487,n488
+binate inputs: shift[4],shift[5]
+node n642:
++unate inputs: n484,n485,n489,n490
+binate inputs: shift[4],shift[5]
+node result[41]:
+-unate inputs: n644,n645
+binate inputs: shift[6]
+node n644:
++unate inputs: n493,n494,n498,n499
+binate inputs: shift[4],shift[5]
+node n645:
++unate inputs: n495,n496,n500,n501
+binate inputs: shift[4],shift[5]
+node result[42]:
+-unate inputs: n647,n648
+binate inputs: shift[6]
+node n647:
++unate inputs: n504,n505,n509,n510
+binate inputs: shift[4],shift[5]
+node n648:
++unate inputs: n506,n507,n511,n512
+binate inputs: shift[4],shift[5]
+node result[43]:
+-unate inputs: n650,n651
+binate inputs: shift[6]
+node n650:
++unate inputs: n515,n516,n520,n521
+binate inputs: shift[4],shift[5]
+node n651:
++unate inputs: n517,n518,n522,n523
+binate inputs: shift[4],shift[5]
+node result[44]:
+-unate inputs: n653,n654
+binate inputs: shift[6]
+node n653:
++unate inputs: n526,n527,n531,n532
+binate inputs: shift[4],shift[5]
+node n654:
++unate inputs: n528,n529,n533,n534
+binate inputs: shift[4],shift[5]
+node result[45]:
+-unate inputs: n656,n657
+binate inputs: shift[6]
+node n656:
++unate inputs: n537,n538,n542,n543
+binate inputs: shift[4],shift[5]
+node n657:
++unate inputs: n539,n540,n544,n545
+binate inputs: shift[4],shift[5]
+node result[46]:
+-unate inputs: n659,n660
+binate inputs: shift[6]
+node n659:
++unate inputs: n548,n549,n553,n554
+binate inputs: shift[4],shift[5]
+node n660:
++unate inputs: n550,n551,n555,n556
+binate inputs: shift[4],shift[5]
+node result[47]:
+-unate inputs: n662,n663
+binate inputs: shift[6]
+node n662:
++unate inputs: n559,n560,n564,n565
+binate inputs: shift[4],shift[5]
+node n663:
++unate inputs: n561,n562,n566,n567
+binate inputs: shift[4],shift[5]
+node result[48]:
+-unate inputs: n665,n666
+binate inputs: shift[6]
+node n665:
++unate inputs: n276,n287,n292,n302
+binate inputs: shift[4],shift[5]
+node n666:
++unate inputs: n266,n271,n281,n297
+binate inputs: shift[4],shift[5]
+node result[49]:
+-unate inputs: n668,n669
+binate inputs: shift[6]
+node n668:
++unate inputs: n309,n330,n335,n345
+binate inputs: shift[4],shift[5]
+node n669:
++unate inputs: n314,n319,n324,n340
+binate inputs: shift[4],shift[5]
+node result[50]:
+-unate inputs: n671,n672
+binate inputs: shift[6]
+node n671:
++unate inputs: n352,n373,n378,n388
+binate inputs: shift[4],shift[5]
+node n672:
++unate inputs: n357,n362,n367,n383
+binate inputs: shift[4],shift[5]
+node result[51]:
+-unate inputs: n674,n675
+binate inputs: shift[6]
+node n674:
++unate inputs: n395,n416,n421,n431
+binate inputs: shift[4],shift[5]
+node n675:
++unate inputs: n400,n405,n410,n426
+binate inputs: shift[4],shift[5]
+node result[52]:
+-unate inputs: n677,n678
+binate inputs: shift[6]
+node n677:
++unate inputs: n439,n443,n444,n446
+binate inputs: shift[4],shift[5]
+node n678:
++unate inputs: n438,n440,n441,n445
+binate inputs: shift[4],shift[5]
+node result[53]:
+-unate inputs: n680,n681
+binate inputs: shift[6]
+node n680:
++unate inputs: n450,n454,n455,n457
+binate inputs: shift[4],shift[5]
+node n681:
++unate inputs: n449,n451,n452,n456
+binate inputs: shift[4],shift[5]
+node result[54]:
+-unate inputs: n683,n684
+binate inputs: shift[6]
+node n683:
++unate inputs: n461,n465,n466,n468
+binate inputs: shift[4],shift[5]
+node n684:
++unate inputs: n460,n462,n463,n467
+binate inputs: shift[4],shift[5]
+node result[55]:
+-unate inputs: n686,n687
+binate inputs: shift[6]
+node n686:
++unate inputs: n472,n476,n477,n479
+binate inputs: shift[4],shift[5]
+node n687:
++unate inputs: n471,n473,n474,n478
+binate inputs: shift[4],shift[5]
+node result[56]:
+-unate inputs: n689,n690
+binate inputs: shift[6]
+node n689:
++unate inputs: n483,n487,n488,n490
+binate inputs: shift[4],shift[5]
+node n690:
++unate inputs: n482,n484,n485,n489
+binate inputs: shift[4],shift[5]
+node result[57]:
+-unate inputs: n692,n693
+binate inputs: shift[6]
+node n692:
++unate inputs: n494,n498,n499,n501
+binate inputs: shift[4],shift[5]
+node n693:
++unate inputs: n493,n495,n496,n500
+binate inputs: shift[4],shift[5]
+node result[58]:
+-unate inputs: n695,n696
+binate inputs: shift[6]
+node n695:
++unate inputs: n505,n509,n510,n512
+binate inputs: shift[4],shift[5]
+node n696:
++unate inputs: n504,n506,n507,n511
+binate inputs: shift[4],shift[5]
+node result[59]:
+-unate inputs: n698,n699
+binate inputs: shift[6]
+node n698:
++unate inputs: n516,n520,n521,n523
+binate inputs: shift[4],shift[5]
+node n699:
++unate inputs: n515,n517,n518,n522
+binate inputs: shift[4],shift[5]
+node result[60]:
+-unate inputs: n701,n702
+binate inputs: shift[6]
+node n701:
++unate inputs: n527,n531,n532,n534
+binate inputs: shift[4],shift[5]
+node n702:
++unate inputs: n526,n528,n529,n533
+binate inputs: shift[4],shift[5]
+node result[61]:
+-unate inputs: n704,n705
+binate inputs: shift[6]
+node n704:
++unate inputs: n538,n542,n543,n545
+binate inputs: shift[4],shift[5]
+node n705:
++unate inputs: n537,n539,n540,n544
+binate inputs: shift[4],shift[5]
+node result[62]:
+-unate inputs: n707,n708
+binate inputs: shift[6]
+node n707:
++unate inputs: n549,n553,n554,n556
+binate inputs: shift[4],shift[5]
+node n708:
++unate inputs: n548,n550,n551,n555
+binate inputs: shift[4],shift[5]
+node result[63]:
+-unate inputs: n710,n711
+binate inputs: shift[6]
+node n710:
++unate inputs: n560,n564,n565,n567
+binate inputs: shift[4],shift[5]
+node n711:
++unate inputs: n559,n561,n562,n566
+binate inputs: shift[4],shift[5]
+node result[64]:
+-unate inputs: n265,n286
+binate inputs: shift[6]
+node result[65]:
+-unate inputs: n308,n329
+binate inputs: shift[6]
+node result[66]:
+-unate inputs: n351,n372
+binate inputs: shift[6]
+node result[67]:
+-unate inputs: n394,n415
+binate inputs: shift[6]
+node result[68]:
+-unate inputs: n437,n442
+binate inputs: shift[6]
+node result[69]:
+-unate inputs: n448,n453
+binate inputs: shift[6]
+node result[70]:
+-unate inputs: n459,n464
+binate inputs: shift[6]
+node result[71]:
+-unate inputs: n470,n475
+binate inputs: shift[6]
+node result[72]:
+-unate inputs: n481,n486
+binate inputs: shift[6]
+node result[73]:
+-unate inputs: n492,n497
+binate inputs: shift[6]
+node result[74]:
+-unate inputs: n503,n508
+binate inputs: shift[6]
+node result[75]:
+-unate inputs: n514,n519
+binate inputs: shift[6]
+node result[76]:
+-unate inputs: n525,n530
+binate inputs: shift[6]
+node result[77]:
+-unate inputs: n536,n541
+binate inputs: shift[6]
+node result[78]:
+-unate inputs: n547,n552
+binate inputs: shift[6]
+node result[79]:
+-unate inputs: n558,n563
+binate inputs: shift[6]
+node result[80]:
+-unate inputs: n569,n570
+binate inputs: shift[6]
+node result[81]:
+-unate inputs: n572,n573
+binate inputs: shift[6]
+node result[82]:
+-unate inputs: n575,n576
+binate inputs: shift[6]
+node result[83]:
+-unate inputs: n578,n579
+binate inputs: shift[6]
+node result[84]:
+-unate inputs: n581,n582
+binate inputs: shift[6]
+node result[85]:
+-unate inputs: n584,n585
+binate inputs: shift[6]
+node result[86]:
+-unate inputs: n587,n588
+binate inputs: shift[6]
+node result[87]:
+-unate inputs: n590,n591
+binate inputs: shift[6]
+node result[88]:
+-unate inputs: n593,n594
+binate inputs: shift[6]
+node result[89]:
+-unate inputs: n596,n597
+binate inputs: shift[6]
+node result[90]:
+-unate inputs: n599,n600
+binate inputs: shift[6]
+node result[91]:
+-unate inputs: n602,n603
+binate inputs: shift[6]
+node result[92]:
+-unate inputs: n605,n606
+binate inputs: shift[6]
+node result[93]:
+-unate inputs: n608,n609
+binate inputs: shift[6]
+node result[94]:
+-unate inputs: n611,n612
+binate inputs: shift[6]
+node result[95]:
+-unate inputs: n614,n615
+binate inputs: shift[6]
+node result[96]:
+-unate inputs: n617,n618
+binate inputs: shift[6]
+node result[97]:
+-unate inputs: n620,n621
+binate inputs: shift[6]
+node result[98]:
+-unate inputs: n623,n624
+binate inputs: shift[6]
+node result[99]:
+-unate inputs: n626,n627
+binate inputs: shift[6]
+node result[100]:
+-unate inputs: n629,n630
+binate inputs: shift[6]
+node result[101]:
+-unate inputs: n632,n633
+binate inputs: shift[6]
+node result[102]:
+-unate inputs: n635,n636
+binate inputs: shift[6]
+node result[103]:
+-unate inputs: n638,n639
+binate inputs: shift[6]
+node result[104]:
+-unate inputs: n641,n642
+binate inputs: shift[6]
+node result[105]:
+-unate inputs: n644,n645
+binate inputs: shift[6]
+node result[106]:
+-unate inputs: n647,n648
+binate inputs: shift[6]
+node result[107]:
+-unate inputs: n650,n651
+binate inputs: shift[6]
+node result[108]:
+-unate inputs: n653,n654
+binate inputs: shift[6]
+node result[109]:
+-unate inputs: n656,n657
+binate inputs: shift[6]
+node result[110]:
+-unate inputs: n659,n660
+binate inputs: shift[6]
+node result[111]:
+-unate inputs: n662,n663
+binate inputs: shift[6]
+node result[112]:
+-unate inputs: n665,n666
+binate inputs: shift[6]
+node result[113]:
+-unate inputs: n668,n669
+binate inputs: shift[6]
+node result[114]:
+-unate inputs: n671,n672
+binate inputs: shift[6]
+node result[115]:
+-unate inputs: n674,n675
+binate inputs: shift[6]
+node result[116]:
+-unate inputs: n677,n678
+binate inputs: shift[6]
+node result[117]:
+-unate inputs: n680,n681
+binate inputs: shift[6]
+node result[118]:
+-unate inputs: n683,n684
+binate inputs: shift[6]
+node result[119]:
+-unate inputs: n686,n687
+binate inputs: shift[6]
+node result[120]:
+-unate inputs: n689,n690
+binate inputs: shift[6]
+node result[121]:
+-unate inputs: n692,n693
+binate inputs: shift[6]
+node result[122]:
+-unate inputs: n695,n696
+binate inputs: shift[6]
+node result[123]:
+-unate inputs: n698,n699
+binate inputs: shift[6]
+node result[124]:
+-unate inputs: n701,n702
+binate inputs: shift[6]
+node result[125]:
+-unate inputs: n704,n705
+binate inputs: shift[6]
+node result[126]:
+-unate inputs: n707,n708
+binate inputs: shift[6]
+node result[127]:
+-unate inputs: n710,n711
+binate inputs: shift[6]
