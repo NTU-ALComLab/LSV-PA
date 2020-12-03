@@ -1,9 +1,7 @@
 #include <vector>
-#include <string>
-#include <algorithm>
+#include <cstring>
 #include "sat/bsat/satSolver.h"
 #include "sat/cnf/cnf.h"
-
 #include "lsvNtkUnate.h"
 
 // ABC_NAMESPACE_IMPL_START
@@ -116,84 +114,186 @@ int Lsv_NtkPrintSopUnate(Abc_Ntk_t *pNtk)
     return 0;
 }
 
-int Lsv_NtkPrintPoUnate(Abc_Ntk_t *pNtk)
+int Lsv_NtkPrintPoUnate(Abc_Ntk_t *pNtk, int fEachPo)
 {
+    Abc_Ntk_t *pNtkCone;
+    Abc_Obj_t *pObjPo, *pObjPi, *pNode;
+
     Aig_Man_t *pMan;
+    Aig_Obj_t *pObj, *pPo, *pPi;
+
     sat_solver *pSat;
     Cnf_Dat_t *pCnfPos, *pCnfNeg;
-    Aig_Obj_t *pObj, *pPo, *pPi;
-    int i, j;
+    int i, j, k;
     Vec_Int_t *punate, *nunate, *binate;
 
-    pMan = Abc_NtkToDar(pNtk, 0, 0);
-
-    // derive cnf formula of ntk
-    pCnfPos = Cnf_Derive(pMan, Aig_ManCoNum(pMan));
-    pCnfNeg = Cnf_DataDup(pCnfPos);
-    Cnf_DataLift(pCnfNeg, pCnfPos->nVars);
-
-    pSat = sat_solver_new();
-
-    sat_solver_setnvars(pSat, pCnfPos->nVars + pCnfNeg->nVars);
-    addCnfClauses(pSat, pCnfPos);
-    addCnfClauses(pSat, pCnfNeg);
-
-    int numPi = Aig_ManCiNum(pMan);
-    int *alphas = new int[numPi];
-
-    // create alphas for incremental sat
-    Aig_ManForEachCi(pMan, pObj, i)
+    // construct CNF with whole network
+    if (!fEachPo)
     {
-        int id = Aig_ObjId(pObj);
-        int posId = pCnfPos->pVarNums[id];
-        int negId = pCnfNeg->pVarNums[id];
-        alphas[i] = sat_solver_addvar(pSat);
-        sat_solver_add_buffer_enable(pSat, posId, negId, alphas[i], 0);
-    }
+        pMan = Abc_NtkToDar(pNtk, 0, 0);
 
-    // prove unateness
-    Aig_ManForEachCo(pMan, pPo, i)
-    {
-        punate = Vec_IntAlloc(numPi);
-        nunate = Vec_IntAlloc(numPi);
-        binate = Vec_IntAlloc(numPi);
-        // printf("%s\n", Abc_ObjName(Abc_NtkPo(pNtk, i)));
-        Aig_ManForEachCi(pMan, pPi, j)
+        // derive cnf formula of ntk
+        pCnfPos = Cnf_Derive(pMan, Aig_ManCoNum(pMan));
+        pCnfNeg = Cnf_DataDup(pCnfPos);
+        Cnf_DataLift(pCnfNeg, pCnfPos->nVars);
+
+        // create sat solver
+        pSat = sat_solver_new();
+        sat_solver_setnvars(pSat, pCnfPos->nVars + pCnfNeg->nVars);
+        addCnfClauses(pSat, pCnfPos);
+        addCnfClauses(pSat, pCnfNeg);
+
+        // create alphas for incremental sat
+        int *alphas = new int[Aig_ManCiNum(pMan)];
+        Aig_ManForEachCi(pMan, pObj, i)
         {
-            // printf("%s\n", Abc_ObjName(Abc_NtkPi(pNtk, j)));
-            int binate_flag = 1;
-
-            // positive unate
-            if (proofUnate(pMan, pSat, pCnfPos, pCnfNeg, i, j, alphas, 1))
-            {
-                Vec_IntPush(punate, Abc_ObjId(Abc_NtkPi(pNtk, j)));
-                binate_flag = 0;
-            }
-            // negative unate
-            if (proofUnate(pMan, pSat, pCnfPos, pCnfNeg, i, j, alphas, 0))
-            {
-                Vec_IntPush(nunate, Abc_ObjId(Abc_NtkPi(pNtk, j)));
-                binate_flag = 0;
-            }
-            // binate
-            if (binate_flag)
-            {
-                Vec_IntPush(binate, Abc_ObjId(Abc_NtkPi(pNtk, j)));
-            }
+            alphas[i] = sat_solver_addvar(pSat);
+            sat_solver_add_buffer_enable(pSat, pCnfPos->pVarNums[Aig_ObjId(pObj)], pCnfNeg->pVarNums[Aig_ObjId(pObj)], alphas[i], 0);
         }
 
-        printNodeUnate(Abc_ObjName(Abc_NtkPo(pNtk, i)), pNtk, punate, nunate, binate);
+        punate = Vec_IntAlloc(Aig_ManCiNum(pMan));
+        nunate = Vec_IntAlloc(Aig_ManCiNum(pMan));
+        binate = Vec_IntAlloc(Aig_ManCiNum(pMan));
+
+        // prove unateness
+        Aig_ManForEachCo(pMan, pPo, i)
+        {
+            Aig_ManForEachCi(pMan, pPi, j)
+            {
+                int binate_flag = 1;
+                // positive unate
+                if (proofUnate(pMan, pSat, pCnfPos, pCnfNeg, i, j, alphas, 1))
+                {
+                    Vec_IntPush(punate, Abc_ObjId(Abc_NtkPi(pNtk, j)));
+                    binate_flag = 0;
+                }
+                // negative unate
+                if (proofUnate(pMan, pSat, pCnfPos, pCnfNeg, i, j, alphas, 0))
+                {
+                    Vec_IntPush(nunate, Abc_ObjId(Abc_NtkPi(pNtk, j)));
+                    binate_flag = 0;
+                }
+                // binate
+                if (binate_flag)
+                {
+                    Vec_IntPush(binate, Abc_ObjId(Abc_NtkPi(pNtk, j)));
+                }
+            }
+
+            printNodeUnate(Abc_ObjName(Abc_NtkPo(pNtk, i)), pNtk, punate, nunate, binate);
+
+            Vec_IntClear(punate);
+            Vec_IntClear(nunate);
+            Vec_IntClear(binate);
+        }
+
+        Vec_IntFree(punate);
+        Vec_IntFree(nunate);
+        Vec_IntFree(binate);
+
+        Cnf_DataFree(pCnfPos);
+        Cnf_DataFree(pCnfNeg);
+
+        delete alphas;
+        sat_solver_delete(pSat);
+        Aig_ManStop(pMan);
+    }
+    // construct CNF by each po cone
+    else
+    {
+        punate = Vec_IntAlloc(Abc_NtkPiNum(pNtk));
+        nunate = Vec_IntAlloc(Abc_NtkPiNum(pNtk));
+        binate = Vec_IntAlloc(Abc_NtkPiNum(pNtk));
+
+        Abc_NtkForEachPo(pNtk, pObjPo, i)
+        {
+            // get the po cone
+            pNtkCone = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pObjPo), Abc_ObjName(pObjPo), 0);
+            pMan = Abc_NtkToDar(pNtkCone, 0, 0);
+
+            // derive cnf formula of ntk
+            pCnfPos = Cnf_Derive(pMan, Aig_ManCoNum(pMan));
+            pCnfNeg = Cnf_DataDup(pCnfPos);
+            Cnf_DataLift(pCnfNeg, pCnfPos->nVars);
+
+            // create sat solver
+            pSat = sat_solver_new();
+            sat_solver_setnvars(pSat, pCnfPos->nVars + pCnfNeg->nVars);
+            addCnfClauses(pSat, pCnfPos);
+            addCnfClauses(pSat, pCnfNeg);
+
+            // create alphas for incremental sat
+            int *alphas = new int[Aig_ManCiNum(pMan)];
+            Aig_ManForEachCi(pMan, pObj, j)
+            {
+                alphas[j] = sat_solver_addvar(pSat);
+                sat_solver_add_buffer_enable(pSat, pCnfPos->pVarNums[Aig_ObjId(pObj)], pCnfNeg->pVarNums[Aig_ObjId(pObj)], alphas[j], 0);
+            }
+
+            printf("%d %d %d\n", i, Abc_NtkPiNum(pNtk), Abc_NtkPiNum(pNtkCone));
+
+            // start proving
+            k = 0; // pi counter of po cone
+            Abc_NtkForEachPi(pNtk, pNode, j)
+            {
+                if (k < Abc_NtkPiNum(pNtkCone))
+                {
+                    pObjPi = Abc_NtkPi(pNtkCone, k);
+                    // if pi is used, prove unateness
+                    if (!strcmp(Abc_ObjName(pObjPi), Abc_ObjName(pNode)))
+                    {
+                        int binate_flag = 1;
+                        // positive unate
+                        if (proofUnate(pMan, pSat, pCnfPos, pCnfNeg, 0, k, alphas, 1 ^ Abc_ObjFaninC0(pObjPo)))
+                        {
+                            Vec_IntPush(punate, Abc_ObjId(pObjPi));
+                            binate_flag = 0;
+                        }
+                        // negative unate
+                        if (proofUnate(pMan, pSat, pCnfPos, pCnfNeg, 0, k, alphas, 0 ^ Abc_ObjFaninC0(pObjPo)))
+                        {
+                            Vec_IntPush(nunate, Abc_ObjId(pObjPi));
+                            binate_flag = 0;
+                        }
+                        // binate
+                        if (binate_flag)
+                        {
+                            Vec_IntPush(binate, Abc_ObjId(pObjPi));
+                        }
+                        k++;
+                    }
+                    // if not use, both pos unate and neg unate
+                    else
+                    {
+                        Vec_IntPush(punate, Abc_ObjId(pObjPi));
+                        Vec_IntPush(nunate, Abc_ObjId(pObjPi));
+                    }
+                }
+                else
+                {
+                    Vec_IntPush(punate, Abc_ObjId(pObjPi));
+                    Vec_IntPush(nunate, Abc_ObjId(pObjPi));
+                }
+            }
+
+            printNodeUnate(Abc_ObjName(pObjPo), pNtk, punate, nunate, binate);
+
+            Vec_IntClear(punate);
+            Vec_IntClear(nunate);
+            Vec_IntClear(binate);
+
+            Cnf_DataFree(pCnfPos);
+            Cnf_DataFree(pCnfNeg);
+
+            delete alphas;
+            sat_solver_delete(pSat);
+            Aig_ManStop(pMan);
+        }
 
         Vec_IntFree(punate);
         Vec_IntFree(nunate);
         Vec_IntFree(binate);
     }
-
-    Cnf_DataFree(pCnfPos);
-    Cnf_DataFree(pCnfNeg);
-    delete alphas;
-    sat_solver_delete(pSat);
-    Aig_ManStop(pMan);
 
     return 0;
 }

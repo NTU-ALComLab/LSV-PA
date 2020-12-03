@@ -115,11 +115,16 @@ int Lsv_CommandPrintPoUnate(Abc_Frame_t *pAbc, int argc, char **argv)
 {
     Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
     int c, ret;
+    int fEachPo = 1;
+
     Extra_UtilGetoptReset();
-    while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF)
+    while ((c = Extra_UtilGetopt(argc, argv, "ah")) != EOF)
     {
         switch (c)
         {
+        case 'a':
+            fEachPo ^= 1;
+            break;
         case 'h':
             goto usage;
         default:
@@ -137,12 +142,13 @@ int Lsv_CommandPrintPoUnate(Abc_Frame_t *pAbc, int argc, char **argv)
         return 1;
     }
 
-    ret = Lsv_NtkPrintPoUnate(pNtk);
+    ret = Lsv_NtkPrintPoUnate(pNtk, fEachPo);
     return ret;
 
 usage:
     Abc_Print(-2, "usage: lsv_print_pounate [-h]\n");
     Abc_Print(-2, "\t        prints the unate information for each po in the AIG network\n");
+    Abc_Print(-2, "\t-a    : toggle constucting CNF by each po cone or whole network [default = %s]\n", fEachPo ? "yes" : "no");
     Abc_Print(-2, "\t-h    : print the command usage\n");
     return 1;
 }

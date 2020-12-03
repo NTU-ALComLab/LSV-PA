@@ -16,7 +16,7 @@ int Lsv_NtkPrintSopUnate(Abc_Ntk_t *pNtk);
 void printNodeUnate(char *name, Abc_Ntk_t *pNtk, Vec_Int_t *punate, Vec_Int_t *nunate, Vec_Int_t *binate);
 
 // PA2
-int Lsv_NtkPrintPoUnate(Abc_Ntk_t *pNtk);
+int Lsv_NtkPrintPoUnate(Abc_Ntk_t *pNtk, int fEachPo);
 void addCnfClauses(sat_solver *pSat, Cnf_Dat_t *pCnf);
 int proofUnate(Aig_Man_t *pMan, sat_solver *pSat, Cnf_Dat_t *pCnfPos, Cnf_Dat_t *pCnfNeg, int po, int pi, int *alphas, int flag);
 
