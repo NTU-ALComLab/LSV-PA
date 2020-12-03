@@ -5,7 +5,7 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-ref_prog="pa1-ref"
+ref_prog="pa1-ref-no-libreadline"
 pa_cmd="lsv_print_sopunate"
 pa_dir="lsv/pa1"
 ref_dir="${pa_dir}/ref"
