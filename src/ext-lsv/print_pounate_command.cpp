@@ -66,48 +66,81 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 	int i;
 	int fUseAllCis = 1;
 	Abc_NtkForEachPo( abcNtk, nodeCo, i ) {
+		//get single output abc_ntk
 		abcNtk_1Po = Abc_NtkCreateCone( abcNtk, Abc_ObjFanin0(nodeCo), Abc_ObjName(nodeCo), fUseAllCis );
 		
+		//check output negative
 		if (Abc_ObjFaninC0(nodeCo) ){
 			Abc_NtkPo(abcNtk_1Po, 0)->fCompl0  ^= 1;
 		}
+		
+		//get aig
 		Aig_Man_t* aigMan   = Abc_NtkToDar(abcNtk_1Po, 0, 0);
+		aigMan->pData = NULL;
+		
+		//get cnf
 		Cnf_Dat_t* ntkCnf = Cnf_Derive( aigMan, Aig_ManCoNum(aigMan) );
-	
+		
+		//for debug
+		//printCnf(ntkCnf);
+
 		//sat solver
 		sat_solver* satSol = (sat_solver*)Cnf_DataWriteIntoSolver(ntkCnf, 1, 0);
 		if ( satSol == NULL ){
             Cnf_DataFree( ntkCnf );
-            return 1;
+			cout << "Error! SAT solver is null" << endl;
+            continue;
         }
+
+		
+		if ( !Cnf_DataWriteOrClause( satSol, ntkCnf ) ){
+            sat_solver_delete( satSol );
+            Cnf_DataFree( ntkCnf );
+            cout << "error in Cnf_DataWriteOrClause" << endl;
+			//unsat
+			continue;
+        }
+		
+
+		//for debug
+        //printCnf(ntkCnf);
 		
 		Vec_Int_t * vCiIds = Cnf_DataCollectPiSatNums( ntkCnf, aigMan );
 		Cnf_DataFree(ntkCnf);
+
+		//simplify the problem
 		int status = sat_solver_simplify(satSol);
 		if ( status == 0 ){
             Vec_IntFree( vCiIds );
             sat_solver_delete( satSol );
             printf( "The problem is UNSATISFIABLE after simplification.\n" );
-            return 1;
+            continue;
         }
 
 		status = sat_solver_solve( satSol, NULL, NULL, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
 		if ( status == 1 ){
             printf( "The problem is SATISFIABLE.\n" );
+
 			//cex
 			aigMan->pData = Sat_SolverGetModel( satSol, vCiIds->pArray, vCiIds->nSize );
+
+			//for debug
 			Sat_SolverPrintStats( stdout, satSol );
+
 			sat_solver_delete( satSol );
 	        Vec_IntFree( vCiIds );
 
-			abcNtk->pModel = (int *)aigMan->pData, aigMan->pData = NULL;
+			abcNtk_1Po->pModel = (int *)aigMan->pData;
+			aigMan->pData = NULL;
+			Aig_ManStop(aigMan);
+
 			//check
-			int * pSimInfo = Abc_NtkVerifySimulatePattern( abcNtk, abcNtk->pModel );
+			int * pSimInfo = Abc_NtkVerifySimulatePattern( abcNtk_1Po, abcNtk_1Po->pModel );
 	        if ( pSimInfo[0] != 1 )
 				Abc_Print( 1, "ERROR in Abc_NtkMiterSat(): Generated counter example is invalid.\n" );
 			ABC_FREE( pSimInfo );
 		    
-			pAbc->pCex = Abc_CexCreate( 0, Abc_NtkPiNum(abcNtk), abcNtk->pModel, 0, 0, 0 );
+			pAbc->pCex = Abc_CexCreate( 0, Abc_NtkPiNum(abcNtk_1Po), abcNtk_1Po->pModel, 0, 0, 0 );
 			pAbc->Status = 0;
 			Abc_CexPrint( pAbc->pCex );
 		
@@ -119,9 +152,6 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		else{
 			cout << "err in satsol!" << endl;
 		}
-
-
-
 	}
 
 
