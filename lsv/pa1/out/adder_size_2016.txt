@@ -1,0 +1,386 @@
+ABC command line: "read benchmarks/best_results/size/adder_size_2016.blif; lsv_print_sopunate".
+
+node f[0]:
+binate inputs: a[0],b[0]
+node f[1]:
+binate inputs: a[0],a[1],b[0],b[1]
+node n391:
+binate inputs: a[0],a[1],a[2],b[0],b[1],b[2]
+node f[2]:
+binate inputs: a[0],a[1],a[2],b[0],b[1],b[2]
+node f[3]:
+binate inputs: a[3],b[3],n391
+node n405:
+binate inputs: a[3],a[4],b[3],b[4],n391
+node f[4]:
+binate inputs: a[3],a[4],b[3],b[4],n391
+node f[5]:
+binate inputs: a[5],b[5],n405
+node n419:
+binate inputs: a[5],a[6],b[5],b[6],n405
+node f[6]:
+binate inputs: a[5],a[6],b[5],b[6],n405
+node f[7]:
+binate inputs: a[7],b[7],n419
+node n434:
+binate inputs: a[7],a[8],b[7],b[8],n419
+node f[8]:
+binate inputs: a[7],a[8],b[7],b[8],n419
+node f[9]:
+binate inputs: a[9],b[9],n434
+node n445:
+binate inputs: a[9],a[10],b[9],b[10],n434
+node f[10]:
+binate inputs: a[9],a[10],b[9],b[10],n434
+node f[11]:
+binate inputs: a[11],b[11],n445
+node n461:
+binate inputs: a[11],a[12],b[11],b[12],n445
+node f[12]:
+binate inputs: a[11],a[12],b[11],b[12],n445
+node f[13]:
+binate inputs: a[13],b[13],n461
+node n475:
+binate inputs: a[13],a[14],b[13],b[14],n461
+node f[14]:
+binate inputs: a[13],a[14],b[13],b[14],n461
+node f[15]:
+binate inputs: a[15],b[15],n475
+node n486:
+binate inputs: a[15],a[16],b[15],b[16],n475
+node f[16]:
+binate inputs: a[15],a[16],b[15],b[16],n475
+node f[17]:
+binate inputs: a[17],b[17],n486
+node n500:
+binate inputs: a[17],a[18],b[17],b[18],n486
+node f[18]:
+binate inputs: a[17],a[18],b[17],b[18],n486
+node f[19]:
+binate inputs: a[19],b[19],n500
+node n510:
+binate inputs: a[19],a[20],b[19],b[20],n500
+node f[20]:
+binate inputs: a[19],a[20],b[19],b[20],n500
+node f[21]:
+binate inputs: a[21],b[21],n510
+node n522:
+binate inputs: a[21],a[22],b[21],b[22],n510
+node f[22]:
+binate inputs: a[21],a[22],b[21],b[22],n510
+node f[23]:
+binate inputs: a[23],b[23],n522
+node n537:
+binate inputs: a[23],a[24],b[23],b[24],n522
+node f[24]:
+binate inputs: a[23],a[24],b[23],b[24],n522
+node f[25]:
+binate inputs: a[25],b[25],n537
+node n550:
+binate inputs: a[25],a[26],b[25],b[26],n537
+node f[26]:
+binate inputs: a[25],a[26],b[25],b[26],n537
+node f[27]:
+binate inputs: a[27],b[27],n550
+node n565:
+binate inputs: a[27],a[28],b[27],b[28],n550
+node f[28]:
+binate inputs: a[27],a[28],b[27],b[28],n550
+node f[29]:
+binate inputs: a[29],b[29],n565
+node n574:
+binate inputs: a[29],a[30],b[29],b[30],n565
+node f[30]:
+binate inputs: a[29],a[30],b[29],b[30],n565
+node f[31]:
+binate inputs: a[31],b[31],n574
+node n590:
+binate inputs: a[31],a[32],b[31],b[32],n574
+node f[32]:
+binate inputs: a[31],a[32],b[31],b[32],n574
+node f[33]:
+binate inputs: a[33],b[33],n590
+node n604:
+binate inputs: a[33],a[34],b[33],b[34],n590
+node f[34]:
+binate inputs: a[33],a[34],b[33],b[34],n590
+node f[35]:
+binate inputs: a[35],b[35],n604
+node n614:
+binate inputs: a[35],a[36],b[35],b[36],n604
+node f[36]:
+binate inputs: a[35],a[36],b[35],b[36],n604
+node f[37]:
+binate inputs: a[37],b[37],n614
+node n627:
+binate inputs: a[37],a[38],b[37],b[38],n614
+node f[38]:
+binate inputs: a[37],a[38],b[37],b[38],n614
+node f[39]:
+binate inputs: a[39],b[39],n627
+node n641:
+binate inputs: a[39],a[40],b[39],b[40],n627
+node f[40]:
+binate inputs: a[39],a[40],b[39],b[40],n627
+node f[41]:
+binate inputs: a[41],b[41],n641
+node n654:
+binate inputs: a[41],a[42],b[41],b[42],n641
+node f[42]:
+binate inputs: a[41],a[42],b[41],b[42],n641
+node f[43]:
+binate inputs: a[43],b[43],n654
+node n667:
+binate inputs: a[43],a[44],b[43],b[44],n654
+node f[44]:
+binate inputs: a[43],a[44],b[43],b[44],n654
+node f[45]:
+binate inputs: a[45],b[45],n667
+node n682:
+binate inputs: a[45],a[46],b[45],b[46],n667
+node f[46]:
+binate inputs: a[45],a[46],b[45],b[46],n667
+node f[47]:
+binate inputs: a[47],b[47],n682
+node n696:
+binate inputs: a[47],a[48],b[47],b[48],n682
+node f[48]:
+binate inputs: a[47],a[48],b[47],b[48],n682
+node f[49]:
+binate inputs: a[49],b[49],n696
+node n707:
+binate inputs: a[49],a[50],b[49],b[50],n696
+node f[50]:
+binate inputs: a[49],a[50],b[49],b[50],n696
+node f[51]:
+binate inputs: a[51],b[51],n707
+node n719:
+binate inputs: a[51],a[52],b[51],b[52],n707
+node f[52]:
+binate inputs: a[51],a[52],b[51],b[52],n707
+node f[53]:
+binate inputs: a[53],b[53],n719
+node n732:
+binate inputs: a[53],a[54],b[53],b[54],n719
+node f[54]:
+binate inputs: a[53],a[54],b[53],b[54],n719
+node f[55]:
+binate inputs: a[55],b[55],n732
+node n743:
+binate inputs: a[55],a[56],b[55],b[56],n732
+node f[56]:
+binate inputs: a[55],a[56],b[55],b[56],n732
+node f[57]:
+binate inputs: a[57],b[57],n743
+node n758:
+binate inputs: a[57],a[58],b[57],b[58],n743
+node f[58]:
+binate inputs: a[57],a[58],b[57],b[58],n743
+node f[59]:
+binate inputs: a[59],b[59],n758
+node n772:
+binate inputs: a[59],a[60],b[59],b[60],n758
+node f[60]:
+binate inputs: a[59],a[60],b[59],b[60],n758
+node f[61]:
+binate inputs: a[61],b[61],n772
+node n783:
+binate inputs: a[61],a[62],b[61],b[62],n772
+node f[62]:
+binate inputs: a[61],a[62],b[61],b[62],n772
+node f[63]:
+binate inputs: a[63],b[63],n783
+node n797:
+binate inputs: a[63],a[64],b[63],b[64],n783
+node f[64]:
+binate inputs: a[63],a[64],b[63],b[64],n783
+node f[65]:
+binate inputs: a[65],b[65],n797
+node n809:
+binate inputs: a[65],a[66],b[65],b[66],n797
+node f[66]:
+binate inputs: a[65],a[66],b[65],b[66],n797
+node f[67]:
+binate inputs: a[67],b[67],n809
+node n823:
+binate inputs: a[67],a[68],b[67],b[68],n809
+node f[68]:
+binate inputs: a[67],a[68],b[67],b[68],n809
+node f[69]:
+binate inputs: a[69],b[69],n823
+node n838:
+binate inputs: a[69],a[70],b[69],b[70],n823
+node f[70]:
+binate inputs: a[69],a[70],b[69],b[70],n823
+node f[71]:
+binate inputs: a[71],b[71],n838
+node n850:
+binate inputs: a[71],a[72],b[71],b[72],n838
+node f[72]:
+binate inputs: a[71],a[72],b[71],b[72],n838
+node f[73]:
+binate inputs: a[73],b[73],n850
+node n861:
+binate inputs: a[73],a[74],b[73],b[74],n850
+node f[74]:
+binate inputs: a[73],a[74],b[73],b[74],n850
+node f[75]:
+binate inputs: a[75],b[75],n861
+node n875:
+binate inputs: a[75],a[76],b[75],b[76],n861
+node f[76]:
+binate inputs: a[75],a[76],b[75],b[76],n861
+node f[77]:
+binate inputs: a[77],b[77],n875
+node n887:
+binate inputs: a[77],a[78],b[77],b[78],n875
+node f[78]:
+binate inputs: a[77],a[78],b[77],b[78],n875
+node f[79]:
+binate inputs: a[79],b[79],n887
+node n900:
+binate inputs: a[79],a[80],b[79],b[80],n887
+node f[80]:
+binate inputs: a[79],a[80],b[79],b[80],n887
+node f[81]:
+binate inputs: a[81],b[81],n900
+node n912:
+binate inputs: a[81],a[82],b[81],b[82],n900
+node f[82]:
+binate inputs: a[81],a[82],b[81],b[82],n900
+node f[83]:
+binate inputs: a[83],b[83],n912
+node n929:
+binate inputs: a[83],a[84],b[83],b[84],n912
+node f[84]:
+binate inputs: a[83],a[84],b[83],b[84],n912
+node f[85]:
+binate inputs: a[85],b[85],n929
+node n941:
+binate inputs: a[85],a[86],b[85],b[86],n929
+node f[86]:
+binate inputs: a[85],a[86],b[85],b[86],n929
+node f[87]:
+binate inputs: a[87],b[87],n941
+node n951:
+binate inputs: a[87],a[88],b[87],b[88],n941
+node f[88]:
+binate inputs: a[87],a[88],b[87],b[88],n941
+node f[89]:
+binate inputs: a[89],b[89],n951
+node n965:
+binate inputs: a[89],a[90],b[89],b[90],n951
+node f[90]:
+binate inputs: a[89],a[90],b[89],b[90],n951
+node f[91]:
+binate inputs: a[91],b[91],n965
+node n982:
+binate inputs: a[91],a[92],b[91],b[92],n965
+node f[92]:
+binate inputs: a[91],a[92],b[91],b[92],n965
+node f[93]:
+binate inputs: a[93],b[93],n982
+node n993:
+binate inputs: a[93],a[94],b[93],b[94],n982
+node f[94]:
+binate inputs: a[93],a[94],b[93],b[94],n982
+node f[95]:
+binate inputs: a[95],b[95],n993
+node n1003:
+binate inputs: a[95],a[96],b[95],b[96],n993
+node f[96]:
+binate inputs: a[95],a[96],b[95],b[96],n993
+node f[97]:
+binate inputs: a[97],b[97],n1003
+node n1019:
+binate inputs: a[97],a[98],b[97],b[98],n1003
+node f[98]:
+binate inputs: a[97],a[98],b[97],b[98],n1003
+node f[99]:
+binate inputs: a[99],b[99],n1019
+node n1033:
+binate inputs: a[99],a[100],b[99],b[100],n1019
+node f[100]:
+binate inputs: a[99],a[100],b[99],b[100],n1019
+node f[101]:
+binate inputs: a[101],b[101],n1033
+node n1044:
+binate inputs: a[101],a[102],b[101],b[102],n1033
+node f[102]:
+binate inputs: a[101],a[102],b[101],b[102],n1033
+node f[103]:
+binate inputs: a[103],b[103],n1044
+node n1057:
+binate inputs: a[103],a[104],b[103],b[104],n1044
+node f[104]:
+binate inputs: a[103],a[104],b[103],b[104],n1044
+node f[105]:
+binate inputs: a[105],b[105],n1057
+node n1069:
+binate inputs: a[105],a[106],b[105],b[106],n1057
+node f[106]:
+binate inputs: a[105],a[106],b[105],b[106],n1057
+node f[107]:
+binate inputs: a[107],b[107],n1069
+node n1086:
+binate inputs: a[107],a[108],b[107],b[108],n1069
+node f[108]:
+binate inputs: a[107],a[108],b[107],b[108],n1069
+node f[109]:
+binate inputs: a[109],b[109],n1086
+node n1099:
+binate inputs: a[109],a[110],b[109],b[110],n1086
+node f[110]:
+binate inputs: a[109],a[110],b[109],b[110],n1086
+node f[111]:
+binate inputs: a[111],b[111],n1099
+node n1110:
+binate inputs: a[111],a[112],b[111],b[112],n1099
+node f[112]:
+binate inputs: a[111],a[112],b[111],b[112],n1099
+node f[113]:
+binate inputs: a[113],b[113],n1110
+node n1123:
+binate inputs: a[113],a[114],b[113],b[114],n1110
+node f[114]:
+binate inputs: a[113],a[114],b[113],b[114],n1110
+node f[115]:
+binate inputs: a[115],b[115],n1123
+node n1134:
+binate inputs: a[115],a[116],b[115],b[116],n1123
+node f[116]:
+binate inputs: a[115],a[116],b[115],b[116],n1123
+node f[117]:
+binate inputs: a[117],b[117],n1134
+node n1151:
+binate inputs: a[117],a[118],b[117],b[118],n1134
+node f[118]:
+binate inputs: a[117],a[118],b[117],b[118],n1134
+node f[119]:
+binate inputs: a[119],b[119],n1151
+node n1163:
+binate inputs: a[119],a[120],b[119],b[120],n1151
+node f[120]:
+binate inputs: a[119],a[120],b[119],b[120],n1151
+node f[121]:
+binate inputs: a[121],b[121],n1163
+node n1176:
+binate inputs: a[121],a[122],b[121],b[122],n1163
+node f[122]:
+binate inputs: a[121],a[122],b[121],b[122],n1163
+node f[123]:
+binate inputs: a[123],b[123],n1176
+node n1185:
+binate inputs: a[123],a[124],b[123],b[124],n1176
+node f[124]:
+binate inputs: a[123],a[124],b[123],b[124],n1176
+node f[125]:
+binate inputs: a[125],b[125],n1185
+node n1201:
+binate inputs: a[125],a[126],b[125],b[126],n1185
+node f[126]:
+binate inputs: a[125],a[126],b[125],b[126],n1185
+node cOut:
+binate inputs: a[127],b[127],n1201
+node f[127]:
+binate inputs: a[127],b[127],n1201

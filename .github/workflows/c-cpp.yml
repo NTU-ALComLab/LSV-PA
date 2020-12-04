@@ -4,12 +4,13 @@ on: [push, pull_request]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: make and sanity check
-      run: | 
-        make -j8
-        ./abc -c "r i10.aig; b; ps; b; rw -l; rw -lz; b; rw -lz; b; ps; cec"
+      - uses: actions/checkout@v2
+      - name: Compile with Makefile
+        run: make -j8
+      - name: Sanity test for PA2
+        if: ${{ success() && github.ref != 'refs/heads/master' }}
+        run: |
+          ./abc -c 'lsv_print_pounate' lsv/example/ctrl.aig | tee output.txt
+          diff -uwiB output.txt lsv/pa2/ref/ctrl.txt
