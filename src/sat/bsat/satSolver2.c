@@ -1291,7 +1291,7 @@ int sat_solver2_addclause(sat_solver2* s, lit* begin, lit* end, int Id)
     int maxvar, count, temp;
     assert( solver2_dlevel(s) == 0 );
     assert( begin < end );
-    assert( Id != 0 );
+    // assert( Id != 0 );
 
     // copy clause into storage
     veci_resize( &s->temp_clause, 0 );
@@ -1936,7 +1936,8 @@ int sat_solver2_solve(sat_solver2* s, lit* begin, lit* end, ABC_INT64_T nConfLim
         }
     }
     assert(s->root_level == solver2_dlevel(s));
-
+    
+    // s->verbosity = 1;
     if (s->verbosity >= 1){
         Abc_Print(1,"==================================[MINISAT]===================================\n");
         Abc_Print(1,"| Conflicts |     ORIGINAL     |              LEARNT              | Progress |\n");

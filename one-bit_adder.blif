@@ -1,0 +1,13 @@
+.model 4bit_adder
+.inputs a0 b0 cin
+.outputs sum0 cout
+.names a0 b0 cin sum0 #sum=XOR(a1,tb1,c-out0)
+100 1
+010 1
+001 1
+111 1
+.names a0 b0 cin cout #c-out=MAJ(a0,b1,c-out0)
+11- 1
+1-1 1
+-11 1
+.end

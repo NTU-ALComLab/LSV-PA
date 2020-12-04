@@ -73,9 +73,7 @@ usage:
 
 
 int Lsv_CommandPrintPounate(Abc_Frame_t* pAbc, int argc, char** argv) {
-  Abc_Ntk_t* pNtk1 = Abc_FrameReadNtk(pAbc);
-  Abc_Ntk_t* pNtk2 = Abc_FrameReadNtk(pAbc);
-  // cout << pNtk1 << " " << pNtk2 << endl;
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc), * pNtkRes;
   int c;
   Extra_UtilGetoptReset();
   while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
@@ -86,16 +84,23 @@ int Lsv_CommandPrintPounate(Abc_Frame_t* pAbc, int argc, char** argv) {
         goto usage;
     }
   }
-  if (!pNtk1 || !pNtk2) {
+  if (!pNtk) {
     Abc_Print(-1, "Empty network.\n");
     return 1;
   }
-  if ( !Abc_NtkIsStrash(pNtk1) || !Abc_NtkIsStrash(pNtk2) )
+  pNtkRes = Abc_NtkStrash( pNtk, 0, 1, 0 );
+  if ( pNtkRes == NULL )
+  {
+      Abc_Print( -1, "Strashing has failed.\n" );
+      return 1;
+  }
+  Abc_FrameReplaceCurrentNetwork( pAbc, pNtkRes );
+  if ( !Abc_NtkIsStrash(pNtkRes) )
   {
       Abc_Print( -1, "Currently only works for structurally hashed circuits.\n" );
       return 0;
   }
-  Lsv_NtkPrintPounate(pNtk1, pNtk2);
+  Lsv_NtkPrintPounate(pNtkRes);
   return 0;
 
 usage:
