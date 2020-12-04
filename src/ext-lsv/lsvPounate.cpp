@@ -48,3 +48,6 @@ usage:
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
 }
+
+void Lsv_NtkPrintPounate(Abc_Ntk_t* pNtk) {
+}
