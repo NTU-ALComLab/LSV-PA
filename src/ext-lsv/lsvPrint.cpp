@@ -134,6 +134,8 @@ void Lsv_NtkPrintPounate(Abc_Ntk_t* pNtk){
     }
     int id;
     Abc_NtkForEachCi(pNetwork->_pNtkConeTrue, pNode, j){
+      pNetwork->_mName2val[Abc_ObjName(pNode)][0] = 0;
+      pNetwork->_mName2val[Abc_ObjName(pNode)][1] = 0;
       #ifdef DEBUG
         // getchar();
         cerr << "check pi : " << Abc_ObjName(pNode) << endl;
@@ -443,22 +445,32 @@ int Network::setpNtkCone(Abc_Obj_t* pFanout) {
   Abc_Obj_t * pNode;
   _pcurPoNode = pFanout;
   _pCurNode = Abc_NtkFindNode( _pNtk, Abc_ObjName(pFanout) );
-  if(Abc_NtkPiNum(Abc_NtkCreateCone( _pNtk, _pCurNode, Abc_ObjName(pFanout), 0 )) == 0){
+  int i;
+  // if(Abc_NtkPiNum(Abc_NtkCreateCone( _pNtk, _pCurNode, Abc_ObjName(pFanout), 0 )) == 0){
+    // vector<bool> val(2,1);
+    // Abc_NtkForEachPi(_pNtk, pNode, i){
+      // _mName2val[Abc_ObjName(pNode)] = val;
+    // }
+    // return false;
+  // }
+  // else{
     vector<bool> val(2,1);
-    int i;
     Abc_NtkForEachPi(_pNtk, pNode, i){
       _mName2val[Abc_ObjName(pNode)] = val;
     }
-    return false;
-  }
-  else{
-    vector<bool> val(2,0);
-    int i;
-    Abc_NtkForEachPi(_pNtk, pNode, i){
-      _mName2val[Abc_ObjName(pNode)] = val;
-    }
-  }
-  _pNtkConeTrue = Abc_NtkCreateCone( _pNtk, _pCurNode, Abc_ObjName(pFanout), 1 );
+  // }
+  _pNtkConeTrue = Abc_NtkCreateCone( _pNtk, _pCurNode, Abc_ObjName(pFanout), 0 );
+  if(Abc_NtkPiNum(_pNtkConeTrue) == 0) return false;
+
+  Dar_ManDefaultRwrParams( _pPars );
+
+  // for(i = 0; i < 10; ++i){
+  //   _pNtkConeTrue = Abc_NtkDC2( _pNtkConeTrue, 0, 0, 1, 0, 0 );
+  //   _pNtkConeTrue = Abc_NtkDRewrite( _pNtkConeTrue, _pPars );
+  //   _pNtkConeTrue = Abc_NtkDarFraig( _pNtkConeTrue, 100, 1, 0, 0, 0, 0, 0 );
+  //   _pNtkConeTrue = Abc_NtkBalance( _pNtkConeTrue, 0, 0, 1 );
+  //   // Abc_NtkPrintStats( _pNtkConeTrue, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 );
+  // }
   _nCPi = Abc_NtkPiNum(_pNtkConeTrue); 
   _pManT = Abc_NtkToDar( _pNtkConeTrue,  0, 0 );
   _pCnfT = Cnf_Derive( _pManT, Aig_ManCoNum(_pManT) );

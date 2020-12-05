@@ -15,12 +15,14 @@
 
 using namespace std;
 
-// #define MINISAT
-#define GLUCOSE
+#define MINISAT
+// #define GLUCOSE
 // #define DEBUG
 extern "C" {
-    Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
-    Abc_Ntk_t * Abc_NtkDarFraig( Abc_Ntk_t * pNtk, int nConfLimit, int fDoSparse, int fProve, int fTransfer, int fSpeculate, int fChoicing, int fVerbose );
+  Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+  Abc_Ntk_t * Abc_NtkDarFraig( Abc_Ntk_t * pNtk, int nConfLimit, int fDoSparse, int fProve, int fTransfer, int fSpeculate, int fChoicing, int fVerbose );
+  Abc_Ntk_t * Abc_NtkDC2( Abc_Ntk_t * pNtk, int fBalance, int fUpdateLevel, int fFanout, int fPower, int fVerbose );
+  Abc_Ntk_t * Abc_NtkDRewrite( Abc_Ntk_t * pNtk, Dar_RwrPar_t * pPars );
 }
 
 class Network;
@@ -28,8 +30,6 @@ class Network;
 int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 int Lsv_CommandPrintSopunate(Abc_Frame_t* pAbc, int argc, char** argv);
 int Lsv_CommandPrintPounate(Abc_Frame_t* pAbc, int argc, char** argv);
-
-
 void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk);
 void Lsv_NtkPrintSopunate(Abc_Ntk_t* pNtk);
 void Lsv_NtkPrintPounate(Abc_Ntk_t* pNtk);
@@ -37,19 +37,23 @@ int lsv_solve(void* pSat, int *lits, int nvar);
 
 class Network{
 public:
-  Network(Abc_Ntk_t* p): _pNtkConeTrue(NULL), _nPi(Abc_NtkPiNum(_pNtk))
+  Network(Abc_Ntk_t* p): _pNtkConeTrue(NULL)
   {
+
     int i;
     vector<bool> val(2,0);
     Abc_Obj_t * pNode;
+    _pNtk = Abc_NtkDarFraig( p, 100, 1, 0, 0, 0, 0, 0 );
+    _nPi = Abc_NtkPiNum(_pNtk);
     Abc_NtkForEachPi(_pNtk, pNode, i){
       _mId2name[Abc_ObjId(pNode)] = Abc_ObjName(pNode);
     }
     Abc_NtkForEachPi(_pNtk, pNode, i){
       _mName2val[Abc_ObjName(pNode)] = val;
     }
-    _pNtk = Abc_NtkDarFraig( p, 100, 1, 0, 0, 0, 0, 0 );
     _pAig = Abc_NtkToDar( _pNtk, 0, 0 );
+    Dar_RwrPar_t Pars;
+    _pPars = &Pars;
   };
   ~Network(){};
   int setpNtkCone(Abc_Obj_t* pFanout);
@@ -63,6 +67,7 @@ public:
   Cnf_Dat_t * _pCnfT;
   Abc_Obj_t * _pcurPoNode;
   Abc_Obj_t * _pCurNode;
+  Dar_RwrPar_t * _pPars;
   int _nCPi;
   int _nPi;
   int _nVar;
