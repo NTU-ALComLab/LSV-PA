@@ -4,15 +4,18 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <iostream>
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandPrintPOUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
 bool debug = false;
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintSOPUnate, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_pounate", Lsv_CommandPrintPOUnate, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -122,11 +125,11 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
       }
       */
 
-      /// sort Fain
-      int e;
-      std::vector<int> faninId(j, 0);
-      std::vector<std::string> faninName(j);
-      std::vector<int> faninUnate(j, 0);
+     /// sort Fain
+     int e;
+     std::vector<int> faninId(j, 0);
+     std::vector<std::string> faninName(j);
+     std::vector<int> faninUnate(j, 0);
       Abc_ObjForEachFanin(pObj, pFanin, e) {
         faninId[e] = Abc_ObjId(pFanin);
         faninName[e] = Abc_ObjName(pFanin);
@@ -222,6 +225,36 @@ int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
     return 1;
   }
   Lsv_NtkPrintSOPUnate(pNtk);
+  return 0;
+
+usage:
+  Abc_Print(-2, "usage: lsv_print_sopunate [-h]\n");
+  Abc_Print(-2, "\t         prints the SOP unate in the network\n");
+  Abc_Print(-2, "\t-h     : print the command usage\n");
+  return 1;
+}
+
+void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
+  std::cout << "HI" << std::endl;
+}
+
+int Lsv_CommandPrintPOUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  int c;
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    switch (c) {
+      case 'h':
+        goto usage;
+      default:
+        goto usage;
+    }
+  }
+  if (!pNtk) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  Lsv_NtkPrintPOUnate(pNtk);
   return 0;
 
 usage:
