@@ -1,6 +1,7 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "sat/cnf/cnf.h"
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -10,6 +11,7 @@ extern "C"
 {
   Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
   Abc_Ntk_t * Abc_NtkStrash( Abc_Ntk_t * pNtk, int fAllNodes, int fCleanup, int fRecord );
+  Abc_Ntk_t * Abc_NtkDarToCnf( Abc_Ntk_t * pNtk, char * pFileName, int fFastAlgo, int fChangePol, int fVerbose );
 }
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
@@ -247,9 +249,12 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pPo;
   int i;
   Abc_Ntk_t* pCone;
+  Abc_Obj_t* pPi;
+  Aig_Man_t* pMan;
+  Cnf_Dat_t * pCnf;
   Abc_NtkForEachPo(pNtk, pPo, i) {
     pCone = Abc_NtkCreateCone( pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 0 );
-    Abc_Obj_t* pPi;
+    //Abc_Obj_t* pPi;
     printf("PO Id = %d, name = %s\n", Abc_ObjId(pPo), Abc_ObjName(pPo));
     int j;
     Abc_NtkForEachPi( pNtk, pPi, j ) {
@@ -258,19 +263,19 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     std::cout << std::endl;
 
     // Turn Abc_Ntk into Aig_Man_t
-    pCone = Abc_NtkStrash (pCone, 0, 0, 0);
-    Aig_Man_t* pMan = Abc_NtkToDar(pCone, 0, 0);
+    pCone = Abc_NtkStrash (pCone, 0, 0, 0 );
+    pMan = Abc_NtkToDar(pCone, 0, 0 );
+
+    // Turn Aig_Man_t to Cnf_Dat_t
+    pCnf = Cnf_Derive( pMan, 0 ); 
+    Abc_Print( 1, "CNF stats: Vars = %6d. Clauses = %7d. Literals = %8d.   \n", pCnf->nVars, pCnf->nClauses, pCnf->nLiterals );
+    Cnf_DataPrint( pCnf, 0 );
+    // manipulate CNF formula
+
+    // initialize SAT solver
+
+    // manipulate SAT solver
   }  
-
- 
-
-  // Turn Aig_Man_t to Cnf_Dat_t
-
-  // manipulate CNF formula
-
-  // initialize SAT solver
-
-  // manipulate SAT solver
 }
 
 int Lsv_CommandPrintPOUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
