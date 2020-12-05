@@ -235,7 +235,34 @@ usage:
 }
 
 void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
-  std::cout << "HI" << std::endl;
+  std::cout << "-----------HI------------" << std::endl;
+  // extract cone from Abc_Ntk
+  // iterate each PO and find the cone of each PO
+  Abc_Obj_t* pPo;
+  int i;
+  Abc_Ntk_t* pCone;
+  Abc_NtkForEachPo(pNtk, pPo, i) {
+    pCone = Abc_NtkCreateCone( pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 0 );
+    Abc_Obj_t* pPi;
+    printf("PO Id = %d, name = %s\n", Abc_ObjId(pPo), Abc_ObjName(pPo));
+    int j;
+    Abc_NtkForEachPi( pNtk, pPi, j ) {
+      printf("PI Id = %d, name = %s\n", Abc_ObjId(pPi), Abc_ObjName(pPi));
+    }
+    std::cout << std::endl;
+
+    // Turn Abc_Ntk into Aig_Man_t
+  }  
+
+ 
+
+  // Turn Aig_Man_t to Cnf_Dat_t
+
+  // manipulate CNF formula
+
+  // initialize SAT solver
+
+  // manipulate SAT solver
 }
 
 int Lsv_CommandPrintPOUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
