@@ -1,9 +1,7 @@
 #include "lsv.hpp"
 #include "sat/glucose/AbcGlucose.h"
 
-extern "C" {
-    extern Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
-}
+
 
 void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pObj;
@@ -93,18 +91,18 @@ void Lsv_NtkPrintSopunate(Abc_Ntk_t* pNtk) {
 }
 
 void Lsv_NtkPrintPounate(Abc_Ntk_t* pNtk){
-  extern void * Cnf_DataWriteIntoSolver2( Cnf_Dat_t * p, int nFrames, int fInit );
-  extern int    Cnf_DataWriteOrClause2( void * pSat, Cnf_Dat_t * pCnf );
   Abc_Obj_t *pNode, *pFanout;
   int i, j;
   
   Network* pNetwork = new Network(pNtk);
 
-
   Abc_NtkForEachPo(pNtk, pFanout, i) {
-    pNetwork->setpNtkCone(pFanout);
+    pNetwork->_coId = i;
+    if(!pNetwork->setpNtkCone(pFanout)){
+      pNetwork->lsv_printResult();
+      continue;
+    };
     Aig_Obj_t* pAigObj;
-
     // record variable information
     // CnfT: Total m variable, CnfF: m+1~2m, newVariable: 2m+1~3m, not: 3m+1
     unordered_map<int, int> mId2var; // T: 1 ouput 2~n input
@@ -114,7 +112,10 @@ void Lsv_NtkPrintPounate(Abc_Ntk_t* pNtk){
     Aig_ManForEachCi(pNetwork->_pManT, pAigObj, j) {
       mId2var[Aig_ObjId(Aig_Regular(pAigObj))] = pNetwork->_pCnfT->pVarNums[Aig_ObjId(Aig_Regular(pAigObj))];
     }
-    
+    #ifdef DEBUG
+      cerr << "=>>> current node is " << Abc_ObjName(pFanout) << endl;
+      cerr << "the current cone has " << Abc_NtkPiNum(pNetwork->_pNtkConeTrue) << "/" << pNetwork->_nCPi << " pis" << endl;
+    #endif
     // add clause to sat solver
     #ifdef MINISAT
       sat_solver * pSat;
@@ -133,6 +134,10 @@ void Lsv_NtkPrintPounate(Abc_Ntk_t* pNtk){
     }
     int id;
     Abc_NtkForEachCi(pNetwork->_pNtkConeTrue, pNode, j){
+      #ifdef DEBUG
+        // getchar();
+        cerr << "check pi : " << Abc_ObjName(pNode) << endl;
+      #endif
       id = mId2var[Aig_ObjId(Aig_Regular((Aig_Obj_t *)(pNode->pCopy)))];
       // cerr << "ID : " << id << endl;
       pAssumption[id-(pNetwork->_pCnfT->nVars-pNetwork->_nCPi-1)] = lit_neg( pAssumption[id-(pNetwork->_pCnfT->nVars-pNetwork->_nCPi-1)] );
@@ -195,12 +200,13 @@ void Lsv_NtkPrintPounate(Abc_Ntk_t* pNtk){
     // print result
     
     delete [] pAssumption;
+
     #ifdef MINISAT
       sat_solver_delete( pSat );
     #else
       bmcg_sat_solver_stop(pSat);
     #endif
-    lsv_printResult(pNetwork);
+    pNetwork->lsv_printResult();
   }
   return;
 }
@@ -245,11 +251,6 @@ void Lsv_NtkPrintPounate(Abc_Ntk_t* pNtk){
         return NULL;
       }
     }
-    if ( !sat_solver_simplify(pSat) ) {
-      sat_solver_delete( pSat );
-      cerr << "ERROR" << endl;
-      return NULL;
-    }
     //add pi
     int pLit[3];
     for( i = 0; i < _nCPi; ++i){
@@ -275,8 +276,11 @@ void Lsv_NtkPrintPounate(Abc_Ntk_t* pNtk){
     }
     //add not gate
     pLit[0] = toLitCond(_nVar-1, 0);
-    bool flip = Abc_ObjFaninC0( Abc_NtkFindNode( _pNtk, Abc_ObjName(_pcurPoNode) ));
-    if(!flip){
+    // bool flip = Aig_ObjFaninC0((Aig_Obj_t*)_pCurNode->pCopy);
+    bool flip = !Aig_ObjFaninC0(Aig_ManCo(_pAig, _coId));
+    // cout << "for flip : NamePo :" << Aig_ObjId(Aig_Regular(Aig_ManCo(_pAig, _coId))) << " " << endl;
+    // Abc_ObjFaninC0( Abc_NtkFindNode( _pNtk, Abc_ObjName(_pcurPoNode) ));
+    if(flip){
       pLit[1] = toLitCond(_pCnfT->nVars, 0);
     }
     else{
@@ -299,30 +303,35 @@ void Lsv_NtkPrintPounate(Abc_Ntk_t* pNtk){
         printf( "\n" );
     #endif
     //add and
-    if(!flip){
+    if(flip){
       pLit[0] = toLitCond(1, 0);
-      assert(sat_solver_addclause( pSat, pLit, pLit+1 ));
-      #ifdef DEBUG 
+      #ifdef DEBUG
         printf( "%s%d \n", (pLit[0])&1 ? "!":"", (pLit[0])>>1 );
       #endif
+      assert(sat_solver_addclause( pSat, pLit, pLit+1 ));
     }
     else{
       pLit[0] = toLitCond(_pCnfT->nVars, 0);
-      assert(sat_solver_addclause( pSat, pLit, pLit+1 ));
-      #ifdef DEBUG 
+      #ifdef DEBUG
         printf( "%s%d \n", (pLit[0])&1 ? "!":"", (pLit[0])>>1 );
       #endif
+      assert(sat_solver_addclause( pSat, pLit, pLit+1 ));
     }
     pLit[0] = toLitCond(_nVar-1, 0);
-    assert(sat_solver_addclause( pSat, pLit, pLit+1 ));
-    #ifdef DEBUG 
+    #ifdef DEBUG
       printf( "%s%d \n", (pLit[0])&1 ? "!":"", (pLit[0])>>1 );
     #endif
+    assert(sat_solver_addclause( pSat, pLit, pLit+1 ));
     pLit[0] = toLitCond(_nVar, 0);
-    assert(sat_solver_addclause( pSat, pLit, pLit+1 ));
-    #ifdef DEBUG 
+    #ifdef DEBUG
       printf( "%s%d \n", (pLit[0])&1 ? "!":"", (pLit[0])>>1 );
     #endif
+    assert(sat_solver_addclause( pSat, pLit, pLit+1 ));
+    if ( !sat_solver_simplify(pSat) ) {
+      sat_solver_delete( pSat );
+      cerr << "ERROR" << endl;
+      return NULL;
+    }
     return (sat_solver*)pSat;
   }
 #else 
@@ -331,52 +340,125 @@ void Lsv_NtkPrintPounate(Abc_Ntk_t* pNtk){
     int * pBeg, * pEnd;  
     int i;
     pSat = bmcg_sat_solver_start();
-    bmcg_sat_solver_set_conflict_budget(_solver, 1000);
+    bmcg_sat_solver_set_conflict_budget(pSat, INT_MAX);
     bmcg_sat_solver_set_nvars( pSat, _nVar);
-    Cnf_CnfForClause( _pCnfF, pBeg, pEnd, i ) {
+    Cnf_CnfForClause( _pCnfT, pBeg, pEnd, i ) {
+      #ifdef DEBUG
+        for (int* c = pBeg; c < pEnd; c++ ){
+          printf( "%s%d ", (*c)&1 ? "!":"", (*c)>>1 );
+        }
+        printf( "\n" );
+      #endif
+      assert ( bmcg_sat_solver_addclause( pSat, pBeg, pEnd-pBeg ) );
+    }
+    Cnf_CnfForClause( _pCnfT, pBeg, pEnd, i ) {
       for (int* c = pBeg; c < pEnd; c++ ){
-        (*c) = (*c)&1 ? (((*c)>>1)+_pCnfT->nVars)<<1 + 1 : (((*c)>>1)+_pCnfT->nVars)<<1 ;
+        // cerr << "line 187: before : " << (*c) ;
+        (*c) = (*c)&1 ? ((((*c)>>1)+_pCnfT->nVars-1)<<1) + 1 : (((*c)>>1)+_pCnfT->nVars-1)<<1 ;
+        // cerr << " after : " << (*c) << endl;
       }
     }
     Cnf_CnfForClause( _pCnfT, pBeg, pEnd, i ) {
-      if ( !bmcg_sat_solver_addclause( pSat, pBeg, pEnd-pBeg, 0 ) ){
-        cerr << "ERROR" << endl;
-        return NULL;
-      }
+      #ifdef DEBUG
+        for (int* c = pBeg; c < pEnd; c++ ){
+          printf( "%s%d ", (*c)&1 ? "!":"", (*c)>>1 );
+        }
+        printf( "\n" );
+      #endif
+      assert ( bmcg_sat_solver_addclause( pSat, pBeg, pEnd-pBeg ) );
     }
-    Cnf_CnfForClause( _pCnfF, pBeg, pEnd, i ) {
-      if ( !bmcg_sat_solver_addclause( pSat, pBeg, pEnd-pBeg, 0 ) ){
-        cerr << "ERROR" << endl;
-        return NULL;
-      }
-    }
+    // if ( !sat_solver_simplify(pSat) ) {
+    //   sat_solver_delete( pSat );
+    //   cerr << "ERROR" << endl;
+    //   return NULL;
+    // }
     //add pi
     int pLit[3];
     for( i = 0; i < _nCPi; ++i){
       pLit[0] = toLitCond(_newVar+i, 0);
       pLit[1] = toLitCond(_nVarTPi+i, 0);
       pLit[2] = toLitCond(_nVarFPi+i, 1);
-      assert(bmcg_sat_solver_addclause( pSat, pLit, 3, 0 ));
+      assert(bmcg_sat_solver_addclause( pSat, pLit, 3));
       pLit[1] = lit_neg( pLit[1] );
       pLit[2] = lit_neg( pLit[2] );
-      assert(bmcg_sat_solver_addclause( pSat, pLit, 3, 0 ));
+      assert(bmcg_sat_solver_addclause( pSat, pLit, 3));
     }
     //add not gate
-    pLit[0] = toLitCond(_nVar, 0);
-    pLit[1] = toLitCond(_nVar-1, 0);
-    assert(bmcg_sat_solver_addclause( pSat, pLit, 2, 0 ));
+    pLit[0] = toLitCond(_nVar-1, 0);
+    bool flip = !Aig_ObjFaninC0(Aig_ManCo(_pAig, _coId));
+    // bool flip = !Aig_ObjFaninC0((Aig_Obj_t*)_pCurNode )->pCopy);
+    // Abc_ObjFaninC0( Abc_NtkFindNode( _pNtk, Abc_ObjName(_pcurPoNode) ));
+    if(flip){
+      pLit[1] = toLitCond(_pCnfT->nVars, 0);
+    }
+    else{
+      pLit[1] = toLitCond(1, 0);
+    }
+    assert(bmcg_sat_solver_addclause( pSat, pLit, 2));
+    #ifdef DEBUG
+      for (int* c = pLit; c < pLit+2; c++ ){
+          printf( "%s%d ", (*c)&1 ? "!":"", (*c)>>1 );
+        }
+        printf( "\n" );
+    #endif
     pLit[0] = lit_neg( pLit[0] );
     pLit[1] = lit_neg( pLit[1] );
-    assert(bmcg_sat_solver_addclause( pSat, pLit, 2, 0 ));
+    assert(bmcg_sat_solver_addclause( pSat, pLit, 2));
+    #ifdef DEBUG
+      for (int* c = pLit; c < pLit+2; c++ ){
+          printf( "%s%d ", (*c)&1 ? "!":"", (*c)>>1 );
+        }
+        printf( "\n" );
+    #endif
+    //add and
+    if(flip){
+      pLit[0] = toLitCond(1, 0);
+      if(!bmcg_sat_solver_addclause( pSat, pLit, 1)){
+        printf( "%s%d \n", (pLit[0])&1 ? "!":"", (pLit[0])>>1 );
+        assert(0);
+      }
+    }
+    else{
+      pLit[0] = toLitCond(_pCnfT->nVars, 0);
+      if(!bmcg_sat_solver_addclause( pSat, pLit, 1)){
+        printf( "%s%d \n", (pLit[0])&1 ? "!":"", (pLit[0])>>1 );
+        assert(0);
+      }
+    }
+    pLit[0] = toLitCond(_nVar-1, 0);
+    if(!bmcg_sat_solver_addclause( pSat, pLit, 1)){
+      printf( "%s%d \n", (pLit[0])&1 ? "!":"", (pLit[0])>>1 );
+      assert(0);
+    }
+    pLit[0] = toLitCond(_nVar, 0);
+    if(!bmcg_sat_solver_addclause( pSat, pLit, 1)){
+      printf( "%s%d \n", (pLit[0])&1 ? "!":"", (pLit[0])>>1 );
+      assert(0);
+    }
     return (bmcg_sat_solver*)pSat;
   }
 #endif
 
-void Network::setpNtkCone(Abc_Obj_t* pFanout) {
-  Abc_Obj_t *pNode;
+int Network::setpNtkCone(Abc_Obj_t* pFanout) {
+  Abc_Obj_t * pNode;
   _pcurPoNode = pFanout;
-  pNode = Abc_NtkFindNode( _pNtk, Abc_ObjName(pFanout) );
-  _pNtkConeTrue = Abc_NtkCreateCone( _pNtk, pNode, Abc_ObjName(pFanout), 0 );
+  _pCurNode = Abc_NtkFindNode( _pNtk, Abc_ObjName(pFanout) );
+  if(Abc_NtkPiNum(Abc_NtkCreateCone( _pNtk, _pCurNode, Abc_ObjName(pFanout), 0 )) == 0){
+    vector<bool> val(2,1);
+    int i;
+    Abc_NtkForEachPi(_pNtk, pNode, i){
+      _mName2val[Abc_ObjName(pNode)] = val;
+    }
+    return false;
+  }
+  else{
+    vector<bool> val(2,0);
+    int i;
+    Abc_NtkForEachPi(_pNtk, pNode, i){
+      _mName2val[Abc_ObjName(pNode)] = val;
+    }
+  }
+  _pNtkConeTrue = Abc_NtkCreateCone( _pNtk, _pCurNode, Abc_ObjName(pFanout), 1 );
   _nCPi = Abc_NtkPiNum(_pNtkConeTrue); 
   _pManT = Abc_NtkToDar( _pNtkConeTrue,  0, 0 );
   _pCnfT = Cnf_Derive( _pManT, Aig_ManCoNum(_pManT) );
@@ -385,52 +467,50 @@ void Network::setpNtkCone(Abc_Obj_t* pFanout) {
   _nVar = (_pCnfT->nVars << 1) + _nCPi; // +1 -1 -1 +1
   _nVarTPi = _pCnfT->nVars - _nCPi - 1; 
   _nVarFPi = ((_pCnfT->nVars-1) << 1) - _nCPi;
-  vector<bool> val(2,0);
-  int i;
-  Abc_NtkForEachPi(_pNtk, pNode, i){
-    _mName2val[Abc_ObjName(pNode)] = val;
-  } 
-  #ifdef DEBUG
-    Abc_NtkForEachNode(pNtkConeTrue, pObj, j) {
-      cout << "Name   :" << Abc_ObjName(pObj) << " " << pObj->Id << ", aig : " << ((Aig_Obj_t *)pObj->pCopy)->Id << endl;
-      // cout << pObj << endl;
-    }
-    Abc_NtkForEachCo(pNtkConeTrue, pObj, j) {
-      cout << "NameCo :" << Abc_ObjName(pObj) << " " << pObj->Id << endl; //", aig : " << ((Aig_Obj_t *)pObj->pCopy)->Id << endl;
-    }
-    Abc_NtkForEachCi(pNtkConeTrue, pObj, j) {
-      cout << "NameCi :" << Abc_ObjName(pObj) << " " << pObj->Id << endl; //", aig : " << ((Aig_Obj_t *)pObj->pCopy)->Id << endl;
-    }
+  return true;
+  // #ifdef DEBUG
+  //   Abc_NtkForEachNode(pNtkConeTrue, pObj, j) {
+  //     cout << "Name   :" << Abc_ObjName(pObj) << " " << pObj->Id << ", aig : " << ((Aig_Obj_t *)pObj->pCopy)->Id << endl;
+  //     // cout << pObj << endl;
+  //   }
+    // Abc_Obj_t *pObj;
+    // Aig_Obj_t *pAigObj;
+    // Abc_NtkForEachCo(_pNtk, pObj, i) {
+    //   cout << "NameCo :" << Abc_ObjName(pObj) << " " << pObj->Id << endl; //", aig : " << ((Aig_Obj_t *)pObj->pCopy)->Id << endl;
+    // }
+  //   Abc_NtkForEachCi(pNtkConeTrue, pObj, j) {
+  //     cout << "NameCi :" << Abc_ObjName(pObj) << " " << pObj->Id << endl; //", aig : " << ((Aig_Obj_t *)pObj->pCopy)->Id << endl;
+  //   }
 
-    Aig_ManForEachNode(pManT, pAigObj, j) {
-      // cout << "Name   :" << Abc_ObjName(pObj) << " " 
-      cout << Aig_ObjId(Aig_Regular(pAigObj)) << " , cnf ID " << pCnfT->pVarNums[Aig_ObjId(Aig_Regular(pAigObj))] <<endl;
-      // cout << pObj << endl;
-    }
-    Aig_ManForEachCo(pManT, pAigObj, j) {
-    //   cout << "NamePo :" << Abc_ObjName(pObj) << " " << 
-      cout << "Po : " << Aig_ObjId(Aig_Regular(pAigObj)) << " , cnf ID " << pCnfT->pVarNums[Aig_ObjId(Aig_Regular(pAigObj))] << endl;
+  //   Aig_ManForEachNode(pManT, pAigObj, j) {
+  //     // cout << "Name   :" << Abc_ObjName(pObj) << " " 
+  //     cout << Aig_ObjId(Aig_Regular(pAigObj)) << " , cnf ID " << _pCnfT->pVarNums[Aig_ObjId(Aig_Regular(pAigObj))] <<endl;
+  //     // cout << pObj << endl;
+  //   }
+    // Aig_ManForEachCo(_pAig, pAigObj, i) {
+    //   // cout << "NamePo :" << Abc_ObjName(pAigObj) << " " << endl; 
+    //   cout << "Po : " << Aig_ObjId(Aig_Regular(pAigObj)) << " , cnf ID " << _pCnfT->pVarNums[Aig_ObjId(Aig_Regular(pAigObj))] << endl;
 
-    }
-    Aig_ManForEachCi(pManT, pAigObj, j) {
-    //   cout << "NamePi :" << Abc_ObjName(pObj) << " " 
-      cout << "Pi : " << Aig_ObjId(Aig_Regular(pAigObj)) << " , cnf ID " << pCnfT->pVarNums[Aig_ObjId(Aig_Regular(pAigObj))] << endl;
-    }
-    int * pBeg1, * pEnd1;
-    int j;
-    Cnf_CnfForClause( _pCnfT, pBeg1, pEnd1, j ) {
-      for (int* c = pBeg1; c < pEnd1; c++ ){
-        printf( "%s%d ", (*c)&1 ? "!":"", (*c)>>1 );
-      }
-      printf( "\n" );
-    }
-  #endif
+    // }
+  //   Aig_ManForEachCi(pManT, pAigObj, j) {
+  //   //   cout << "NamePi :" << Abc_ObjName(pObj) << " " 
+  //     cout << "Pi : " << Aig_ObjId(Aig_Regular(pAigObj)) << " , cnf ID " << _pCnfT->pVarNums[Aig_ObjId(Aig_Regular(pAigObj))] << endl;
+  //   }
+  //   int * pBeg1, * pEnd1;
+  //   int j;
+  //   Cnf_CnfForClause( _pCnfT, pBeg1, pEnd1, j ) {
+  //     for (int* c = pBeg1; c < pEnd1; c++ ){
+  //       printf( "%s%d ", (*c)&1 ? "!":"", (*c)>>1 );
+  //     }
+  //     printf( "\n" );
+  //   }
+  // #endif
 };
 
 #ifdef MINISAT
   int lsv_solve(void* pSat, int *lits, int nvar){
     int ret = -1, status;
-    status = sat_solver_solve( (sat_solver*)pSat, lits, lits+nvar, (ABC_INT64_T)600, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+    status = sat_solver_solve( (sat_solver*)pSat, lits, lits+nvar, (ABC_INT64_T)INT_MAX, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
     if ( status == l_Undef )      ret = -1;
     else if ( status == l_True )  ret = 0;
     else if ( status == l_False ) ret = 1;
@@ -448,24 +528,24 @@ void Network::setpNtkCone(Abc_Obj_t* pFanout) {
 #endif
 
 
-void lsv_printResult(Network* pNetwork){
+void Network::lsv_printResult(){
   string pUnate = "", nUnate = "", binate = "";
-  for(auto & id2str : pNetwork->_mId2name){
-    pNetwork->_mName2val[id2str.second];
-    if(!pNetwork->_mName2val[id2str.second][0] && !pNetwork->_mName2val[id2str.second][1]){
+  for(auto & id2str : _mId2name){
+    _mName2val[id2str.second];
+    if(!_mName2val[id2str.second][0] && !_mName2val[id2str.second][1]){
       if(!(binate.size()==0)) binate = binate + "," + id2str.second;
       else binate = id2str.second;
     }
-    if(pNetwork->_mName2val[id2str.second][0]){
+    if(_mName2val[id2str.second][0]){
       if(!(pUnate.size()==0)) pUnate = pUnate + "," + id2str.second;
       else pUnate = id2str.second;
     }
-    if(pNetwork->_mName2val[id2str.second][1]){
+    if(_mName2val[id2str.second][1]){
       if(!(nUnate.size()==0)) nUnate = nUnate + "," + id2str.second;
       else nUnate = id2str.second;
     }
   }
-  if(pUnate.size() || nUnate.size() || binate.size()) printf("node %s:\n", Abc_ObjName(pNetwork->_pcurPoNode));
+  if(pUnate.size() || nUnate.size() || binate.size()) printf("node %s:\n", Abc_ObjName(_pcurPoNode));
   if(pUnate.size()) printf("+unate inputs: %s\n", pUnate.c_str());
   if(nUnate.size()) printf("-unate inputs: %s\n", nUnate.c_str());
   if(binate.size()) printf("binate inputs: %s\n", binate.c_str());

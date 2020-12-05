@@ -42,7 +42,7 @@ grade_one_branch () {
     for bench in "${bench_list[@]}"; do
         echo "[INFO] Testing with ${bench} ..."
         bch_name=$(echo "${bench}" | awk -F "/" '{print $(NF)}' | sed -e 's/.aig$//')
-        timeout "${time_limit}" abc -c "${pa_cmd}" "${bench}" > "${out_dir}/${bch_name}.txt"
+        timeout "${time_limit}" ./abc -c "${pa_cmd}" "${bench}" > "${out_dir}/${bch_name}.txt"
         diff -uwiB "${ref_dir}/${bch_name}.txt" "${out_dir}/${bch_name}.txt" > "${diff_dir}/${bch_name}.txt"
         if [ "$?" -eq 0 ]; then
             ((++correct))

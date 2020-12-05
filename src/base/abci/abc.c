@@ -15564,7 +15564,6 @@ int Abc_CommandDFraig( Abc_Frame_t * pAbc, int argc, char ** argv )
     int c, nConfLimit, fDoSparse, fProve, fSpeculate, fChoicing, fVerbose;
 
     extern Abc_Ntk_t * Abc_NtkDarFraig( Abc_Ntk_t * pNtk, int nConfLimit, int fDoSparse, int fProve, int fTransfer, int fSpeculate, int fChoicing, int fVerbose );
-
     pNtk = Abc_FrameReadNtk(pAbc);
     // set defaults
     nConfLimit   = 100;
