@@ -15,6 +15,7 @@ namespace lsv
 
 int CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 int CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
+int CommandPrintPOUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
 }   /// end of namespace lsv
 
