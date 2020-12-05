@@ -1,19 +1,30 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "sat/cnf/cnf.h"
+#include "sat/bsat/satSolver.h"
 #include <utility>
 #include <vector>
+#include <unordered_map>
 #include <algorithm>
 #include <string>
 #include <iostream>
 
+using namespace std;
+
+extern "C" {
+    Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+}
+
 static int Lsv_CommandPrintNodeSopUnate(Abc_Frame_t *pAbc, int argc, char **argv);
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandPrintPOUnate(Abc_Frame_t *pAbc, int argc, char **argv);
 
 void init(Abc_Frame_t *pAbc)
 {
     Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintNodeSopUnate, 0);
     Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+    Cmd_CommandAdd(pAbc, "LSV", "lsv_print_pounate", Lsv_CommandPrintPOUnate, 0);
 }
 
 void destroy(Abc_Frame_t *pAbc) {}
@@ -232,6 +243,279 @@ int Lsv_CommandPrintNodes(Abc_Frame_t *pAbc, int argc, char **argv)
 usage:
     Abc_Print(-2, "usage: lsv_print_nodes [-h]\n");
     Abc_Print(-2, "\t        prints the nodes in the network\n");
+    Abc_Print(-2, "\t-h    : print the command usage\n");
+    return 1;
+}
+
+
+//For PA2
+void Lsv_NtkPrintPOUnate(Abc_Ntk_t *pNtk)
+{
+    Aig_Man_t *pMan;
+    Abc_Obj_t * pObjPo, *pObjPi;
+    int poInd,piInd;
+    Abc_Ntk_t * pPoNtk;
+    sat_solver* solver;
+    int edgeComplimented;
+
+    //std::cout << "numPo: " << Abc_NtkPoNum(pNtk) << std::endl;
+    //std::unordered_map<char*,int> ntkPiName2Ind;
+    std::unordered_map<string,int> ntkPiName2Ind;
+    
+    //std::cout << "PI ID,name:";
+    Abc_NtkForEachPi(pNtk,pObjPi,piInd)
+    {
+        //std::cout << '(' << Abc_ObjId(pObjPi) << ',' << Abc_ObjName(pObjPi) << ')';
+        ntkPiName2Ind[Abc_ObjName(pObjPi)]=piInd;
+    }
+    //cout << endl;
+    //cout << "ntkPiName2Ind: " << endl;
+    // for (auto& x: ntkPiName2Ind)
+    // {
+    //     std::cout << x.first << ": " << x.second << std::endl;
+    // }
+
+    //std::cout << std::endl;
+    Abc_NtkForEachPo( pNtk,pObjPo,poInd)
+    {
+        //std::cout << "PO: " << Abc_ObjName(pObjPo) << std::endl;
+        pPoNtk = Abc_NtkCreateCone(pNtk,Abc_ObjFanin0(pObjPo),Abc_ObjName(pObjPo),0);
+        //std::cout << "cone PI IDs:\n";
+        vector<int> conePiNtkInds;
+        vector<string> conePiNames;
+        std::unordered_map<int,int> conePiInd2Id;
+        std::unordered_map<int,int> conePiInd2NtkPiInd;
+        //cout << "cone Pi ID,name:";
+        Abc_NtkForEachPi(pPoNtk,pObjPi,piInd)
+        {
+            //std::cout << '(' << Abc_ObjId(pObjPi) << ',' << Abc_ObjName(pObjPi) << ')';
+            conePiInd2Id[piInd]=Abc_ObjId(pObjPi);
+            conePiNtkInds.push_back(ntkPiName2Ind[Abc_ObjName(pObjPi)]);
+            conePiNames.push_back(Abc_ObjName(pObjPi));
+            //cout << "corresponding ntkInd:" << ntkPiName2Ind[Abc_ObjName(pObjPi)];
+            conePiInd2NtkPiInd[piInd]=ntkPiName2Ind[Abc_ObjName(pObjPi)];
+        }
+        //std::cout << std::endl;
+        
+        // cout << "conePiInd2NtkPiInd: " << endl;
+        // for (auto& x: conePiInd2NtkPiInd)
+        // {
+        //     std::cout << x.first << ": " << x.second << std::endl;
+        // }
+
+        vector<int> nonSupportNtkPiInds;
+        //cout << "Non-support PIs:";
+        Abc_NtkForEachPi(pNtk,pObjPi,piInd)
+        {
+            if(find(conePiNames.begin(),conePiNames.end(),Abc_ObjName(pObjPi))==conePiNames.end())
+            {
+                nonSupportNtkPiInds.push_back(piInd);
+                //cout << (char *)Abc_ObjName(Abc_NtkPi(pNtk,ntkPiId2Ind[Abc_ObjId(pObjPi)]));
+            }
+        }
+        //cout << endl;
+        edgeComplimented = pObjPo->fCompl0;
+        pMan = Abc_NtkToDar( pPoNtk, 0, 0 );
+        Cnf_Dat_t * pCnfPos, *pCnfNeg;
+        pCnfPos = Cnf_Derive(pMan, Aig_ManCoNum(pMan));
+        pCnfNeg = Cnf_DataDup(pCnfPos);
+        Cnf_DataLift(pCnfNeg,pCnfPos->nVars);
+        solver = sat_solver_new();
+        sat_solver_setnvars(solver,2*(pCnfPos->nVars));
+        int * beg, *end;
+        int i;
+        //add clauses for AIG
+        Cnf_CnfForClause(pCnfPos,beg,end,i)
+        {
+            sat_solver_addclause(solver,beg,end);
+        }
+        Cnf_CnfForClause(pCnfNeg,beg,end,i)
+        {
+            sat_solver_addclause(solver,beg,end);
+        }
+        //add clause for incremental solving
+        int ciInd;
+        Aig_Obj_t * pAigObjCi, *pAigObjPo;
+        pAigObjPo = Aig_ManCo(pMan,0);
+        std::vector<int> alphas;
+        Aig_ManForEachCi(pMan, pAigObjCi, ciInd)
+        {
+            alphas.push_back(sat_solver_addvar(solver));
+            sat_solver_add_buffer_enable(solver,pCnfPos->pVarNums[Aig_ObjId(pAigObjCi)],pCnfNeg->pVarNums[Aig_ObjId(pAigObjCi)],alphas.back(),0);
+        }
+        int assumption[alphas.size()+4];
+        
+        int solveRes;
+        
+        std::vector<int> posUnatePiNtkInd;
+        std::vector<int> negUnatePiNtkInd;
+
+        //std::cout << "starts to go through fainins" << std::endl;
+        Aig_ManForEachCi(pMan,pAigObjCi,ciInd)
+        {
+            //std::cout << "PI: " << Abc_ObjName(Abc_NtkPi(pPoNtk,ciInd)) << std::endl;
+            for(int j=0;j<alphas.size();j++)
+            {
+                if(j==ciInd)
+                {
+                    assumption[j]=toLitCond(alphas[j],1);//not enable, input set to (1,0) for (pos,neg) respectively later
+                }
+                else
+                {
+                    assumption[j]=toLitCond(alphas[j],0);//enable clauses, make input identical for pos and neg 
+                }
+            }
+            //std::cout << "alpha assumptions done\n";
+            assumption[alphas.size()]=toLitCond(pCnfPos->pVarNums[Aig_ObjId(pAigObjCi)],0);
+            assumption[alphas.size()+1]=toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pAigObjCi)],1);
+            assumption[alphas.size()+2]=toLitCond(pCnfPos->pVarNums[Aig_ObjId(pAigObjPo)],0);//neg unate
+            assumption[alphas.size()+3]=toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pAigObjPo)],1);//neg unate
+            //std::cout << "input output assumptions done\n";
+            solveRes = sat_solver_solve(solver,assumption,assumption+alphas.size()+4,0,0,0,0);
+            //std::cout << "solver solved\n";
+            if(solveRes==l_False)
+            {
+                //std::cout << "unsat\n";
+                if(!edgeComplimented)
+                {
+                    negUnatePiNtkInd.push_back(conePiInd2NtkPiInd[ciInd]);
+                }
+                else
+                {
+                    posUnatePiNtkInd.push_back(conePiInd2NtkPiInd[ciInd]);
+                }
+                
+            }
+            assumption[alphas.size()+2]=toLitCond(pCnfPos->pVarNums[Aig_ObjId(pAigObjPo)],1);//pos unate
+            assumption[alphas.size()+3]=toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pAigObjPo)],0);//pos unate
+            solveRes = sat_solver_solve(solver,assumption,assumption+alphas.size()+4,0,0,0,0);
+            if(solveRes==l_False)
+            {
+                //std::cout << "unsat\n";
+                if(!edgeComplimented)
+                {
+                    posUnatePiNtkInd.push_back(conePiInd2NtkPiInd[ciInd]);
+                }
+                else
+                {
+                    negUnatePiNtkInd.push_back(conePiInd2NtkPiInd[ciInd]);
+                }
+            }
+        }
+        for(int i=0; i<nonSupportNtkPiInds.size(); i++)
+        {
+            posUnatePiNtkInd.push_back(nonSupportNtkPiInds[i]);
+            negUnatePiNtkInd.push_back(nonSupportNtkPiInds[i]);
+        }
+        sort(posUnatePiNtkInd.begin(), posUnatePiNtkInd.end());
+        sort(negUnatePiNtkInd.begin(), negUnatePiNtkInd.end());
+        //std::cout << "went through PIs\n";
+        //std::cout << "len posUnatePi:" << posUnatePi.size() << "len negUnatePi:" << negUnatePi.size() << std::endl;
+        printf("node %s:\n",(char *)Abc_ObjName(pObjPo));
+        if(posUnatePiNtkInd.size()>0)
+        {
+            printf("+unate inputs: ");
+            for (int i=0;i<posUnatePiNtkInd.size();i++)
+            {
+                printf("%s",(char *)Abc_ObjName(Abc_NtkPi(pNtk,posUnatePiNtkInd[i])));
+                if(i<posUnatePiNtkInd.size()-1)
+                    printf(",");
+            }
+            printf("\n");
+        }
+        if(negUnatePiNtkInd.size()>0)
+        {
+            printf("-unate inputs: ");
+            for (int i=0;i<negUnatePiNtkInd.size();i++)
+            {
+                printf("%s",(char *)Abc_ObjName(Abc_NtkPi(pNtk,negUnatePiNtkInd[i])));
+                if(i<negUnatePiNtkInd.size()-1)
+                    printf(",");
+            }
+            printf("\n");
+        }
+
+        std::vector<int> binateNtkInds;
+        for(int i=0;i<conePiNtkInds.size();i++)
+        {
+            if(find(posUnatePiNtkInd.begin(),posUnatePiNtkInd.end(),conePiNtkInds[i])==posUnatePiNtkInd.end() && find(negUnatePiNtkInd.begin(),negUnatePiNtkInd.end(),conePiNtkInds[i])==negUnatePiNtkInd.end())
+            {
+                binateNtkInds.push_back(conePiNtkInds[i]);
+            }
+        }
+        sort(binateNtkInds.begin(),binateNtkInds.end());
+        if(binateNtkInds.size()>0)
+        {
+            printf("binate inputs: ");
+            for(int i=0;i<binateNtkInds.size();i++)
+            {
+                printf("%s",(char *)Abc_ObjName(Abc_NtkPi(pNtk,binateNtkInds[i])));
+                if(i<binateNtkInds.size()-1)
+                    printf(",");
+            }
+            printf("\n");
+        }
+
+        // std::vector<int> binateNtkInds;
+        // for(int i=0;i<PiIDs.size();i++)
+        // {
+        //     if(find(posUnatePiId.begin(),posUnatePiId.end(),PiIDs[i])==posUnatePiId.end() && find(negUnatePiId.begin(),negUnatePiId.end(),PiIDs[i])==negUnatePiId.end())
+        //     {
+        //         binateNtkInds.push_back(ntkPiId2Ind[PiIDs[i]]);
+        //     }
+        // }
+        // if(binateNtkInds.size()>0)
+        // {
+        //     printf("binate inputs: ");
+        //     for (int i=0;i<binateNtkInds.size();i++)
+        //     {
+        //         printf("%s",(char *)Abc_ObjName(Abc_NtkPi(pNtk,binateNtkInds[i])));
+        //         //printf("(id:%d)",Abc_ObjId(Abc_NtkPi(pNtk,binateNtkInds[i])));
+        //         if(i<binateNtkInds.size()-1)
+        //             printf(",");
+        //     }
+        //     printf("\n");
+        // }
+            
+
+        
+    }
+    sat_solver_delete(solver);
+    // Abc_Obj_t *pObj;
+    // int i;
+    // Abc_NtkForEachPo(pNtk, pObj, i)
+    // {
+    //     printf("node %s:\n",(char *)Abc_ObjName(pObj));
+    // }
+    
+}
+
+int Lsv_CommandPrintPOUnate(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+    Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
+    int c;
+    Extra_UtilGetoptReset();
+    while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF)
+    {
+        switch (c)
+        {
+        case 'h':
+            goto usage;
+        default:
+            goto usage;
+        }
+    }
+    if (!pNtk)
+    {
+        Abc_Print(-1, "Empty network.\n");
+        return 1;
+    }
+    Lsv_NtkPrintPOUnate(pNtk);
+    return 0;
+
+usage:
+    Abc_Print(-2, "usage: lsv_print_pounate [-h]\n");
+    Abc_Print(-2, "\t        prints the unate information of POs\n");
     Abc_Print(-2, "\t-h    : print the command usage\n");
     return 1;
 }
