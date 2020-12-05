@@ -164,6 +164,10 @@ Gia_Man_t * Gia_ManAigSyn3( Gia_Man_t * p, int fVerbose, int fVeryVerbose )
     {
         pNew = Gia_ManDup(p);
         Gia_ManTransferTiming( pNew, p );
+<<<<<<< HEAD
+=======
+        //Gia_ManStop( p );
+>>>>>>> upstream/master
         return pNew;
     }
     // perform balancing
@@ -200,6 +204,10 @@ Gia_Man_t * Gia_ManAigSyn4( Gia_Man_t * p, int fVerbose, int fVeryVerbose )
     {
         pNew = Gia_ManDup(p);
         Gia_ManTransferTiming( pNew, p );
+<<<<<<< HEAD
+=======
+        //Gia_ManStop( p );
+>>>>>>> upstream/master
         return pNew;
     }
 //Gia_ManAigPrintPiLevels( p );
