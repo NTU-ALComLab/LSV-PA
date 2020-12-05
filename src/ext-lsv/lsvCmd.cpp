@@ -6,6 +6,12 @@
 #include <algorithm>
 #include <iostream>
 
+extern "C"
+{
+  Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+  Abc_Ntk_t * Abc_NtkStrash( Abc_Ntk_t * pNtk, int fAllNodes, int fCleanup, int fRecord );
+}
+
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintPOUnate(Abc_Frame_t* pAbc, int argc, char** argv);
@@ -252,6 +258,8 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     std::cout << std::endl;
 
     // Turn Abc_Ntk into Aig_Man_t
+    pCone = Abc_NtkStrash (pCone, 0, 0, 0);
+    Aig_Man_t* pMan = Abc_NtkToDar(pCone, 0, 0);
   }  
 
  
