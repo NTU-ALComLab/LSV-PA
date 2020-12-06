@@ -12,6 +12,11 @@ using namespace std;
 extern "C" Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
 extern "C" void * Cnf_DataWriteIntoSolver( Cnf_Dat_t * p, int nFrames, int fInit );
 
+#define POS 0
+#define NEG 1
+#define SAT 1
+#define UNSAT -1
+
 namespace
 {
 
@@ -19,6 +24,7 @@ void printAigObjInfo(Aig_Man_t* aigMan){
     //print aigObj info
     Aig_Obj_t* aigObj;
     int i;
+	cout << "**********************************************" << endl;
     Aig_ManForEachObj(aigMan, aigObj, i){
         cout << "ID: " << Aig_ObjId(aigObj) << endl;
         cout << "Type: " << Aig_ObjType(aigObj) << endl;
@@ -29,6 +35,21 @@ void printAigObjInfo(Aig_Man_t* aigMan){
         cout << "Lit: " << Aig_ObjToLit(aigObj) << endl;
         cout << endl;
     }
+	
+	cout << "print Ci" << endl;
+	Aig_ManForEachCi(aigMan, aigObj, i ){
+		cout << "ID: " << Aig_ObjId(aigObj) << endl;
+		cout << "Lit: " << Aig_ObjToLit(aigObj) << endl;
+	}
+
+	cout << "print Co" << endl;
+    Aig_ManForEachCo(aigMan, aigObj, i ){
+        cout << "ID: " << Aig_ObjId(aigObj) << endl;
+        cout << "Lit: " << Aig_ObjToLit(aigObj) << endl;
+    }
+
+	cout << "**********************************************" << endl;
+
 }
 
 void printAigStatus(Aig_Man_t* aigMan){
@@ -44,7 +65,11 @@ void printAigStatus(Aig_Man_t* aigMan){
 
 void printCnf(Cnf_Dat_t* ntkCnf){
     //print cnf
+	cout << "**********************************************" << endl;
 	cout << ntkCnf->pMan->pName << endl;
+	cout << "number of variables = " << ntkCnf->nVars << endl;
+    cout << "number of literals = " << ntkCnf->nLiterals << endl;
+    cout << "number of clauses = " << ntkCnf->nClauses << endl;
     int *pBeg, *pEnd;
 	int i;
     Cnf_CnfForClause(ntkCnf, pBeg, pEnd, i ){
@@ -55,8 +80,18 @@ void printCnf(Cnf_Dat_t* ntkCnf){
     }
 }
 
+void printCiInfo(Abc_Obj_t* nodeCi){
+	cout << "ID: " << Abc_ObjId(nodeCi) << endl;
+	cout << "name: " << Abc_ObjName(nodeCi) << endl;
+}
+/*
+Abc_Ntk_t* get1OutputNtk(Abc_Ntk_t* abcNtk, Abc_Obj_t* nodeCo){
 
 
+}
+*/
+
+//main function
 int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 {
 	Abc_Ntk_t* abcNtk = Abc_FrameReadNtk(pAbc);
@@ -73,107 +108,123 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		if (Abc_ObjFaninC0(nodeCo) ){
 			Abc_NtkPo(abcNtk_1Po, 0)->fCompl0  ^= 1;
 		}
+
+		/*
+		//for debug
+		Abc_Obj_t* nodeCi;
+		int j;
+		Abc_NtkForEachPi(abcNtk, nodeCi, j){
+			printCiInfo(nodeCi);
+		}
+		//
+		*/
 		
 		//get aig
 		Aig_Man_t* aigMan   = Abc_NtkToDar(abcNtk_1Po, 0, 0);
-		aigMan->pData = NULL;
-		
+		//aigMan->pData = NULL;
+
+/*		
+		//for debug
+		cout << endl << "print aig: " << endl;
+        printAigObjInfo(aigMan);
+        cout << endl;
+*/		
+	
 		//get cnf
 		Cnf_Dat_t* ntkCnf = Cnf_Derive( aigMan, Aig_ManCoNum(aigMan) );
-		
-		//for debug
+		Vec_Int_t * vCiIds = Cnf_DataCollectPiSatNums( ntkCnf, aigMan );
 		//printCnf(ntkCnf);
 
-		//sat solver
+		/*
+		//for debug
+		cout << "pVarNums:" << endl;
+		for(int i = 0; i < aigMan->vObjs->nSize; ++i){
+			cout << "abcObjID = " << i << endl;
+			cout << "cnfVar = " << ntkCnf->pVarNums[i] << endl;
+		}
+		*/
+
+		//init sat solver
 		sat_solver* satSol = (sat_solver*)Cnf_DataWriteIntoSolver(ntkCnf, 1, 0);
 		if ( satSol == NULL ){
-            Cnf_DataFree( ntkCnf );
 			cout << "Error! SAT solver is null" << endl;
             continue;
         }
 
-		
-		if ( !Cnf_DataWriteOrClause( satSol, ntkCnf ) ){
-            sat_solver_delete( satSol );
-            Cnf_DataFree( ntkCnf );
-            cout << "error in Cnf_DataWriteOrClause" << endl;
-			//unsat
+		//for adding constrain
+		int *pLits = ABC_ALLOC(int, 1);
+
+		//add output constrain;
+		Aig_Obj_t *  aigCo = Aig_ManCo( aigMan, 0 );
+		pLits[0] = toLitCond(ntkCnf->pVarNums[Aig_ObjId(aigCo)], POS);
+		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 )){
+            cout << "error in adding output constrain to sat solver" << endl;
 			continue;
         }
-		
 
-		//for debug
-        //printCnf(ntkCnf);
-		
-		Vec_Int_t * vCiIds = Cnf_DataCollectPiSatNums( ntkCnf, aigMan );
-		Cnf_DataFree(ntkCnf);
+		//create my constrain
+		pLits[0] = toLitCond(vCiIds->pArray[0], NEG);
+		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
+			cout << "error in adding constrain clause to sat solver" << endl;
+			continue;
+		}
+
+		pLits[0] = toLitCond(vCiIds->pArray[1], 1);
+		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
+            cout << "error in adding constrain clause to sat solver" << endl;
+            continue;
+        }
+		ABC_FREE( pLits );
+		//
 
 		//simplify the problem
 		int status = sat_solver_simplify(satSol);
 		if ( status == 0 ){
-            Vec_IntFree( vCiIds );
-            sat_solver_delete( satSol );
             printf( "The problem is UNSATISFIABLE after simplification.\n" );
+			sat_solver_delete( satSol );
+	        Vec_IntFree( vCiIds );
+		    Cnf_DataFree(ntkCnf);
+			Aig_ManStop(aigMan);
+			Abc_NtkDelete(abcNtk_1Po);
             continue;
         }
 
+		//solve sat 
 		status = sat_solver_solve( satSol, NULL, NULL, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
-		if ( status == 1 ){
+		
+		//result
+		if ( status == SAT ){
             printf( "The problem is SATISFIABLE.\n" );
 
-			//cex
+			//get cex assignment
 			aigMan->pData = Sat_SolverGetModel( satSol, vCiIds->pArray, vCiIds->nSize );
-
-			//for debug
-			Sat_SolverPrintStats( stdout, satSol );
-
-			sat_solver_delete( satSol );
-	        Vec_IntFree( vCiIds );
-
 			abcNtk_1Po->pModel = (int *)aigMan->pData;
-			aigMan->pData = NULL;
-			Aig_ManStop(aigMan);
 
 			//check
 			int * pSimInfo = Abc_NtkVerifySimulatePattern( abcNtk_1Po, abcNtk_1Po->pModel );
 	        if ( pSimInfo[0] != 1 )
 				Abc_Print( 1, "ERROR in Abc_NtkMiterSat(): Generated counter example is invalid.\n" );
 			ABC_FREE( pSimInfo );
-		    
+		   
+			//create cex
 			pAbc->pCex = Abc_CexCreate( 0, Abc_NtkPiNum(abcNtk_1Po), abcNtk_1Po->pModel, 0, 0, 0 );
-			pAbc->Status = 0;
 			Abc_CexPrint( pAbc->pCex );
 		
 		}
-        else if ( status == -1 ){
-			pAbc->Status = 1;
-            printf( "The problem is UNSATISFIABLE.\n" );
+        else if ( status == UNSAT ){
+			printf( "The problem is UNSATISFIABLE.\n" );
         }
 		else{
 			cout << "err in satsol!" << endl;
 		}
+
+		//free memory
+		sat_solver_delete( satSol ); cout << "ok to free sat" << endl;
+		Vec_IntFree( vCiIds ); cout << "ok to free vCiIds" << endl;
+		Cnf_DataFree(ntkCnf); cout << "ok to free CNF" << endl;
+		Aig_ManStop(aigMan); cout << "ok to free AIG" << endl;
+		Abc_NtkDelete(abcNtk_1Po); cout << "ok to free ntk" << endl;
 	}
-
-
-
-
-
-
-
-
-	//Aig_Man_t* aigMan	= Abc_NtkToDar( abcNtk, 0, 0 );
-	
-	/*
-	//print cnf
-	Cnf_Dat_t* ntkCnf = Cnf_Derive( aigMan, Aig_ManCoNum(aigMan) );
-	int *pBeg, *pEnd;
-	Cnf_CnfForClause(ntkCnf, pBeg, pEnd, i ){
-		for(int* pLit = pBeg; pLit != pEnd; ++pLit){
-			cout << (Abc_LitIsCompl(*pLit)? "-": "") << Abc_Lit2Var(*pLit) << " ";
-		}
-		cout << endl;
-	}
-	*/
     return 0;
 }
 
@@ -202,3 +253,4 @@ struct registrar
 } myAdd_registrar;
 
 } // unnamed namespace
+

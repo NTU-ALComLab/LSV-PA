@@ -268,8 +268,16 @@ Cnf_Dat_t * Cnf_ManWriteCnf( Cnf_Man_t * p, Vec_Ptr_t * vMapped, int nOutputs )
             if ( Aig_ManRegNum(p->pManAig) == 0 )
             {
                 assert( nOutputs == Aig_ManCoNum(p->pManAig) );
-                Aig_ManForEachCo( p->pManAig, pObj, i )
+				//for debug
+				//printf("in Cnf_Derive\n");
+				//printf("Number = %d\n", Number);
+                Aig_ManForEachCo( p->pManAig, pObj, i ){
+					//for debug
+					//printf("Number = %d\n", Number);
+				    //printf("pObj->Id = %d\n", pObj->Id);
                     pCnf->pVarNums[pObj->Id] = Number++;
+				}
+				//printf("Number = %d\n", Number);
             }
             else
             {
@@ -279,8 +287,12 @@ Cnf_Dat_t * Cnf_ManWriteCnf( Cnf_Man_t * p, Vec_Ptr_t * vMapped, int nOutputs )
             }
         }
         // assign variables to the internal nodes
-        Vec_PtrForEachEntry( Aig_Obj_t *, vMapped, pObj, i )
+		//printf("Number = %d\n", Number);
+        Vec_PtrForEachEntry( Aig_Obj_t *, vMapped, pObj, i ){
+			//printf("pObj->Id = %d\n", pObj->Id);
             pCnf->pVarNums[pObj->Id] = Number++;
+			//printf("Number = %d\n", Number);
+		}
         // assign variables to the PIs and constant node
         Aig_ManForEachCi( p->pManAig, pObj, i )
             pCnf->pVarNums[pObj->Id] = Number++;
