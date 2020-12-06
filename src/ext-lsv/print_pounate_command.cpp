@@ -208,7 +208,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		   
 			//create cex
 			pAbc->pCex = Abc_CexCreate( 0, Abc_NtkPiNum(abcNtk_1Po), abcNtk_1Po->pModel, 0, 0, 0 );
-			Abc_CexPrint( pAbc->pCex );
+			//Abc_CexPrint( pAbc->pCex );
 		
 		}
         else if ( status == UNSAT ){
@@ -219,11 +219,11 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		}
 
 		//free memory
-		sat_solver_delete( satSol ); cout << "ok to free sat" << endl;
-		Vec_IntFree( vCiIds ); cout << "ok to free vCiIds" << endl;
-		Cnf_DataFree(ntkCnf); cout << "ok to free CNF" << endl;
-		Aig_ManStop(aigMan); cout << "ok to free AIG" << endl;
-		Abc_NtkDelete(abcNtk_1Po); cout << "ok to free ntk" << endl;
+		sat_solver_delete( satSol ); //cout << "ok to free sat" << endl;
+		Vec_IntFree( vCiIds ); //cout << "ok to free vCiIds" << endl;
+		Cnf_DataFree(ntkCnf); //cout << "ok to free CNF" << endl;
+		Aig_ManStop(aigMan); //cout << "ok to free AIG" << endl;
+		//Abc_NtkDelete(abcNtk_1Po); cout << "ok to free ntk" << endl;
 	}
     return 0;
 }
