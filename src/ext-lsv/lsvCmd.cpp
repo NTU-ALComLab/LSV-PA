@@ -13,7 +13,7 @@ extern "C"
   Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
   Abc_Ntk_t * Abc_NtkStrash( Abc_Ntk_t * pNtk, int fAllNodes, int fCleanup, int fRecord );
   Abc_Ntk_t * Abc_NtkDarToCnf( Abc_Ntk_t * pNtk, char * pFileName, int fFastAlgo, int fChangePol, int fVerbose );
-  void * Cnf_DataWriteIntoSolver2( Cnf_Dat_t * p, int nFrames, int fInit );
+  void * Cnf_DataWriteIntoSolver( Cnf_Dat_t * p, int nFrames, int fInit );
   int    Cnf_DataWriteOrClause2( void * pSat, Cnf_Dat_t * pCnf );
 }
 
@@ -255,7 +255,7 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pPi;
   Aig_Man_t* pMan;
   Cnf_Dat_t * pCnf;
-  sat_solver2 * pSat;
+  sat_solver * pSat;
   int status;
 
   Abc_NtkForEachPo(pNtk, pPo, i) {
@@ -281,7 +281,7 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
 
     // initialize SAT solver
     //std::cout << "1" << std::endl;
-    pSat = (sat_solver2 *)Cnf_DataWriteIntoSolver2( pCnf, 1, 0 );
+    pSat = (sat_solver *)Cnf_DataWriteIntoSolver( pCnf, 1, 0 );
     //std::cout << "2" << std::endl;
     // assert each output independently
     /*
@@ -291,9 +291,9 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
       Cnf_DataFree( pCnf );
     }
     */
-    printf( "Created SAT problem with %d variable and %d clauses. \n", sat_solver2_nvars(pSat), sat_solver2_nclauses(pSat) );
+    printf( "Created SAT problem with %d variable and %d clauses. \n", sat_solver_nvars(pSat), sat_solver_nclauses(pSat) );
 
-    status = sat_solver2_simplify(pSat);
+    status = sat_solver_simplify(pSat);
 
     std::cout << status << std::endl; 
     // manipulate SAT solver
