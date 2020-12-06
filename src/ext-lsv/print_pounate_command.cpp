@@ -144,37 +144,73 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		}
 		*/
 
-		//init sat solver
+		//init sat solver by adding F CNF 
 		sat_solver* satSol = (sat_solver*)Cnf_DataWriteIntoSolver(ntkCnf, 1, 0);
 		if ( satSol == NULL ){
 			cout << "Error! SAT solver is null" << endl;
             continue;
         }
-
+/*
 		//for adding constrain
 		int *pLits = ABC_ALLOC(int, 1);
 
-		//add output constrain;
+		//add F output constrain;
 		Aig_Obj_t *  aigCo = Aig_ManCo( aigMan, 0 );
-		pLits[0] = toLitCond(ntkCnf->pVarNums[Aig_ObjId(aigCo)], POS);
+		pLits[0] = toLitCond(ntkCnf->pVarNums[Aig_ObjId(aigCo)], POS); 
+		cout << "F po = " << pLits[0] << endl;
 		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 )){
             cout << "error in adding output constrain to sat solver" << endl;
 			continue;
         }
+*/
 
 		//create my constrain
-		pLits[0] = toLitCond(vCiIds->pArray[0], NEG);
-		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
-			cout << "error in adding constrain clause to sat solver" << endl;
-			continue;
+		
+		// create F'
+		int latest_var_num = ntkCnf->nVars - 1;
+		//cout << "latest_var_num = " << latest_var_num << endl;
+		int *pBeg, *pEnd;
+	    int i;
+		cout << "CNF of F:" << endl;
+		Cnf_CnfForClause(ntkCnf, pBeg, pEnd, i ){
+			for(int* pLit = pBeg; pLit != pEnd; ++pLit){
+				cout << (Abc_LitIsCompl(*pLit)? "-": "") << Abc_Lit2Var(*pLit) << " ";
+			}
+			cout << endl;
 		}
 
-		pLits[0] = toLitCond(vCiIds->pArray[1], 1);
-		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
-            cout << "error in adding constrain clause to sat solver" << endl;
+		cout << "CNF of F':" << endl;
+		Cnf_CnfForClause(ntkCnf, pBeg, pEnd, i ){
+			int nLits = pEnd - pBeg; 
+			int *one_clause = ABC_ALLOC(int, nLits);
+            for(int* pLit = pBeg; pLit != pEnd; ++pLit){
+				one_clause[pLit - pBeg] = toLitCond(Abc_Lit2Var(*pLit) + latest_var_num, Abc_LitIsCompl(*pLit));
+			}
+			if ( !sat_solver_addclause( satSol, one_clause, one_clause + nLits ) ){
+			    cout << "error in adding output constrain to sat solver" << endl;
+		        continue;
+	        }
+			//print for debug
+			for(int idx = 0; idx < nLits; ++idx){
+                cout << (Abc_LitIsCompl(one_clause[idx])? "-": "") << Abc_Lit2Var(one_clause[idx]) << " ";
+            }
+            cout << endl;
+        }
+
+		//for adding (F' + F) constrain
+        int *pLits = ABC_ALLOC(int, 2);
+        int poVar = ntkCnf->pVarNums[Aig_ObjId(Aig_ManCo(aigMan, 0) )]; 
+		cout << "poVar = " << poVar << endl;
+        pLits[0] = toLitCond(poVar, POS);
+		pLits[1] = toLitCond(poVar + latest_var_num, NEG);
+        cout << "add clause: " << pLits[0] << " + " << pLits[1] << endl;
+        if ( !sat_solver_addclause( satSol, pLits, pLits + 2 )){
+            cout << "error in adding output constrain to sat solver" << endl;
             continue;
         }
-		ABC_FREE( pLits );
+
+
+
 		//
 
 		//simplify the problem
