@@ -470,6 +470,26 @@ static void print_po_unateness(Abc_Ntk_t* pNtk)
     Abc_Obj_t* pPO;
     Abc_Obj_t* pPi;
     
+    int j;
+    int last_min = -1;
+    std::vector<int> pi_order( Abc_NtkPiNum(pNtk) );
+    for( int i=0; i<Abc_NtkPiNum(pNtk); ++i )
+    {
+        int min_id = Abc_NtkObjNumMax(pNtk);
+        int min_index = -1;
+        Abc_NtkForEachPi( pNtk, pPi, j )
+        {
+            int id = Abc_ObjId(pPi);
+            if( id<min_id && id>last_min )
+            {
+                min_id = id;
+                min_index = j;
+            }
+        }
+        pi_order[i] = min_index;
+        last_min = min_id;
+    }
+        
     Abc_NtkForEachPo( pNtk, pPO, i )
     {
         Abc_Ntk_t * pNtkCone = Abc_NtkCreateCone( pNtk, Abc_ObjFanin0(pPO), Abc_ObjName(pPO), 0 );
@@ -477,13 +497,59 @@ static void print_po_unateness(Abc_Ntk_t* pNtk)
         
         solve_po_unateness( pNtkCone, unate_vec, Abc_ObjFaninC0(pPO) );
         
-        int j;
-        Abc_Obj_t * ptr;
-        Abc_NtkForEachPi( pNtkCone, ptr, j )
+        std::vector<char*> pos_vec, neg_vec, bi_vec;
+        
+        for( int i=0; i<pi_order.size(); ++i )
         {
-            std::cout << Abc_ObjName(ptr) << "\t: " << unate_vec[j] << std::endl;
+            pPi = Abc_NtkPi(pNtk, pi_order[i]);
+            
+            Abc_Obj_t * ptr;
+            int j;
+            Abc_NtkForEachPi( pNtkCone, ptr, j )
+            {
+                if( !strcmp( Abc_ObjName(pPi), Abc_ObjName(ptr) ) )
+                {
+                    if( unate_vec[j]==POS_UNATE )
+                        pos_vec.push_back( Abc_ObjName(ptr) );
+                    if( unate_vec[j]==NEG_UNATE )
+                        neg_vec.push_back( Abc_ObjName(ptr) );
+                    if( unate_vec[j]==BINATE )
+                        bi_vec.push_back( Abc_ObjName(ptr) );
+                }
+            }
         }
-        //for( auto u : unate_vec ) std::cout << u << std::endl;
+        
+        std::cout << "node " << Abc_ObjName(pPO) << ":" << std::endl;
+        if( pos_vec.size()>0 )
+        {
+            std::cout << "+unate inputs:\n";
+            for( int i=0; i<pos_vec.size(); ++i )
+            {
+                if( i!=0 ) std::cout << ",";
+                std::cout << pos_vec[i];
+            }
+            std::cout << std::endl;
+        }
+        if( neg_vec.size()>0 )
+        {
+            std::cout << "-unate inputs:\n";
+            for( int i=0; i<neg_vec.size(); ++i )
+            {
+                if( i!=0 ) std::cout << ",";
+                std::cout << neg_vec[i];
+            }
+            std::cout << std::endl;
+        }
+        if( bi_vec.size()>0 )
+        {
+            std::cout << "binate inputs:\n";
+            for( int i=0; i<bi_vec.size(); ++i )
+            {
+                if( i!=0 ) std::cout << ",";
+                std::cout << bi_vec[i];
+            }
+            std::cout << std::endl;
+        }
         
         Abc_NtkDelete( pNtkCone );
     }
