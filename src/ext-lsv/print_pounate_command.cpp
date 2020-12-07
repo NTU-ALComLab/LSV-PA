@@ -130,10 +130,22 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
         cout << endl;
 */		
 	
-		//get cnf
+		//get F cnf
 		Cnf_Dat_t* ntkCnf = Cnf_Derive( aigMan, Aig_ManCoNum(aigMan) );
 		Vec_Int_t * vCiIds = Cnf_DataCollectPiSatNums( ntkCnf, aigMan );
-		//printCnf(ntkCnf);
+		
+		cout << "CNF of F" << endl;
+		printCnf(ntkCnf);
+		cout << endl;
+
+		//get G cnf
+		Cnf_Dat_t* cnfG = Cnf_DataDup(ntkCnf);
+		Cnf_DataLift(cnfG, ntkCnf->nVars - 1);
+
+		cout << "CNF of G" << endl;
+        printCnf(cnfG);
+        cout << endl;
+
 
 		/*
 		//for debug
@@ -151,15 +163,26 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
             continue;
         }
 
+		//add cnf G into sat solver
+		int *pBeg, *pEnd;
+        int i;
+		Cnf_CnfForClause(cnfG, pBeg, pEnd, i ){
+			if ( !sat_solver_addclause( satSol, pBeg, pEnd ) ){
+                cout << "error in adding output constrain to sat solver" << endl;
+                continue;
+            }
+        }
+
+
 		//create my constrain
-		
+/*		
 		// create G = F and add it to sat solver
 		int G_po_var = ntkCnf->nVars - 1;
 		//cout << "G_po_var = " << G_po_var << endl;
 		int *pBeg, *pEnd;
 	    int i;
 
-		/*
+		
 		cout << "CNF of F:" << endl;
 		Cnf_CnfForClause(ntkCnf, pBeg, pEnd, i ){
 			for(int* pLit = pBeg; pLit != pEnd; ++pLit){
@@ -168,8 +191,8 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 			cout << endl;
 		}
 		*/
-
-		//cout << "CNF of G:" << endl;
+/*
+		//cout << "CNF of my G:" << endl;
 		Cnf_CnfForClause(ntkCnf, pBeg, pEnd, i ){
 			int nLits = pEnd - pBeg; 
 			int *one_clause = ABC_ALLOC(int, nLits);
@@ -181,19 +204,19 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		        continue;
 	        }
 			ABC_FREE(one_clause);
-			/*
+			
 			//print for debug
 			for(int idx = 0; idx < nLits; ++idx){
                 cout << (Abc_LitIsCompl(one_clause[idx])? "-": "") << Abc_Lit2Var(one_clause[idx]) << " ";
             }
             cout << endl;
-			*/
+			
         }
-
+*/
 		//////////////////////////////////////////
 		//prepare for adding input constrain    //
 		//////////////////////////////////////////
-		int first_constrain_var = G_po_var * 2 + 1;
+		int first_constrain_var = (ntkCnf->nVars - 1) * 2 + 1;//G_po_var * 2 + 1;
 		int newest_var = first_constrain_var;
 		int *pLits;
 		//cout << "first_constrain_var = " << first_constrain_var << endl;
@@ -213,7 +236,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		pLits = ABC_ALLOC(int, 3);
 		for(int i = 0; i < vCiIds->nSize; ++i){
 			int F_pi = vCiIds->pArray[i];
-			int G_pi = F_pi + G_po_var;
+			int G_pi = F_pi + (ntkCnf->nVars - 1);//F_pi + G_po_var;
 			//cout << "F_pi = " << F_pi << endl;
 			//cout << "G_pi = " << G_pi << endl;
 
@@ -273,7 +296,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
         int F_po = ntkCnf->pVarNums[Aig_ObjId(Aig_ManCo(aigMan, 0) )];
         //cout << "F_po = " << F_po << endl;
         pLits[idx++] = toLitCond(F_po, NEG);
-        pLits[idx++] = toLitCond(F_po + G_po_var, POS);
+        pLits[idx++] = toLitCond(F_po + (ntkCnf->nVars - 1), POS);//toLitCond(F_po + G_po_var, POS);
 		
 		//////////////////////////////
 		//adding control constrain  //
@@ -283,7 +306,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
         Abc_NtkForEachPi(abcNtk_1Po, nodePi, j){
             //printCiInfo(nodePi);
 			int pi_F = ntkCnf->pVarNums[Abc_ObjId(nodePi)];
-			int pi_G = pi_F + G_po_var;
+			int pi_G = pi_F + (ntkCnf->nVars - 1);//pi_F + G_po_var;
 			//cout << "pi_F = " << pi_F << endl;
 			//cout << "pi_G = " << pi_G << endl;
 
@@ -317,11 +340,11 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 
 			//result
 			if ( status == SAT ){
-				cout << "sat" << endl;				
+				//cout << "sat" << endl;				
 				cout << "This is not pos unate!" << endl;
 			}
 			else if (status == UNSAT){
-				cout << "unsat" << endl;
+				//cout << "unsat" << endl;
 				cout << "This is pos unate!" << endl;
 			}
 			else{
