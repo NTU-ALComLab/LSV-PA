@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ABC command line: "read benchmarks/best_results//size/cavlc_size_2018.blif; lsv_print_sopunate".
+=======
+ABC command line: "read benchmarks/best_results/size/cavlc_size_2018.blif; lsv_print_sopunate".
+>>>>>>> upstream/r09943091
 
 node po00:
 +unate inputs: n23,n29

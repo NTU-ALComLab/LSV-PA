@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ABC command line: "read benchmarks/best_results//depth/int2float_depth_2018.blif; lsv_print_sopunate".
+=======
+ABC command line: "read benchmarks/best_results/depth/int2float_depth_2018.blif; lsv_print_sopunate".
+>>>>>>> upstream/r09943091
 
 node n19:
 -unate inputs: pi08,pi09,pi10
