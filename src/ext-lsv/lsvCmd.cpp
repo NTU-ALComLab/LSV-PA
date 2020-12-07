@@ -11,10 +11,10 @@
 extern "C"
 {
   Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
-  Abc_Ntk_t * Abc_NtkStrash( Abc_Ntk_t * pNtk, int fAllNodes, int fCleanup, int fRecord );
-  Abc_Ntk_t * Abc_NtkDarToCnf( Abc_Ntk_t * pNtk, char * pFileName, int fFastAlgo, int fChangePol, int fVerbose );
-  void * Cnf_DataWriteIntoSolver( Cnf_Dat_t * p, int nFrames, int fInit );
-  int    Cnf_DataWriteOrClause2( void * pSat, Cnf_Dat_t * pCnf );
+  //Abc_Ntk_t * Abc_NtkStrash( Abc_Ntk_t * pNtk, int fAllNodes, int fCleanup, int fRecord );
+  //Abc_Ntk_t * Abc_NtkDarToCnf( Abc_Ntk_t * pNtk, char * pFileName, int fFastAlgo, int fChangePol, int fVerbose );
+  //void * Cnf_DataWriteIntoSolver( Cnf_Dat_t * p, int nFrames, int fInit );
+  //int    Cnf_DataWriteOrClause2( void * pSat, Cnf_Dat_t * pCnf );
 }
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
@@ -254,7 +254,7 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
   Abc_Ntk_t* pCone;
   Abc_Obj_t* pPi;
   Aig_Man_t* pMan;
-  Cnf_Dat_t * pCnf;
+  Cnf_Dat_t* pCnfPos, *pCnfNeg;
   sat_solver * pSat;
   int status;
 
@@ -272,30 +272,39 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     pCone = Abc_NtkStrash (pCone, 0, 0, 0 );
     pMan = Abc_NtkToDar(pCone, 0, 0 );
 
-    // Turn Aig_Man_t to Cnf_Dat_t
-    pCnf = Cnf_Derive( pMan, Aig_ManCoNum(pMan) ); 
-    Abc_Print( 1, "CNF stats: Vars = %6d. Clauses = %7d. Literals = %8d.   \n", pCnf->nVars, pCnf->nClauses, pCnf->nLiterals );
-    Cnf_DataPrint( pCnf, 0 );
+    // Turn Aig_Man_t to Cnf_Dat_t (pCnfPos for positive cofactor, pCnfNeg for negetive cofactor)
+    pCnfPos = Cnf_Derive( pMan, Aig_ManCoNum(pMan) ); 
+
+    Abc_Print( 1, "CNF stats: Vars = %6d. Clauses = %7d. Literals = %8d.   \n", pCnfPos->nVars, pCnfPos->nClauses, pCnfPos->nLiterals );
+    Cnf_DataPrint( pCnfPos, 1  );
+
+    printf("PO Id = %d, cnf Id = %d\n", Abc_ObjId(pPo), pCnfPos->pVarNums[Abc_ObjId(pPo)]);
+    Abc_NtkForEachPi( pNtk, pPi, j ) {
+      printf("PI Id = %d, cnf Id = %d\n", Abc_ObjId(pPi), pCnfPos->pVarNums[Abc_ObjId(pPi)]);
+    }
+
+    pCnfNeg = Cnf_DataDup(pCnfPos);
+    Cnf_DataLift(pCnfNeg, pCnfPos->nVars);
+
+    Abc_Print( 1, "CNF stats: Vars = %6d. Clauses = %7d. Literals = %8d.   \n", pCnfNeg->nVars, pCnfNeg->nClauses, pCnfNeg->nLiterals );
+    Cnf_DataPrint( pCnfNeg, 1  );
+
+    printf("PO Id = %d, cnf Id = %d\n", Abc_ObjId(pPo), pCnfNeg->pVarNums[Abc_ObjId(pPo)]);
+    Abc_NtkForEachPi( pNtk, pPi, j ) {
+      printf("PI Id = %d, cnf Id = %d\n", Abc_ObjId(pPi), pCnfNeg->pVarNums[Abc_ObjId(pPi)]);
+    }
 
     // manipulate CNF formula
 
     // initialize SAT solver
-    //std::cout << "1" << std::endl;
-    pSat = (sat_solver *)Cnf_DataWriteIntoSolver( pCnf, 1, 0 );
-    //std::cout << "2" << std::endl;
+    //pSat = (sat_solver *)Cnf_DataWriteIntoSolver( pCnf, 1, 0 );
     // assert each output independently
-    /*
-    if ( !Cnf_DataWriteAndClauses( pSat, pCnf ) )
-    {
-      sat_solver2_delete( pSat );
-      Cnf_DataFree( pCnf );
-    }
-    */
-    printf( "Created SAT problem with %d variable and %d clauses. \n", sat_solver_nvars(pSat), sat_solver_nclauses(pSat) );
+   
+    //printf( "Created SAT problem with %d variable and %d clauses. \n", sat_solver_nvars(pSat), sat_solver_nclauses(pSat) );
 
-    status = sat_solver_simplify(pSat);
+    //status = sat_solver_simplify(pSat);
 
-    std::cout << status << std::endl; 
+    //std::cout << status << std::endl; 
     // manipulate SAT solver
   }  
 }
