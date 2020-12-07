@@ -1,0 +1,768 @@
+ABC command line: "lsv_print_pounate".
+
+node selectp1[0]:
++unate inputs: count[7]
+-unate inputs: count[0],count[1],count[2],count[3],count[4],count[5],count[6]
+node selectp1[1]:
++unate inputs: count[0],count[7]
+-unate inputs: count[1],count[2],count[3],count[4],count[5],count[6]
+node selectp1[2]:
++unate inputs: count[1],count[7]
+-unate inputs: count[0],count[2],count[3],count[4],count[5],count[6]
+node selectp1[3]:
++unate inputs: count[0],count[1],count[7]
+-unate inputs: count[2],count[3],count[4],count[5],count[6]
+node selectp1[4]:
++unate inputs: count[2],count[7]
+-unate inputs: count[0],count[1],count[3],count[4],count[5],count[6]
+node selectp1[5]:
++unate inputs: count[0],count[2],count[7]
+-unate inputs: count[1],count[3],count[4],count[5],count[6]
+node selectp1[6]:
++unate inputs: count[1],count[2],count[7]
+-unate inputs: count[0],count[3],count[4],count[5],count[6]
+node selectp1[7]:
++unate inputs: count[0],count[1],count[2],count[7]
+-unate inputs: count[3],count[4],count[5],count[6]
+node selectp1[8]:
++unate inputs: count[3],count[7]
+-unate inputs: count[0],count[1],count[2],count[4],count[5],count[6]
+node selectp1[9]:
++unate inputs: count[0],count[3],count[7]
+-unate inputs: count[1],count[2],count[4],count[5],count[6]
+node selectp1[10]:
++unate inputs: count[1],count[3],count[7]
+-unate inputs: count[0],count[2],count[4],count[5],count[6]
+node selectp1[11]:
++unate inputs: count[0],count[1],count[3],count[7]
+-unate inputs: count[2],count[4],count[5],count[6]
+node selectp1[12]:
++unate inputs: count[2],count[3],count[7]
+-unate inputs: count[0],count[1],count[4],count[5],count[6]
+node selectp1[13]:
++unate inputs: count[0],count[2],count[3],count[7]
+-unate inputs: count[1],count[4],count[5],count[6]
+node selectp1[14]:
++unate inputs: count[1],count[2],count[3],count[7]
+-unate inputs: count[0],count[4],count[5],count[6]
+node selectp1[15]:
++unate inputs: count[0],count[1],count[2],count[3],count[7]
+-unate inputs: count[4],count[5],count[6]
+node selectp1[16]:
++unate inputs: count[4],count[7]
+-unate inputs: count[0],count[1],count[2],count[3],count[5],count[6]
+node selectp1[17]:
++unate inputs: count[0],count[4],count[7]
+-unate inputs: count[1],count[2],count[3],count[5],count[6]
+node selectp1[18]:
++unate inputs: count[1],count[4],count[7]
+-unate inputs: count[0],count[2],count[3],count[5],count[6]
+node selectp1[19]:
++unate inputs: count[0],count[1],count[4],count[7]
+-unate inputs: count[2],count[3],count[5],count[6]
+node selectp1[20]:
++unate inputs: count[2],count[4],count[7]
+-unate inputs: count[0],count[1],count[3],count[5],count[6]
+node selectp1[21]:
++unate inputs: count[0],count[2],count[4],count[7]
+-unate inputs: count[1],count[3],count[5],count[6]
+node selectp1[22]:
++unate inputs: count[1],count[2],count[4],count[7]
+-unate inputs: count[0],count[3],count[5],count[6]
+node selectp1[23]:
++unate inputs: count[0],count[1],count[2],count[4],count[7]
+-unate inputs: count[3],count[5],count[6]
+node selectp1[24]:
++unate inputs: count[3],count[4],count[7]
+-unate inputs: count[0],count[1],count[2],count[5],count[6]
+node selectp1[25]:
++unate inputs: count[0],count[3],count[4],count[7]
+-unate inputs: count[1],count[2],count[5],count[6]
+node selectp1[26]:
++unate inputs: count[1],count[3],count[4],count[7]
+-unate inputs: count[0],count[2],count[5],count[6]
+node selectp1[27]:
++unate inputs: count[0],count[1],count[3],count[4],count[7]
+-unate inputs: count[2],count[5],count[6]
+node selectp1[28]:
++unate inputs: count[2],count[3],count[4],count[7]
+-unate inputs: count[0],count[1],count[5],count[6]
+node selectp1[29]:
++unate inputs: count[0],count[2],count[3],count[4],count[7]
+-unate inputs: count[1],count[5],count[6]
+node selectp1[30]:
++unate inputs: count[1],count[2],count[3],count[4],count[7]
+-unate inputs: count[0],count[5],count[6]
+node selectp1[31]:
++unate inputs: count[0],count[1],count[2],count[3],count[4],count[7]
+-unate inputs: count[5],count[6]
+node selectp1[32]:
++unate inputs: count[5],count[7]
+-unate inputs: count[0],count[1],count[2],count[3],count[4],count[6]
+node selectp1[33]:
++unate inputs: count[0],count[5],count[7]
+-unate inputs: count[1],count[2],count[3],count[4],count[6]
+node selectp1[34]:
++unate inputs: count[1],count[5],count[7]
+-unate inputs: count[0],count[2],count[3],count[4],count[6]
+node selectp1[35]:
++unate inputs: count[0],count[1],count[5],count[7]
+-unate inputs: count[2],count[3],count[4],count[6]
+node selectp1[36]:
++unate inputs: count[2],count[5],count[7]
+-unate inputs: count[0],count[1],count[3],count[4],count[6]
+node selectp1[37]:
++unate inputs: count[0],count[2],count[5],count[7]
+-unate inputs: count[1],count[3],count[4],count[6]
+node selectp1[38]:
++unate inputs: count[1],count[2],count[5],count[7]
+-unate inputs: count[0],count[3],count[4],count[6]
+node selectp1[39]:
++unate inputs: count[0],count[1],count[2],count[5],count[7]
+-unate inputs: count[3],count[4],count[6]
+node selectp1[40]:
++unate inputs: count[3],count[5],count[7]
+-unate inputs: count[0],count[1],count[2],count[4],count[6]
+node selectp1[41]:
++unate inputs: count[0],count[3],count[5],count[7]
+-unate inputs: count[1],count[2],count[4],count[6]
+node selectp1[42]:
++unate inputs: count[1],count[3],count[5],count[7]
+-unate inputs: count[0],count[2],count[4],count[6]
+node selectp1[43]:
++unate inputs: count[0],count[1],count[3],count[5],count[7]
+-unate inputs: count[2],count[4],count[6]
+node selectp1[44]:
++unate inputs: count[2],count[3],count[5],count[7]
+-unate inputs: count[0],count[1],count[4],count[6]
+node selectp1[45]:
++unate inputs: count[0],count[2],count[3],count[5],count[7]
+-unate inputs: count[1],count[4],count[6]
+node selectp1[46]:
++unate inputs: count[1],count[2],count[3],count[5],count[7]
+-unate inputs: count[0],count[4],count[6]
+node selectp1[47]:
++unate inputs: count[0],count[1],count[2],count[3],count[5],count[7]
+-unate inputs: count[4],count[6]
+node selectp1[48]:
++unate inputs: count[4],count[5],count[7]
+-unate inputs: count[0],count[1],count[2],count[3],count[6]
+node selectp1[49]:
++unate inputs: count[0],count[4],count[5],count[7]
+-unate inputs: count[1],count[2],count[3],count[6]
+node selectp1[50]:
++unate inputs: count[1],count[4],count[5],count[7]
+-unate inputs: count[0],count[2],count[3],count[6]
+node selectp1[51]:
++unate inputs: count[0],count[1],count[4],count[5],count[7]
+-unate inputs: count[2],count[3],count[6]
+node selectp1[52]:
++unate inputs: count[2],count[4],count[5],count[7]
+-unate inputs: count[0],count[1],count[3],count[6]
+node selectp1[53]:
++unate inputs: count[0],count[2],count[4],count[5],count[7]
+-unate inputs: count[1],count[3],count[6]
+node selectp1[54]:
++unate inputs: count[1],count[2],count[4],count[5],count[7]
+-unate inputs: count[0],count[3],count[6]
+node selectp1[55]:
++unate inputs: count[0],count[1],count[2],count[4],count[5],count[7]
+-unate inputs: count[3],count[6]
+node selectp1[56]:
++unate inputs: count[3],count[4],count[5],count[7]
+-unate inputs: count[0],count[1],count[2],count[6]
+node selectp1[57]:
++unate inputs: count[0],count[3],count[4],count[5],count[7]
+-unate inputs: count[1],count[2],count[6]
+node selectp1[58]:
++unate inputs: count[1],count[3],count[4],count[5],count[7]
+-unate inputs: count[0],count[2],count[6]
+node selectp1[59]:
++unate inputs: count[0],count[1],count[3],count[4],count[5],count[7]
+-unate inputs: count[2],count[6]
+node selectp1[60]:
++unate inputs: count[2],count[3],count[4],count[5],count[7]
+-unate inputs: count[0],count[1],count[6]
+node selectp1[61]:
++unate inputs: count[0],count[2],count[3],count[4],count[5],count[7]
+-unate inputs: count[1],count[6]
+node selectp1[62]:
++unate inputs: count[1],count[2],count[3],count[4],count[5],count[7]
+-unate inputs: count[0],count[6]
+node selectp1[63]:
++unate inputs: count[0],count[1],count[2],count[3],count[4],count[5],count[7]
+-unate inputs: count[6]
+node selectp1[64]:
++unate inputs: count[6],count[7]
+-unate inputs: count[0],count[1],count[2],count[3],count[4],count[5]
+node selectp1[65]:
++unate inputs: count[0],count[6],count[7]
+-unate inputs: count[1],count[2],count[3],count[4],count[5]
+node selectp1[66]:
++unate inputs: count[1],count[6],count[7]
+-unate inputs: count[0],count[2],count[3],count[4],count[5]
+node selectp1[67]:
++unate inputs: count[0],count[1],count[6],count[7]
+-unate inputs: count[2],count[3],count[4],count[5]
+node selectp1[68]:
++unate inputs: count[2],count[6],count[7]
+-unate inputs: count[0],count[1],count[3],count[4],count[5]
+node selectp1[69]:
++unate inputs: count[0],count[2],count[6],count[7]
+-unate inputs: count[1],count[3],count[4],count[5]
+node selectp1[70]:
++unate inputs: count[1],count[2],count[6],count[7]
+-unate inputs: count[0],count[3],count[4],count[5]
+node selectp1[71]:
++unate inputs: count[0],count[1],count[2],count[6],count[7]
+-unate inputs: count[3],count[4],count[5]
+node selectp1[72]:
++unate inputs: count[3],count[6],count[7]
+-unate inputs: count[0],count[1],count[2],count[4],count[5]
+node selectp1[73]:
++unate inputs: count[0],count[3],count[6],count[7]
+-unate inputs: count[1],count[2],count[4],count[5]
+node selectp1[74]:
++unate inputs: count[1],count[3],count[6],count[7]
+-unate inputs: count[0],count[2],count[4],count[5]
+node selectp1[75]:
++unate inputs: count[0],count[1],count[3],count[6],count[7]
+-unate inputs: count[2],count[4],count[5]
+node selectp1[76]:
++unate inputs: count[2],count[3],count[6],count[7]
+-unate inputs: count[0],count[1],count[4],count[5]
+node selectp1[77]:
++unate inputs: count[0],count[2],count[3],count[6],count[7]
+-unate inputs: count[1],count[4],count[5]
+node selectp1[78]:
++unate inputs: count[1],count[2],count[3],count[6],count[7]
+-unate inputs: count[0],count[4],count[5]
+node selectp1[79]:
++unate inputs: count[0],count[1],count[2],count[3],count[6],count[7]
+-unate inputs: count[4],count[5]
+node selectp1[80]:
++unate inputs: count[4],count[6],count[7]
+-unate inputs: count[0],count[1],count[2],count[3],count[5]
+node selectp1[81]:
++unate inputs: count[0],count[4],count[6],count[7]
+-unate inputs: count[1],count[2],count[3],count[5]
+node selectp1[82]:
++unate inputs: count[1],count[4],count[6],count[7]
+-unate inputs: count[0],count[2],count[3],count[5]
+node selectp1[83]:
++unate inputs: count[0],count[1],count[4],count[6],count[7]
+-unate inputs: count[2],count[3],count[5]
+node selectp1[84]:
++unate inputs: count[2],count[4],count[6],count[7]
+-unate inputs: count[0],count[1],count[3],count[5]
+node selectp1[85]:
++unate inputs: count[0],count[2],count[4],count[6],count[7]
+-unate inputs: count[1],count[3],count[5]
+node selectp1[86]:
++unate inputs: count[1],count[2],count[4],count[6],count[7]
+-unate inputs: count[0],count[3],count[5]
+node selectp1[87]:
++unate inputs: count[0],count[1],count[2],count[4],count[6],count[7]
+-unate inputs: count[3],count[5]
+node selectp1[88]:
++unate inputs: count[3],count[4],count[6],count[7]
+-unate inputs: count[0],count[1],count[2],count[5]
+node selectp1[89]:
++unate inputs: count[0],count[3],count[4],count[6],count[7]
+-unate inputs: count[1],count[2],count[5]
+node selectp1[90]:
++unate inputs: count[1],count[3],count[4],count[6],count[7]
+-unate inputs: count[0],count[2],count[5]
+node selectp1[91]:
++unate inputs: count[0],count[1],count[3],count[4],count[6],count[7]
+-unate inputs: count[2],count[5]
+node selectp1[92]:
++unate inputs: count[2],count[3],count[4],count[6],count[7]
+-unate inputs: count[0],count[1],count[5]
+node selectp1[93]:
++unate inputs: count[0],count[2],count[3],count[4],count[6],count[7]
+-unate inputs: count[1],count[5]
+node selectp1[94]:
++unate inputs: count[1],count[2],count[3],count[4],count[6],count[7]
+-unate inputs: count[0],count[5]
+node selectp1[95]:
++unate inputs: count[0],count[1],count[2],count[3],count[4],count[6],count[7]
+-unate inputs: count[5]
+node selectp1[96]:
++unate inputs: count[5],count[6],count[7]
+-unate inputs: count[0],count[1],count[2],count[3],count[4]
+node selectp1[97]:
++unate inputs: count[0],count[5],count[6],count[7]
+-unate inputs: count[1],count[2],count[3],count[4]
+node selectp1[98]:
++unate inputs: count[1],count[5],count[6],count[7]
+-unate inputs: count[0],count[2],count[3],count[4]
+node selectp1[99]:
++unate inputs: count[0],count[1],count[5],count[6],count[7]
+-unate inputs: count[2],count[3],count[4]
+node selectp1[100]:
++unate inputs: count[2],count[5],count[6],count[7]
+-unate inputs: count[0],count[1],count[3],count[4]
+node selectp1[101]:
++unate inputs: count[0],count[2],count[5],count[6],count[7]
+-unate inputs: count[1],count[3],count[4]
+node selectp1[102]:
++unate inputs: count[1],count[2],count[5],count[6],count[7]
+-unate inputs: count[0],count[3],count[4]
+node selectp1[103]:
++unate inputs: count[0],count[1],count[2],count[5],count[6],count[7]
+-unate inputs: count[3],count[4]
+node selectp1[104]:
++unate inputs: count[3],count[5],count[6],count[7]
+-unate inputs: count[0],count[1],count[2],count[4]
+node selectp1[105]:
++unate inputs: count[0],count[3],count[5],count[6],count[7]
+-unate inputs: count[1],count[2],count[4]
+node selectp1[106]:
++unate inputs: count[1],count[3],count[5],count[6],count[7]
+-unate inputs: count[0],count[2],count[4]
+node selectp1[107]:
++unate inputs: count[0],count[1],count[3],count[5],count[6],count[7]
+-unate inputs: count[2],count[4]
+node selectp1[108]:
++unate inputs: count[2],count[3],count[5],count[6],count[7]
+-unate inputs: count[0],count[1],count[4]
+node selectp1[109]:
++unate inputs: count[0],count[2],count[3],count[5],count[6],count[7]
+-unate inputs: count[1],count[4]
+node selectp1[110]:
++unate inputs: count[1],count[2],count[3],count[5],count[6],count[7]
+-unate inputs: count[0],count[4]
+node selectp1[111]:
++unate inputs: count[0],count[1],count[2],count[3],count[5],count[6],count[7]
+-unate inputs: count[4]
+node selectp1[112]:
++unate inputs: count[4],count[5],count[6],count[7]
+-unate inputs: count[0],count[1],count[2],count[3]
+node selectp1[113]:
++unate inputs: count[0],count[4],count[5],count[6],count[7]
+-unate inputs: count[1],count[2],count[3]
+node selectp1[114]:
++unate inputs: count[1],count[4],count[5],count[6],count[7]
+-unate inputs: count[0],count[2],count[3]
+node selectp1[115]:
++unate inputs: count[0],count[1],count[4],count[5],count[6],count[7]
+-unate inputs: count[2],count[3]
+node selectp1[116]:
++unate inputs: count[2],count[4],count[5],count[6],count[7]
+-unate inputs: count[0],count[1],count[3]
+node selectp1[117]:
++unate inputs: count[0],count[2],count[4],count[5],count[6],count[7]
+-unate inputs: count[1],count[3]
+node selectp1[118]:
++unate inputs: count[1],count[2],count[4],count[5],count[6],count[7]
+-unate inputs: count[0],count[3]
+node selectp1[119]:
++unate inputs: count[0],count[1],count[2],count[4],count[5],count[6],count[7]
+-unate inputs: count[3]
+node selectp1[120]:
++unate inputs: count[3],count[4],count[5],count[6],count[7]
+-unate inputs: count[0],count[1],count[2]
+node selectp1[121]:
++unate inputs: count[0],count[3],count[4],count[5],count[6],count[7]
+-unate inputs: count[1],count[2]
+node selectp1[122]:
++unate inputs: count[1],count[3],count[4],count[5],count[6],count[7]
+-unate inputs: count[0],count[2]
+node selectp1[123]:
++unate inputs: count[0],count[1],count[3],count[4],count[5],count[6],count[7]
+-unate inputs: count[2]
+node selectp1[124]:
++unate inputs: count[2],count[3],count[4],count[5],count[6],count[7]
+-unate inputs: count[0],count[1]
+node selectp1[125]:
++unate inputs: count[0],count[2],count[3],count[4],count[5],count[6],count[7]
+-unate inputs: count[1]
+node selectp1[126]:
++unate inputs: count[1],count[2],count[3],count[4],count[5],count[6],count[7]
+-unate inputs: count[0]
+node selectp1[127]:
++unate inputs: count[0],count[1],count[2],count[3],count[4],count[5],count[6],count[7]
+node selectp2[0]:
+-unate inputs: count[0],count[1],count[2],count[3],count[4],count[5],count[6],count[7]
+node selectp2[1]:
++unate inputs: count[0]
+-unate inputs: count[1],count[2],count[3],count[4],count[5],count[6],count[7]
+node selectp2[2]:
++unate inputs: count[1]
+-unate inputs: count[0],count[2],count[3],count[4],count[5],count[6],count[7]
+node selectp2[3]:
++unate inputs: count[0],count[1]
+-unate inputs: count[2],count[3],count[4],count[5],count[6],count[7]
+node selectp2[4]:
++unate inputs: count[2]
+-unate inputs: count[0],count[1],count[3],count[4],count[5],count[6],count[7]
+node selectp2[5]:
++unate inputs: count[0],count[2]
+-unate inputs: count[1],count[3],count[4],count[5],count[6],count[7]
+node selectp2[6]:
++unate inputs: count[1],count[2]
+-unate inputs: count[0],count[3],count[4],count[5],count[6],count[7]
+node selectp2[7]:
++unate inputs: count[0],count[1],count[2]
+-unate inputs: count[3],count[4],count[5],count[6],count[7]
+node selectp2[8]:
++unate inputs: count[3]
+-unate inputs: count[0],count[1],count[2],count[4],count[5],count[6],count[7]
+node selectp2[9]:
++unate inputs: count[0],count[3]
+-unate inputs: count[1],count[2],count[4],count[5],count[6],count[7]
+node selectp2[10]:
++unate inputs: count[1],count[3]
+-unate inputs: count[0],count[2],count[4],count[5],count[6],count[7]
+node selectp2[11]:
++unate inputs: count[0],count[1],count[3]
+-unate inputs: count[2],count[4],count[5],count[6],count[7]
+node selectp2[12]:
++unate inputs: count[2],count[3]
+-unate inputs: count[0],count[1],count[4],count[5],count[6],count[7]
+node selectp2[13]:
++unate inputs: count[0],count[2],count[3]
+-unate inputs: count[1],count[4],count[5],count[6],count[7]
+node selectp2[14]:
++unate inputs: count[1],count[2],count[3]
+-unate inputs: count[0],count[4],count[5],count[6],count[7]
+node selectp2[15]:
++unate inputs: count[0],count[1],count[2],count[3]
+-unate inputs: count[4],count[5],count[6],count[7]
+node selectp2[16]:
++unate inputs: count[4]
+-unate inputs: count[0],count[1],count[2],count[3],count[5],count[6],count[7]
+node selectp2[17]:
++unate inputs: count[0],count[4]
+-unate inputs: count[1],count[2],count[3],count[5],count[6],count[7]
+node selectp2[18]:
++unate inputs: count[1],count[4]
+-unate inputs: count[0],count[2],count[3],count[5],count[6],count[7]
+node selectp2[19]:
++unate inputs: count[0],count[1],count[4]
+-unate inputs: count[2],count[3],count[5],count[6],count[7]
+node selectp2[20]:
++unate inputs: count[2],count[4]
+-unate inputs: count[0],count[1],count[3],count[5],count[6],count[7]
+node selectp2[21]:
++unate inputs: count[0],count[2],count[4]
+-unate inputs: count[1],count[3],count[5],count[6],count[7]
+node selectp2[22]:
++unate inputs: count[1],count[2],count[4]
+-unate inputs: count[0],count[3],count[5],count[6],count[7]
+node selectp2[23]:
++unate inputs: count[0],count[1],count[2],count[4]
+-unate inputs: count[3],count[5],count[6],count[7]
+node selectp2[24]:
++unate inputs: count[3],count[4]
+-unate inputs: count[0],count[1],count[2],count[5],count[6],count[7]
+node selectp2[25]:
++unate inputs: count[0],count[3],count[4]
+-unate inputs: count[1],count[2],count[5],count[6],count[7]
+node selectp2[26]:
++unate inputs: count[1],count[3],count[4]
+-unate inputs: count[0],count[2],count[5],count[6],count[7]
+node selectp2[27]:
++unate inputs: count[0],count[1],count[3],count[4]
+-unate inputs: count[2],count[5],count[6],count[7]
+node selectp2[28]:
++unate inputs: count[2],count[3],count[4]
+-unate inputs: count[0],count[1],count[5],count[6],count[7]
+node selectp2[29]:
++unate inputs: count[0],count[2],count[3],count[4]
+-unate inputs: count[1],count[5],count[6],count[7]
+node selectp2[30]:
++unate inputs: count[1],count[2],count[3],count[4]
+-unate inputs: count[0],count[5],count[6],count[7]
+node selectp2[31]:
++unate inputs: count[0],count[1],count[2],count[3],count[4]
+-unate inputs: count[5],count[6],count[7]
+node selectp2[32]:
++unate inputs: count[5]
+-unate inputs: count[0],count[1],count[2],count[3],count[4],count[6],count[7]
+node selectp2[33]:
++unate inputs: count[0],count[5]
+-unate inputs: count[1],count[2],count[3],count[4],count[6],count[7]
+node selectp2[34]:
++unate inputs: count[1],count[5]
+-unate inputs: count[0],count[2],count[3],count[4],count[6],count[7]
+node selectp2[35]:
++unate inputs: count[0],count[1],count[5]
+-unate inputs: count[2],count[3],count[4],count[6],count[7]
+node selectp2[36]:
++unate inputs: count[2],count[5]
+-unate inputs: count[0],count[1],count[3],count[4],count[6],count[7]
+node selectp2[37]:
++unate inputs: count[0],count[2],count[5]
+-unate inputs: count[1],count[3],count[4],count[6],count[7]
+node selectp2[38]:
++unate inputs: count[1],count[2],count[5]
+-unate inputs: count[0],count[3],count[4],count[6],count[7]
+node selectp2[39]:
++unate inputs: count[0],count[1],count[2],count[5]
+-unate inputs: count[3],count[4],count[6],count[7]
+node selectp2[40]:
++unate inputs: count[3],count[5]
+-unate inputs: count[0],count[1],count[2],count[4],count[6],count[7]
+node selectp2[41]:
++unate inputs: count[0],count[3],count[5]
+-unate inputs: count[1],count[2],count[4],count[6],count[7]
+node selectp2[42]:
++unate inputs: count[1],count[3],count[5]
+-unate inputs: count[0],count[2],count[4],count[6],count[7]
+node selectp2[43]:
++unate inputs: count[0],count[1],count[3],count[5]
+-unate inputs: count[2],count[4],count[6],count[7]
+node selectp2[44]:
++unate inputs: count[2],count[3],count[5]
+-unate inputs: count[0],count[1],count[4],count[6],count[7]
+node selectp2[45]:
++unate inputs: count[0],count[2],count[3],count[5]
+-unate inputs: count[1],count[4],count[6],count[7]
+node selectp2[46]:
++unate inputs: count[1],count[2],count[3],count[5]
+-unate inputs: count[0],count[4],count[6],count[7]
+node selectp2[47]:
++unate inputs: count[0],count[1],count[2],count[3],count[5]
+-unate inputs: count[4],count[6],count[7]
+node selectp2[48]:
++unate inputs: count[4],count[5]
+-unate inputs: count[0],count[1],count[2],count[3],count[6],count[7]
+node selectp2[49]:
++unate inputs: count[0],count[4],count[5]
+-unate inputs: count[1],count[2],count[3],count[6],count[7]
+node selectp2[50]:
++unate inputs: count[1],count[4],count[5]
+-unate inputs: count[0],count[2],count[3],count[6],count[7]
+node selectp2[51]:
++unate inputs: count[0],count[1],count[4],count[5]
+-unate inputs: count[2],count[3],count[6],count[7]
+node selectp2[52]:
++unate inputs: count[2],count[4],count[5]
+-unate inputs: count[0],count[1],count[3],count[6],count[7]
+node selectp2[53]:
++unate inputs: count[0],count[2],count[4],count[5]
+-unate inputs: count[1],count[3],count[6],count[7]
+node selectp2[54]:
++unate inputs: count[1],count[2],count[4],count[5]
+-unate inputs: count[0],count[3],count[6],count[7]
+node selectp2[55]:
++unate inputs: count[0],count[1],count[2],count[4],count[5]
+-unate inputs: count[3],count[6],count[7]
+node selectp2[56]:
++unate inputs: count[3],count[4],count[5]
+-unate inputs: count[0],count[1],count[2],count[6],count[7]
+node selectp2[57]:
++unate inputs: count[0],count[3],count[4],count[5]
+-unate inputs: count[1],count[2],count[6],count[7]
+node selectp2[58]:
++unate inputs: count[1],count[3],count[4],count[5]
+-unate inputs: count[0],count[2],count[6],count[7]
+node selectp2[59]:
++unate inputs: count[0],count[1],count[3],count[4],count[5]
+-unate inputs: count[2],count[6],count[7]
+node selectp2[60]:
++unate inputs: count[2],count[3],count[4],count[5]
+-unate inputs: count[0],count[1],count[6],count[7]
+node selectp2[61]:
++unate inputs: count[0],count[2],count[3],count[4],count[5]
+-unate inputs: count[1],count[6],count[7]
+node selectp2[62]:
++unate inputs: count[1],count[2],count[3],count[4],count[5]
+-unate inputs: count[0],count[6],count[7]
+node selectp2[63]:
++unate inputs: count[0],count[1],count[2],count[3],count[4],count[5]
+-unate inputs: count[6],count[7]
+node selectp2[64]:
++unate inputs: count[6]
+-unate inputs: count[0],count[1],count[2],count[3],count[4],count[5],count[7]
+node selectp2[65]:
++unate inputs: count[0],count[6]
+-unate inputs: count[1],count[2],count[3],count[4],count[5],count[7]
+node selectp2[66]:
++unate inputs: count[1],count[6]
+-unate inputs: count[0],count[2],count[3],count[4],count[5],count[7]
+node selectp2[67]:
++unate inputs: count[0],count[1],count[6]
+-unate inputs: count[2],count[3],count[4],count[5],count[7]
+node selectp2[68]:
++unate inputs: count[2],count[6]
+-unate inputs: count[0],count[1],count[3],count[4],count[5],count[7]
+node selectp2[69]:
++unate inputs: count[0],count[2],count[6]
+-unate inputs: count[1],count[3],count[4],count[5],count[7]
+node selectp2[70]:
++unate inputs: count[1],count[2],count[6]
+-unate inputs: count[0],count[3],count[4],count[5],count[7]
+node selectp2[71]:
++unate inputs: count[0],count[1],count[2],count[6]
+-unate inputs: count[3],count[4],count[5],count[7]
+node selectp2[72]:
++unate inputs: count[3],count[6]
+-unate inputs: count[0],count[1],count[2],count[4],count[5],count[7]
+node selectp2[73]:
++unate inputs: count[0],count[3],count[6]
+-unate inputs: count[1],count[2],count[4],count[5],count[7]
+node selectp2[74]:
++unate inputs: count[1],count[3],count[6]
+-unate inputs: count[0],count[2],count[4],count[5],count[7]
+node selectp2[75]:
++unate inputs: count[0],count[1],count[3],count[6]
+-unate inputs: count[2],count[4],count[5],count[7]
+node selectp2[76]:
++unate inputs: count[2],count[3],count[6]
+-unate inputs: count[0],count[1],count[4],count[5],count[7]
+node selectp2[77]:
++unate inputs: count[0],count[2],count[3],count[6]
+-unate inputs: count[1],count[4],count[5],count[7]
+node selectp2[78]:
++unate inputs: count[1],count[2],count[3],count[6]
+-unate inputs: count[0],count[4],count[5],count[7]
+node selectp2[79]:
++unate inputs: count[0],count[1],count[2],count[3],count[6]
+-unate inputs: count[4],count[5],count[7]
+node selectp2[80]:
++unate inputs: count[4],count[6]
+-unate inputs: count[0],count[1],count[2],count[3],count[5],count[7]
+node selectp2[81]:
++unate inputs: count[0],count[4],count[6]
+-unate inputs: count[1],count[2],count[3],count[5],count[7]
+node selectp2[82]:
++unate inputs: count[1],count[4],count[6]
+-unate inputs: count[0],count[2],count[3],count[5],count[7]
+node selectp2[83]:
++unate inputs: count[0],count[1],count[4],count[6]
+-unate inputs: count[2],count[3],count[5],count[7]
+node selectp2[84]:
++unate inputs: count[2],count[4],count[6]
+-unate inputs: count[0],count[1],count[3],count[5],count[7]
+node selectp2[85]:
++unate inputs: count[0],count[2],count[4],count[6]
+-unate inputs: count[1],count[3],count[5],count[7]
+node selectp2[86]:
++unate inputs: count[1],count[2],count[4],count[6]
+-unate inputs: count[0],count[3],count[5],count[7]
+node selectp2[87]:
++unate inputs: count[0],count[1],count[2],count[4],count[6]
+-unate inputs: count[3],count[5],count[7]
+node selectp2[88]:
++unate inputs: count[3],count[4],count[6]
+-unate inputs: count[0],count[1],count[2],count[5],count[7]
+node selectp2[89]:
++unate inputs: count[0],count[3],count[4],count[6]
+-unate inputs: count[1],count[2],count[5],count[7]
+node selectp2[90]:
++unate inputs: count[1],count[3],count[4],count[6]
+-unate inputs: count[0],count[2],count[5],count[7]
+node selectp2[91]:
++unate inputs: count[0],count[1],count[3],count[4],count[6]
+-unate inputs: count[2],count[5],count[7]
+node selectp2[92]:
++unate inputs: count[2],count[3],count[4],count[6]
+-unate inputs: count[0],count[1],count[5],count[7]
+node selectp2[93]:
++unate inputs: count[0],count[2],count[3],count[4],count[6]
+-unate inputs: count[1],count[5],count[7]
+node selectp2[94]:
++unate inputs: count[1],count[2],count[3],count[4],count[6]
+-unate inputs: count[0],count[5],count[7]
+node selectp2[95]:
++unate inputs: count[0],count[1],count[2],count[3],count[4],count[6]
+-unate inputs: count[5],count[7]
+node selectp2[96]:
++unate inputs: count[5],count[6]
+-unate inputs: count[0],count[1],count[2],count[3],count[4],count[7]
+node selectp2[97]:
++unate inputs: count[0],count[5],count[6]
+-unate inputs: count[1],count[2],count[3],count[4],count[7]
+node selectp2[98]:
++unate inputs: count[1],count[5],count[6]
+-unate inputs: count[0],count[2],count[3],count[4],count[7]
+node selectp2[99]:
++unate inputs: count[0],count[1],count[5],count[6]
+-unate inputs: count[2],count[3],count[4],count[7]
+node selectp2[100]:
++unate inputs: count[2],count[5],count[6]
+-unate inputs: count[0],count[1],count[3],count[4],count[7]
+node selectp2[101]:
++unate inputs: count[0],count[2],count[5],count[6]
+-unate inputs: count[1],count[3],count[4],count[7]
+node selectp2[102]:
++unate inputs: count[1],count[2],count[5],count[6]
+-unate inputs: count[0],count[3],count[4],count[7]
+node selectp2[103]:
++unate inputs: count[0],count[1],count[2],count[5],count[6]
+-unate inputs: count[3],count[4],count[7]
+node selectp2[104]:
++unate inputs: count[3],count[5],count[6]
+-unate inputs: count[0],count[1],count[2],count[4],count[7]
+node selectp2[105]:
++unate inputs: count[0],count[3],count[5],count[6]
+-unate inputs: count[1],count[2],count[4],count[7]
+node selectp2[106]:
++unate inputs: count[1],count[3],count[5],count[6]
+-unate inputs: count[0],count[2],count[4],count[7]
+node selectp2[107]:
++unate inputs: count[0],count[1],count[3],count[5],count[6]
+-unate inputs: count[2],count[4],count[7]
+node selectp2[108]:
++unate inputs: count[2],count[3],count[5],count[6]
+-unate inputs: count[0],count[1],count[4],count[7]
+node selectp2[109]:
++unate inputs: count[0],count[2],count[3],count[5],count[6]
+-unate inputs: count[1],count[4],count[7]
+node selectp2[110]:
++unate inputs: count[1],count[2],count[3],count[5],count[6]
+-unate inputs: count[0],count[4],count[7]
+node selectp2[111]:
++unate inputs: count[0],count[1],count[2],count[3],count[5],count[6]
+-unate inputs: count[4],count[7]
+node selectp2[112]:
++unate inputs: count[4],count[5],count[6]
+-unate inputs: count[0],count[1],count[2],count[3],count[7]
+node selectp2[113]:
++unate inputs: count[0],count[4],count[5],count[6]
+-unate inputs: count[1],count[2],count[3],count[7]
+node selectp2[114]:
++unate inputs: count[1],count[4],count[5],count[6]
+-unate inputs: count[0],count[2],count[3],count[7]
+node selectp2[115]:
++unate inputs: count[0],count[1],count[4],count[5],count[6]
+-unate inputs: count[2],count[3],count[7]
+node selectp2[116]:
++unate inputs: count[2],count[4],count[5],count[6]
+-unate inputs: count[0],count[1],count[3],count[7]
+node selectp2[117]:
++unate inputs: count[0],count[2],count[4],count[5],count[6]
+-unate inputs: count[1],count[3],count[7]
+node selectp2[118]:
++unate inputs: count[1],count[2],count[4],count[5],count[6]
+-unate inputs: count[0],count[3],count[7]
+node selectp2[119]:
++unate inputs: count[0],count[1],count[2],count[4],count[5],count[6]
+-unate inputs: count[3],count[7]
+node selectp2[120]:
++unate inputs: count[3],count[4],count[5],count[6]
+-unate inputs: count[0],count[1],count[2],count[7]
+node selectp2[121]:
++unate inputs: count[0],count[3],count[4],count[5],count[6]
+-unate inputs: count[1],count[2],count[7]
+node selectp2[122]:
++unate inputs: count[1],count[3],count[4],count[5],count[6]
+-unate inputs: count[0],count[2],count[7]
+node selectp2[123]:
++unate inputs: count[0],count[1],count[3],count[4],count[5],count[6]
+-unate inputs: count[2],count[7]
+node selectp2[124]:
++unate inputs: count[2],count[3],count[4],count[5],count[6]
+-unate inputs: count[0],count[1],count[7]
+node selectp2[125]:
++unate inputs: count[0],count[2],count[3],count[4],count[5],count[6]
+-unate inputs: count[1],count[7]
+node selectp2[126]:
++unate inputs: count[1],count[2],count[3],count[4],count[5],count[6]
+-unate inputs: count[0],count[7]
+node selectp2[127]:
++unate inputs: count[0],count[1],count[2],count[3],count[4],count[5],count[6]
+-unate inputs: count[7]
