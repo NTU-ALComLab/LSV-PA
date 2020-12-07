@@ -32,6 +32,8 @@ struct inputnode{
 };
 
 void Lsv_NtkPrintpounate(Abc_Ntk_t* pNtk) {
+  //cout<<"test\n";
+  /*
   Abc_Obj_t* pObj;
   int i;
   Abc_NtkForEachNode(pNtk, pObj, i) {
@@ -168,7 +170,7 @@ void Lsv_NtkPrintpounate(Abc_Ntk_t* pNtk) {
         cout<<endl;
       }
     }
-  }
+  }*/
 }
 
 int Lsv_CommandPrintpounate(Abc_Frame_t* pAbc, int argc, char** argv) {
