@@ -17,6 +17,13 @@ extern "C" void * Cnf_DataWriteIntoSolver( Cnf_Dat_t * p, int nFrames, int fInit
 #define SAT 1
 #define UNSAT -1
 
+#define UNDEF -1
+#define NEG_UNATE 0
+#define POS_UNATE 1
+#define BINATE 2
+#define UNATE 3
+
+
 namespace
 {
 
@@ -85,7 +92,7 @@ void printCiInfo(Abc_Obj_t* nodeCi){
 	cout << "name: " << Abc_ObjName(nodeCi) << endl;
 }
 
-void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet){
+void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet, int* resultRecord){
 	////////////////////////////////////////////////////////////////////////
     //find pos unate, we have ~(F->G) = (F)(~G) in satSol                 //
 	//make x in F = 0, and x in G = 1                                     //
@@ -129,11 +136,12 @@ void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
 		//result
         if ( status == SAT ){
             //cout << "sat" << endl;                
-            cout << "This is not pos unate!" << endl;
+            //cout << "This is not pos unate!" << endl;
         }
         else if (status == UNSAT){
             //cout << "unsat" << endl;
-            cout << "This is pos unate!" << endl;
+            //cout << "This is pos unate!" << endl;
+			resultRecord[j] = POS_UNATE;
         }
         else{
             cout << "error in solveing SAT" << endl;
@@ -142,7 +150,7 @@ void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
 	ABC_FREE(pLits);
 }
 
-void findNegUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet){
+void findNegUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet, int* resultRecord){
 	////////////////////////////////////////////////////////////////////////
     //find neg unate, we have ~(F->G) = (F)(~G) in satSol                 //
 	//make x in F = 1, and x in G = 0                                     //
@@ -186,11 +194,20 @@ void findNegUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
 		//result
         if ( status == SAT ){
             //cout << "sat" << endl;                
-            cout << "This is not neg unate!" << endl;
+            //cout << "This is not neg unate!" << endl;
+			if(resultRecord[j] == UNDEF){//not pos unate
+				resultRecord[j] = BINATE;
+			}
         }
         else if (status == UNSAT){
             //cout << "unsat" << endl;
-            cout << "This is neg unate!" << endl;
+            //cout << "This is neg unate!" << endl;
+			if(resultRecord[j] == POS_UNATE){
+				resultRecord[j] = UNATE;
+			}
+			else{
+				resultRecord[j] = NEG_UNATE;
+			}
         }
         else{
             cout << "error in solveing SAT" << endl;
@@ -198,13 +215,6 @@ void findNegUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
 	}
 	ABC_FREE(pLits);
 }
-
-/*
-Abc_Ntk_t* get1OutputNtk(Abc_Ntk_t* abcNtk, Abc_Obj_t* nodeCo){
-
-
-}
-*/
 
 //main function
 int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
@@ -223,28 +233,10 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		if (Abc_ObjFaninC0(nodeCo) ){
 			Abc_NtkPo(abcNtk_1Po, 0)->fCompl0  ^= 1;
 		}
-
-		/*
-		//for debug
-		Abc_Obj_t* nodeCi;
-		int j;
-		Abc_NtkForEachPi(abcNtk, nodeCi, j){
-			printCiInfo(nodeCi);
-		}
-		//
-		*/
-		
+	
 		//get aig
 		Aig_Man_t* aigMan   = Abc_NtkToDar(abcNtk_1Po, 0, 0);
-		//aigMan->pData = NULL;
 
-/*		
-		//for debug
-		cout << endl << "print aig: " << endl;
-        printAigObjInfo(aigMan);
-        cout << endl;
-*/		
-	
 		//get F cnf
 		Cnf_Dat_t* ntkCnf = Cnf_Derive( aigMan, Aig_ManCoNum(aigMan) );
 		Vec_Int_t * vCiIds = Cnf_DataCollectPiSatNums( ntkCnf, aigMan );
@@ -309,30 +301,42 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		for(int i = 0; i < vCiIds->nSize; ++i){
 			int F_pi = vCiIds->pArray[i];
 			int G_pi = F_pi + nFvar;
-			//cout << "F_pi = " << F_pi << endl;
-			//cout << "G_pi = " << G_pi << endl;
 
-			///////////////////////////////////////////
-			//create C = A XNOR B and add to satSol  //
-			//(~A + B + ~C)(A + ~B + ~C)             //
-			///////////////////////////////////////////
+			//create C = A XNOR B and add to satSol
 			newVar = sat_solver_addvar(satSol);
-			//cout << "newVar = " << newVar << endl;
 			sat_solver_add_buffer_enable( satSol, F_pi, G_pi, newVar, 0 );
 			
 			//store the control var in array
 			constrainSet[i] = newVar;
 		}
 		
-/*
-		cout << "control array:" << endl;
+		//init resultRecord
+		int *resultRecord = ABC_ALLOC(int, vCiIds->nSize);
 		for(int i = 0; i < vCiIds->nSize; ++i){
-			cout << "constrainSet[" << i << "] = " << constrainSet[i] << endl;
+			resultRecord[i] = -1;
 		}
-*/
 
-		findPosUnate(vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet);
-		findNegUnate(vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet);
+		//solve problem
+		findPosUnate(vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet, resultRecord);
+		findNegUnate(vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet, resultRecord);
+
+		//print result
+		for(int i = 0; i < vCiIds->nSize; ++i){
+			cout << Abc_ObjName(Abc_NtkPi(abcNtk_1Po, i)) << " is ";
+			if(resultRecord[i] == POS_UNATE){
+				cout << "pos unate" << endl;
+			}
+			else if(resultRecord[i] == NEG_UNATE){
+                cout << "neg unate" << endl;
+            }
+			else if(resultRecord[i] == UNATE){
+                cout << "both pos unate and neg unate" << endl;
+            }
+			else if(resultRecord[i] == BINATE){
+                cout << "binate" << endl;
+            }
+		}
+		cout << endl;
 /*
 		//
 
@@ -379,7 +383,8 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 */
 
 		//free memory
-		ABC_FREE( constrainSet );
+		ABC_FREE(constrainSet);
+		ABC_FREE(resultRecord);
 		sat_solver_delete( satSol ); //cout << "ok to free sat" << endl;
 		Vec_IntFree( vCiIds ); //cout << "ok to free vCiIds" << endl;
 		Cnf_DataFree(ntkCnf); //cout << "ok to free CNF" << endl;
