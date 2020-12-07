@@ -133,28 +133,11 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		//get F cnf
 		Cnf_Dat_t* ntkCnf = Cnf_Derive( aigMan, Aig_ManCoNum(aigMan) );
 		Vec_Int_t * vCiIds = Cnf_DataCollectPiSatNums( ntkCnf, aigMan );
-		
-		cout << "CNF of F" << endl;
-		printCnf(ntkCnf);
-		cout << endl;
 
 		//get G cnf
 		Cnf_Dat_t* cnfG = Cnf_DataDup(ntkCnf);
-		Cnf_DataLift(cnfG, ntkCnf->nVars - 1);
-
-		cout << "CNF of G" << endl;
-        printCnf(cnfG);
-        cout << endl;
-
-
-		/*
-		//for debug
-		cout << "pVarNums:" << endl;
-		for(int i = 0; i < aigMan->vObjs->nSize; ++i){
-			cout << "abcObjID = " << i << endl;
-			cout << "cnfVar = " << ntkCnf->pVarNums[i] << endl;
-		}
-		*/
+		int nFvar  = ntkCnf->nVars - 1;
+		Cnf_DataLift(cnfG, nFvar);
 
 		//init sat solver by adding F CNF 
 		sat_solver* satSol = (sat_solver*)Cnf_DataWriteIntoSolver(ntkCnf, 1, 0);
@@ -173,50 +156,12 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
             }
         }
 
-
 		//create my constrain
-/*		
-		// create G = F and add it to sat solver
-		int G_po_var = ntkCnf->nVars - 1;
-		//cout << "G_po_var = " << G_po_var << endl;
-		int *pBeg, *pEnd;
-	    int i;
 
-		
-		cout << "CNF of F:" << endl;
-		Cnf_CnfForClause(ntkCnf, pBeg, pEnd, i ){
-			for(int* pLit = pBeg; pLit != pEnd; ++pLit){
-				cout << (Abc_LitIsCompl(*pLit)? "-": "") << Abc_Lit2Var(*pLit) << " ";
-			}
-			cout << endl;
-		}
-		*/
-/*
-		//cout << "CNF of my G:" << endl;
-		Cnf_CnfForClause(ntkCnf, pBeg, pEnd, i ){
-			int nLits = pEnd - pBeg; 
-			int *one_clause = ABC_ALLOC(int, nLits);
-            for(int* pLit = pBeg; pLit != pEnd; ++pLit){
-				one_clause[pLit - pBeg] = toLitCond(Abc_Lit2Var(*pLit) + G_po_var, Abc_LitIsCompl(*pLit));
-			}
-			if ( !sat_solver_addclause( satSol, one_clause, one_clause + nLits ) ){
-			    cout << "error in adding output constrain to sat solver" << endl;
-		        continue;
-	        }
-			ABC_FREE(one_clause);
-			
-			//print for debug
-			for(int idx = 0; idx < nLits; ++idx){
-                cout << (Abc_LitIsCompl(one_clause[idx])? "-": "") << Abc_Lit2Var(one_clause[idx]) << " ";
-            }
-            cout << endl;
-			
-        }
-*/
 		//////////////////////////////////////////
 		//prepare for adding input constrain    //
 		//////////////////////////////////////////
-		int first_constrain_var = (ntkCnf->nVars - 1) * 2 + 1;//G_po_var * 2 + 1;
+		int first_constrain_var = (nFvar) * 2 + 1;//G_po_var * 2 + 1;
 		int newest_var = first_constrain_var;
 		int *pLits;
 		//cout << "first_constrain_var = " << first_constrain_var << endl;
@@ -233,10 +178,10 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		//if we add C in sat solver, which means we turn on the constrain A=B    //
 		//if we add ~C in sat solver, we turn off the constrain                  //
 		///////////////////////////////////////////////////////////////////////////
-		pLits = ABC_ALLOC(int, 3);
+		int newVar;
 		for(int i = 0; i < vCiIds->nSize; ++i){
 			int F_pi = vCiIds->pArray[i];
-			int G_pi = F_pi + (ntkCnf->nVars - 1);//F_pi + G_po_var;
+			int G_pi = F_pi + nFvar;
 			//cout << "F_pi = " << F_pi << endl;
 			//cout << "G_pi = " << G_pi << endl;
 
@@ -244,6 +189,10 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 			//create C = A XNOR B and add to satSol  //
 			//(~A + B + ~C)(A + ~B + ~C)             //
 			///////////////////////////////////////////
+			newVar = sat_solver_addvar(satSol);
+			cout << "newVar = " << newVar << endl;
+			sat_solver_add_buffer_enable( satSol, F_pi, G_pi, newVar, 0 );
+/*
 			//(~A + B + ~C)
 			pLits[0] = toLitCond(F_pi, NEG);
             pLits[1] = toLitCond(G_pi, POS);
@@ -262,11 +211,11 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
                 cout << "error in adding output constrain to sat solver" << endl;
                 continue;
             }
+*/
 			//store the control var in array
-			constrainSet[i] = newest_var;
-			newest_var ++;
+			constrainSet[i] = newVar;
 		}
-		ABC_FREE( pLits );
+		
 /*
 		cout << "control array:" << endl;
 		for(int i = 0; i < vCiIds->nSize; ++i){
@@ -296,7 +245,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
         int F_po = ntkCnf->pVarNums[Aig_ObjId(Aig_ManCo(aigMan, 0) )];
         //cout << "F_po = " << F_po << endl;
         pLits[idx++] = toLitCond(F_po, NEG);
-        pLits[idx++] = toLitCond(F_po + (ntkCnf->nVars - 1), POS);//toLitCond(F_po + G_po_var, POS);
+        pLits[idx++] = toLitCond(F_po + (nFvar), POS);//toLitCond(F_po + G_po_var, POS);
 		
 		//////////////////////////////
 		//adding control constrain  //
@@ -306,7 +255,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
         Abc_NtkForEachPi(abcNtk_1Po, nodePi, j){
             //printCiInfo(nodePi);
 			int pi_F = ntkCnf->pVarNums[Abc_ObjId(nodePi)];
-			int pi_G = pi_F + (ntkCnf->nVars - 1);//pi_F + G_po_var;
+			int pi_G = pi_F + (nFvar);//pi_F + G_po_var;
 			//cout << "pi_F = " << pi_F << endl;
 			//cout << "pi_G = " << pi_G << endl;
 
