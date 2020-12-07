@@ -28,7 +28,6 @@ typedef priority_queue< IdObj, vector<IdObj>, greater<IdObj> > IdObjQueue;
 ////////////////////////////////////////////////////////////////////////
 
 static int Lsv_CommandPrintPoUnate(Abc_Frame_t* pAbc, int argc, char** argv);
-static void Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk); 
 
 ////////////////////////////////////////////////////////////////////////
 ///                     FUNCTION DEFINITIONS                         ///
