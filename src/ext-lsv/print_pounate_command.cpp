@@ -153,9 +153,9 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 
 		//create my constrain
 		
-		// create F' and add it to sat solver
-		int F_var_num = ntkCnf->nVars - 1;
-		//cout << "F_var_num = " << F_var_num << endl;
+		// create G = F and add it to sat solver
+		int G_po_var = ntkCnf->nVars - 1;
+		//cout << "G_po_var = " << G_po_var << endl;
 		int *pBeg, *pEnd;
 	    int i;
 
@@ -169,17 +169,18 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		}
 		*/
 
-		//cout << "CNF of F':" << endl;
+		//cout << "CNF of G:" << endl;
 		Cnf_CnfForClause(ntkCnf, pBeg, pEnd, i ){
 			int nLits = pEnd - pBeg; 
 			int *one_clause = ABC_ALLOC(int, nLits);
             for(int* pLit = pBeg; pLit != pEnd; ++pLit){
-				one_clause[pLit - pBeg] = toLitCond(Abc_Lit2Var(*pLit) + F_var_num, Abc_LitIsCompl(*pLit));
+				one_clause[pLit - pBeg] = toLitCond(Abc_Lit2Var(*pLit) + G_po_var, Abc_LitIsCompl(*pLit));
 			}
 			if ( !sat_solver_addclause( satSol, one_clause, one_clause + nLits ) ){
 			    cout << "error in adding output constrain to sat solver" << endl;
 		        continue;
 	        }
+			ABC_FREE(one_clause);
 			/*
 			//print for debug
 			for(int idx = 0; idx < nLits; ++idx){
@@ -189,23 +190,12 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 			*/
         }
 
-		/////////////////////////////////////////////////////
-		//adding (-F' + F) constrain, which means F' -> F  //
-		/////////////////////////////////////////////////////
-        int *pLits = ABC_ALLOC(int, 2);
-        int poVar = ntkCnf->pVarNums[Aig_ObjId(Aig_ManCo(aigMan, 0) )]; 
-		//cout << "poVar = " << poVar << endl;
-        pLits[0] = toLitCond(poVar, POS);
-		pLits[1] = toLitCond(poVar + F_var_num, NEG);
-        //cout << "add clause: " << pLits[0] << " + " << pLits[1] << endl;
-        if ( !sat_solver_addclause( satSol, pLits, pLits + 2 )){
-            cout << "error in adding output constrain to sat solver" << endl;
-            continue;
-        }
-		ABC_FREE( pLits );
-
-		int first_constrain_var = F_var_num * 2 + 1;
+		//////////////////////////////////////////
+		//prepare for adding input constrain    //
+		//////////////////////////////////////////
+		int first_constrain_var = G_po_var * 2 + 1;
 		int newest_var = first_constrain_var;
+		int *pLits;
 		//cout << "first_constrain_var = " << first_constrain_var << endl;
 
 		//////////////////////////////////////////////////////////////////////////////
@@ -218,47 +208,31 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		//adding constrain for equality of each pi                               //
 		//say C = A XNOR B                                                       //
 		//if we add C in sat solver, which means we turn on the constrain A=B    //
+		//if we add ~C in sat solver, we turn off the constrain                  //
 		///////////////////////////////////////////////////////////////////////////
 		pLits = ABC_ALLOC(int, 3);
 		for(int i = 0; i < vCiIds->nSize; ++i){
-			int x_var = vCiIds->pArray[i];
-			int x_new_var = x_var + F_var_num;
-			//cout << "x_var = " << x_var << endl;
-			//cout << "x_new_var = " << x_new_var << endl;
+			int F_pi = vCiIds->pArray[i];
+			int G_pi = F_pi + G_po_var;
+			//cout << "F_pi = " << F_pi << endl;
+			//cout << "G_pi = " << G_pi << endl;
 
 			///////////////////////////////////////////
 			//create C = A XNOR B and add to satSol  //
-			//(A' + B' + C)                          //
+			//(~A + B + ~C)(A + ~B + ~C)             //
 			///////////////////////////////////////////
-			pLits[0] = toLitCond(x_var, NEG);			
-			pLits[1] = toLitCond(x_new_var, NEG);
-			pLits[2] = toLitCond(newest_var, POS);
-			//cout << "add clause: " << pLits[0] << " + " << pLits[1] << " + " << pLits[2] << endl;
-			if ( !sat_solver_addclause( satSol, pLits, pLits + 3 )){
-			    cout << "error in adding output constrain to sat solver" << endl;
-		        continue;
-	        }
-			//(A + B + C)  
-			pLits[0] = toLitCond(x_var, POS);
-            pLits[1] = toLitCond(x_new_var, POS);
-            pLits[2] = toLitCond(newest_var, POS);
-			//cout << "add clause: " << pLits[0] << " + " << pLits[1] << " + " << pLits[2] << endl;
-            if ( !sat_solver_addclause( satSol, pLits, pLits + 3 )){
-                cout << "error in adding output constrain to sat solver" << endl;
-                continue;
-            }
-			//(A' + B + C')
-			pLits[0] = toLitCond(x_var, NEG);
-            pLits[1] = toLitCond(x_new_var, POS);
+			//(~A + B + ~C)
+			pLits[0] = toLitCond(F_pi, NEG);
+            pLits[1] = toLitCond(G_pi, POS);
             pLits[2] = toLitCond(newest_var, NEG);
 			//cout << "add clause: " << pLits[0] << " + " << pLits[1] << " + " << pLits[2] << endl;
             if ( !sat_solver_addclause( satSol, pLits, pLits + 3 )){
                 cout << "error in adding output constrain to sat solver" << endl;
                 continue;
             }
-			//(A + B' + C')	
-			pLits[0] = toLitCond(x_var, POS);
-            pLits[1] = toLitCond(x_new_var, NEG);
+			//(A + ~B + ~C)	
+			pLits[0] = toLitCond(F_pi, POS);
+            pLits[1] = toLitCond(G_pi, NEG);
             pLits[2] = toLitCond(newest_var, NEG);
 			//cout << "add clause: " << pLits[0] << " + " << pLits[1] << " + " << pLits[2] << endl;
             if ( !sat_solver_addclause( satSol, pLits, pLits + 3 )){
@@ -279,57 +253,76 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 	
 		////////////////////////////////////////////////////////////////////////
 		//find pos unate                                                      //
-		//make x in F' = 0, and x in F = 1                                    //
+		//make x in G = 0, and x in F = 1                                     //
 		//turn on all the other control var to make other pi var be the same  //
-		//add them into sat solver by satoko_solve_assumptions                //
+		//add them into sat solver by satoko_solve_assumptions	              //
+		//if SAT, which means we find a cex, then it is not untate            //
+		//if UNSAT, this is unate function                                    //
 		////////////////////////////////////////////////////////////////////////
-		int nlits = 2 + (vCiIds->nSize - 1);
-		cout << "we will add " << nlits << "assumptions" << endl;
+		int nlits = 2 + vCiIds->nSize + 2;//2 po + n pi control + 2 pi
+		//cout << "we will add " << nlits << " assumptions" << endl;
 		pLits = ABC_ALLOC(int, nlits);
 		int idx = 0;
 		
+		///////////	/////////////////////////////////////////////////////////
+        //adding ~(~G + F) = (G)(~F) constrain, which means ~(G -> F)      //
+        //if it is SAT, we find a conter example                           //
+        //which means G does not imply F                                   //
+		//and thus it is not unate function                                //
+        /////////////////////////////////////////////////////////////////////
+        int F_po = ntkCnf->pVarNums[Aig_ObjId(Aig_ManCo(aigMan, 0) )];
+        //cout << "F_po = " << F_po << endl;
+        pLits[idx++] = toLitCond(F_po, NEG);
+        pLits[idx++] = toLitCond(F_po + G_po_var, POS);
+		
+		//////////////////////////////
+		//adding control constrain  //
+		//////////////////////////////
 		Abc_Obj_t* nodePi;
         int j;
         Abc_NtkForEachPi(abcNtk_1Po, nodePi, j){
-            printCiInfo(nodePi);
-			int pi_var = ntkCnf->pVarNums[Abc_ObjId(nodePi)];
-			int pi_new_var = pi_var + F_var_num;
-			//cout << "pi_var = " << pi_var << endl;
-			//cout << "pi_new_var = " << pi_new_var << endl;
+            //printCiInfo(nodePi);
+			int pi_F = ntkCnf->pVarNums[Abc_ObjId(nodePi)];
+			int pi_G = pi_F + G_po_var;
+			//cout << "pi_F = " << pi_F << endl;
+			//cout << "pi_G = " << pi_G << endl;
 
-			idx = 0;
+			idx = 2; //idx 0 and 1 if for adding (G)(~F)
 			
 			//////////////////////////////
-			//set pi = 1 and pi_new = 0 //
+			//set pi_F = 1 and pi_G = 0 //
 			//////////////////////////////
-			pLits[idx] = toLitCond(pi_var, POS); ++idx;
-			pLits[idx] = toLitCond(pi_new_var, NEG); ++idx;
+			pLits[idx++] = toLitCond(pi_F, POS);
+			pLits[idx++] = toLitCond(pi_G, NEG);
 			
 			////////////////////////////////////////////////////////
 			//set all the other pi var be the same in F and F'    //
 			////////////////////////////////////////////////////////
 			for(int i = 0; i < vCiIds->nSize; ++i){
-				if(i == j) continue;//this is current considered pi, so do nothing
-				
-				/////////////////////////////////////////// 
-				//turn on the constrain x in F = x in F' //
-				///////////////////////////////////////////
-				cout << "turn on constrain " << constrainSet[i] << endl;
-			    pLits[idx] = toLitCond(constrainSet[i], POS); ++idx;
+				if(i == j){//this is current considered pi, so do nothing
+					//cout << "trun off constrain" << constrainSet[i] << endl;
+					pLits[idx++] = toLitCond(constrainSet[i], NEG);
+				}
+				else{
+					//cout << "turn on constrain " << constrainSet[i] << endl;
+					pLits[idx++] = toLitCond(constrainSet[i], POS);
+				}
 		    }
 
 			assert(idx == nlits);
 			
 			//solve this sat
 			//note: can we simplify the problem by status = sat_solver_simplify(satSol); ?
-			status = sat_solver_solve( satSol, ???, ???, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+			int status = sat_solver_solve( satSol, pLits, pLits + nlits, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
 
 			//result
 			if ( status == SAT ){
 				cout << "sat" << endl;				
+				cout << "This is not pos unate!" << endl;
 			}
 			else if (status == UNSAT){
 				cout << "unsat" << endl;
+				cout << "This is pos unate!" << endl;
 			}
 			else{
 				cout << "error in solveing SAT" << endl;
@@ -383,6 +376,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 			cout << "err in satsol!" << endl;
 		}
 */
+
 		//free memory
 		ABC_FREE( constrainSet );
 		sat_solver_delete( satSol ); //cout << "ok to free sat" << endl;
