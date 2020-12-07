@@ -87,29 +87,18 @@ void printCiInfo(Abc_Obj_t* nodeCi){
 
 void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, Aig_Man_t* aigMan, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet){
 	////////////////////////////////////////////////////////////////////////
-    //find pos unate                                                      //
-	//make x in G = 0, and x in F = 1                                     //
+    //find pos unate, we have ~(F->G) = (F)(~G) in satSol                 //
+	//make x in F = 0, and x in G = 1                                     //
 	//turn on all the other control var to make other pi var be the same  //
-	//add them into sat solver by satoko_solve_assumptions                //
 	//if SAT, which means we find a cex, then it is not untate            //
 	//if UNSAT, this is unate function                                    //
 	////////////////////////////////////////////////////////////////////////
-	int nlits = 2 + vCiIds->nSize + 2;//2 po + n pi control + 2 pi
+	int nlits = vCiIds->nSize + 2;//n pi control + 2 pi
     //cout << "we will add " << nlits << " assumptions" << endl;
     int *pLits = ABC_ALLOC(int, nlits);
-    int idx = 0;
+    int idx;
 
-    /////////////////////////////////////////////////////////////////////
-    //adding ~(~G + F) = (G)(~F) constrain, which means ~(G -> F)      //
-    //if it is SAT, we find a conter example                           //
-    //which means G does not imply F                                   //
-    //and thus it is not unate function                                //
-    /////////////////////////////////////////////////////////////////////
-    int F_po = ntkCnf->pVarNums[Aig_ObjId(Aig_ManCo(aigMan, 0) )];
-    //cout << "F_po = " << F_po << endl;
-    pLits[idx++] = toLitCond(F_po, NEG);
-    pLits[idx++] = toLitCond(F_po + nFvar, POS);
-    //////////////////////////////
+	//////////////////////////////
     //adding control constrain  //
     //////////////////////////////
     Abc_Obj_t* nodePi;
@@ -120,19 +109,19 @@ void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, Aig_Man_t* aigMan, int 
         int pi_G = pi_F + nFvar;
         //cout << "pi_F = " << pi_F << endl;
         //cout << "pi_G = " << pi_G << endl;
-        idx = 2; //idx 0 and 1 if for adding (G)(~F)
+        idx = 0;
 
         //////////////////////////////
-        //set pi_F = 1 and pi_G = 0 //
+        //set pi_F = 0 and pi_G = 1 //
         //////////////////////////////
-        pLits[idx++] = toLitCond(pi_F, POS);
-        pLits[idx++] = toLitCond(pi_G, NEG);
+        pLits[idx++] = toLitCond(pi_F, NEG);
+        pLits[idx++] = toLitCond(pi_G, POS);
 
 		////////////////////////////////////////////////////////
         //set all the other pi var be the same in F and F'    //
         ////////////////////////////////////////////////////////
         for(int i = 0; i < vCiIds->nSize; ++i){
-            if(i == j){//this is current considered pi, so do nothing
+            if(i == j){//this is current considered pi
                 //cout << "trun off constrain" << constrainSet[i] << endl;
                 pLits[idx++] = toLitCond(constrainSet[i], NEG);
             }
@@ -235,12 +224,28 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
             }
         }
 
+		/////////////////////////////////////////////////////////////////////
+	    //adding ~(~F + G) = (F)(~G) to satSol, which means ~(F -> G)      //
+		//if it is SAT, we find a conter example                           //
+	    //which means F does not imply G                                   //
+		/////////////////////////////////////////////////////////////////////
+		int *pLits = ABC_ALLOC(int, 1);
+		int F_po = ntkCnf->pVarNums[Aig_ObjId(Aig_ManCo(aigMan, 0) )];
+		//cout << "F_po = " << F_po << endl;
+		pLits[0] = toLitCond(F_po, POS);
+		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
+            cout << "error in adding output constrain to sat solver" << endl;
+            continue;
+        }
+		pLits[0] = toLitCond(F_po + nFvar, NEG);
+		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
+            cout << "error in adding output constrain to sat solver" << endl;
+            continue;
+        }
+		ABC_FREE(pLits);
+
+
 		//create my constrain
-
-		//////////////////////////////////////////
-		//prepare for adding input constrain    //
-		//////////////////////////////////////////
-
 		//////////////////////////////////////////////////////////////////////////////
 		// create an array to store the constrain control var, where                //
 		// index means the var of idx-th pi, value means it's constrain control var //
