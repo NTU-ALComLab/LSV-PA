@@ -13,6 +13,8 @@ extern "C"
     
     void * Cnf_DataWriteIntoSolver2( Cnf_Dat_t * p, int nFrames, int fInit );
     int    Cnf_DataWriteOrClause2( void * pSat, Cnf_Dat_t * pCnf );
+    
+    void Abc_NtkShow( Abc_Ntk_t * pNtk, int fGateNames, int fSeq, int fUseReverse ); 
 }
 
 namespace lsv
@@ -25,36 +27,67 @@ static void print_cnf( Cnf_Dat_t * pCnf )
     Cnf_DataPrint(pCnf, 1);
 }
 
-static void sat_add_variable_constraint(
-    sat_solver2 * pSat, Vec_Int_t * vCiIds, int num_var, int vi )
+static void sat_make_assumption(
+    int* lit_vec, Vec_Int_t * vCiIds, int num_var, int idx, int is_pos )
 {
     /*
          vCiIds[0 .. num_var-1] : x1 ... xn
          vCiIds[num_var .. 2*num_var-1] : y1 ... yn
-         vCiIds[2*num_var .. 3*num_var] : z0 z1 ... zn
+         vCiIds[2*num_var .. 3*num_var] : z1 ... zn, z0
+    */
+    int i=0;
+    for( ; i<num_var; ++i )
+    {
+        if( i==idx )
+        {
+            lit_vec[i] =  2*vCiIds->pArray[ num_var*2+i ]+1;    /// set to 0
+        }
+        else
+        {
+            lit_vec[i] =  2*vCiIds->pArray[ num_var*2+i ];      /// set to 1
+        }
+    }
+    if( is_pos )
+        lit_vec[i] = 2*vCiIds->pArray[ num_var*3 ]+1;
+    else
+        lit_vec[i] = 2*vCiIds->pArray[ num_var*3 ];
+    ++i;
+    lit_vec[i] = 2*vCiIds->pArray[ idx ]+1;
+    ++i;
+    lit_vec[i] = 2*vCiIds->pArray[ num_var+idx ];
+}
+
+static void sat_add_variable_constraint(
+    sat_solver * pSat, Vec_Int_t * vCiIds, int num_var )
+{
+    /*
+         vCiIds[0 .. num_var-1] : x1 ... xn
+         vCiIds[num_var .. 2*num_var-1] : y1 ... yn
+         vCiIds[2*num_var .. 3*num_var] : z1 ... zn, z0
     */
     int * lit_vec = vCiIds->pArray;
     for( int i=0; i<num_var; ++i )
     {
+        /*
         int lits[3];
-        if( i==vi )
-        {
-            /// add xi' and yi
-            lits[0] = 2*lit_vec[i]+1;
-            sat_solver2_addclause( pSat, &lits[0], &lits[1],0 );
-            lits[0] = 2*lit_vec[i+num_var];
-            sat_solver2_addclause( pSat, &lits[0], &lits[1],0 );
-        }
-        else
-        {
-            /// add (xi'+yi) and (xi+yi')
-            lits[0] = 2*lit_vec[i]+1;
-            lits[1] = 2*lit_vec[i+num_var];
-            sat_solver2_addclause( pSat, &lits[0], &lits[2],0 );
-            lits[0] = 2*lit_vec[i];
-            lits[1] = 2*lit_vec[i+num_var]+1;
-            sat_solver2_addclause( pSat, &lits[0], &lits[2],0 );
-        }
+        /// add (xi'+yi+zi') and (xi+yi'+zi')
+        lits[0] = 2*lit_vec[i]+1;
+        lits[1] = 2*lit_vec[i+num_var];
+        lits[2] = 2*lit_vec[i+2*num_var]+1;
+        sat_solver_addclause( pSat, &lits[0], &lits[3] );
+        lits[0] = 2*lit_vec[i];
+        lits[1] = 2*lit_vec[i+num_var]+1;
+        lits[2] = 2*lit_vec[i+2*num_var]+1;
+        sat_solver_addclause( pSat, &lits[0], &lits[3] );
+        
+        lits[0] = 2*lit_vec[i]+1;
+        lits[1] = 2*lit_vec[i+2*num_var];
+        sat_solver_addclause( pSat, &lits[0], &lits[2] );
+        lits[0] = 2*lit_vec[i+num_var];
+        lits[1] = 2*lit_vec[i+2*num_var];
+        sat_solver_addclause( pSat, &lits[0], &lits[2] );
+        */
+        sat_solver_add_buffer_enable( pSat, lit_vec[i], lit_vec[i+num_var], lit_vec[i+2*num_var], 0 );
     }
 }
 static Aig_Obj_t * add_variable_constraint(
@@ -108,6 +141,8 @@ static Aig_Obj_t * duplicate_aig(
     std::vector< Aig_Obj_t* >& yi_vec
 )
 {
+    /// duplicate all internal nodes recursively
+    
     if( node==NULL ) return node;
     if( node->pData!=NULL ) return (Aig_Obj_t *)node->pData;
     
@@ -136,14 +171,168 @@ static Aig_Obj_t * duplicate_aig(
     return node;
 }
 
+static void aig_all_clause(
+    Aig_Man_t * pMan,
+    Aig_Obj_t * pCo, 
+    Aig_Obj_t * pF1,
+    Aig_Obj_t * pF2,
+    const std::vector< Aig_Obj_t* >& xi_vec,
+    const std::vector< Aig_Obj_t* >& yi_vec,
+    const std::vector< Aig_Obj_t* >& zi_vec  )
+{
+    Aig_Obj_t *pPos, *pNeg, *pc;
+    Aig_Obj_t * pZ0 = zi_vec.back();
+    pPos = Aig_Or( pMan, Aig_And( pMan, pF1, Aig_Not(pF2) ), pZ0 );
+    pNeg = Aig_Or( pMan, Aig_And( pMan, pF2, Aig_Not(pF1) ), Aig_Not(pZ0) );
+    /*
+    for( int i=0; i<xi_vec.size(); ++i )
+    {
+        Aig_Obj_t * new_pc1 = Aig_Or( pMan, 
+                                      Aig_Or( pMan, Aig_Not(xi_vec[i]), yi_vec[i] ),
+                                      Aig_Not(zi_vec[i]) );
+        Aig_Obj_t * new_pc2 = Aig_Or( pMan, 
+                                      Aig_Or( pMan, xi_vec[i], Aig_Not(yi_vec[i]) ),
+                                      Aig_Not(zi_vec[i]) );
+        pc = Aig_And( pMan, pc, Aig_And( pMan, new_pc1, new_pc2 ) );
+    }
+    */
+    Aig_ObjConnect( pMan, pCo,
+                    Aig_And( pMan, pPos, pNeg ),
+                    NULL );
+}
+
+
+static void solve_po_unateness( Abc_Ntk_t * pNtk, std::vector<Unateness>& unate_vec, int is_inverted )
+{
+    /// solve unateness for a single cone
+    unate_vec.resize( Abc_NtkPiNum(pNtk), NONE );
+    
+    int i, num_pi = Abc_NtkPiNum(pNtk);
+    
+    Aig_Man_t *pMan;
+    pMan = Abc_NtkToDar( pNtk, 0, 0 );
+    
+    Aig_Obj_t *pf, *pCo;
+    Aig_ManForEachCo( pMan, pCo, i )
+    {
+        pf = Aig_ObjFanin0(pCo);
+    }
+    if( is_inverted )
+    {
+        Aig_ObjConnect( pMan, pCo, Aig_Not(pf), NULL );
+    }
+    
+    //Aig_ManDump(pMan);
+    
+    Cnf_Dat_t * pf1 = Cnf_Derive( pMan, Aig_ManCoNum(pMan) );
+    Cnf_Dat_t * pf2 = Cnf_DataDup( pf1 );
+    
+    //print_cnf( pf1 );
+    
+    Cnf_DataLift( pf2, pf1->nVars );
+    
+    //print_cnf( pf2 );
+    
+    int num_var = pf1->nVars + pf2->nVars;
+    
+    Vec_Int_t * vCiIds1 = Cnf_DataCollectPiSatNums( pf1, pMan );
+    Vec_Int_t * vCiIds2 = Cnf_DataCollectPiSatNums( pf2, pMan );
+        
+    sat_solver * pSat = (sat_solver *)sat_solver_new();
+    sat_solver_setnvars( pSat, num_var + num_pi + 1 );
+    
+    int po_clause[2];
+    
+    /// write clauses to SAT solver
+    for ( i = 0; i < pf1->nClauses; i++ )
+        sat_solver_addclause( pSat, pf1->pClauses[i], pf1->pClauses[i+1] );
+    
+    /// f1 + z0
+    po_clause[0] = (1)*2;   
+    po_clause[1] = (num_var+num_pi)*2;
+    sat_solver_addclause( pSat, po_clause, po_clause+2 );
+    /// f1' + z0'
+    po_clause[0] = (1)*2+1;   
+    po_clause[1] = (num_var+num_pi)*2+1;
+    sat_solver_addclause( pSat, po_clause, po_clause+2 );
+    
+    for ( i = 0; i < pf2->nClauses; i++ )
+        sat_solver_addclause( pSat, pf2->pClauses[i], pf2->pClauses[i+1] );
+    
+    /// f2' + z0
+    po_clause[0] = (pf1->nVars+1)*2 +1 ;
+    po_clause[1] = (num_var+num_pi)*2;
+    sat_solver_addclause( pSat, po_clause, po_clause+2 );
+    /// f2 + z0'
+    po_clause[0] = (pf1->nVars+1)*2 ;
+    po_clause[1] = (num_var+num_pi)*2+1;
+    sat_solver_addclause( pSat, po_clause, po_clause+2 );
+        
+    for( i = 0; i<num_pi; i++ )
+        sat_solver_add_buffer_enable( pSat, vCiIds1->pArray[i], vCiIds2->pArray[i], num_var+i, 0 );
+    
+    /// solve for each PI
+    for( int pi_idx=0; pi_idx<num_pi; pi_idx++ )
+    {
+        int num_assumption = num_pi+3;
+        int * lit_vec = new int[num_assumption+1];
+        
+        /// make assumption
+        for( int j=0; j<num_pi; j++ )
+        {
+            if( j==pi_idx )
+            {
+                lit_vec[j] = 2*(num_var+j)+1;
+            }
+            else
+            {
+                lit_vec[j] = 2*(num_var+j);
+            }
+        }
+        lit_vec[num_pi] = 2*(vCiIds1->pArray[pi_idx])+1;
+        lit_vec[num_pi+1] = 2*(vCiIds2->pArray[pi_idx]);
+        lit_vec[num_pi+2] = 2*(num_var+num_pi)+1;
+        
+        /// solve pos
+        int status = sat_solver_solve( pSat, lit_vec, lit_vec+num_assumption, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+        
+        //std::cout << status << std::endl;
+        
+        if ( status == l_False )
+        {
+            unate_vec[pi_idx] = POS_UNATE;
+        }
+        else
+        {
+            /// assumption for neg unate
+            //lit_vec[num_pi] = 2*(vCiIds1->pArray[pi_idx])+1;
+            //lit_vec[num_pi+1] = 2*(vCiIds2->pArray[pi_idx]);
+            lit_vec[num_pi+2] = 2*(num_var+num_pi);
+            /// solve neg
+            status = sat_solver_solve( pSat, lit_vec, lit_vec+num_assumption, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+            
+            //std::cout << status << std::endl;
+        
+            if ( status == l_False )
+            {
+                unate_vec[pi_idx] = NEG_UNATE;
+            }
+            else
+            {
+                unate_vec[pi_idx] = BINATE;
+            }
+        }
+        
+        delete[] lit_vec;
+    }
+}
+
 static void solve_single_po_unateness( Abc_Ntk_t * pNtk, std::vector<Unateness>& unate_vec )
 {   
     /// solve unateness for a single cone
     
     unate_vec.resize( Abc_NtkPiNum(pNtk), NONE );
     
-    for( int pi_idx=0; pi_idx<Abc_NtkPiNum(pNtk); ++pi_idx)
-    {
         int i;
         /// convert the cone into Aig Manager
         Aig_Man_t *pMan;
@@ -154,7 +343,7 @@ static void solve_single_po_unateness( Abc_Ntk_t * pNtk, std::vector<Unateness>&
         
         /// Store CI in the same order as pNtk
         std::vector< Aig_Obj_t* > xi_vec(Aig_ManCiNum(pMan)), yi_vec(Aig_ManCiNum(pMan));
-        std::vector< Aig_Obj_t* > zi_vec;
+        std::vector< Aig_Obj_t* > zi_vec(Aig_ManCiNum(pMan)+1);
         Aig_ManForEachCi( pMan, pCi, i )
         {
             xi_vec[i] = pCi;
@@ -163,12 +352,17 @@ static void solve_single_po_unateness( Abc_Ntk_t * pNtk, std::vector<Unateness>&
         {
             yi_vec[i] = Aig_ObjCreateCi( pMan );
         }
+        /// Add SAT variables z0 z1 ... zn
+        for( int i=0; i<zi_vec.size(); ++i )
+        {
+            zi_vec[i] = Aig_ObjCreateCi( pMan );
+        }
         /// Find node F1
         Aig_ManForEachCo( pMan, pCo, i )
         {
-            
             pF1 = Aig_ObjFanin0(pCo);
         }
+        //Aig_ManDump(pMan);
         
         /// Duplicate AIG structure, create F2
         Aig_ManCleanData(pMan);
@@ -177,123 +371,95 @@ static void solve_single_po_unateness( Abc_Ntk_t * pNtk, std::vector<Unateness>&
         /// build variable constraints of unateness
         //pFc = add_variable_constraint( pMan, xi_vec, yi_vec, pi_idx );
         
-        /// connect f1 * f2', f1' * f2
-        pPos = Aig_And( pMan, Aig_Not(pF2), pF1 );
-        pNeg = Aig_And( pMan, Aig_Not(pF1), pF2 );
+        /// Build up first part of CNF in aig
+        Aig_Obj_t *pZ0 = zi_vec.back();
+        //std::cout << "inverted " << Aig_ObjFaninC0(pCo) << std::endl;
+        //pPos = Aig_Or( pMan, 
+        //               Aig_And( pMan, pF1, Aig_Not(pF2) ),
+        //               pZ0 );
+        //pNeg = Aig_Or( pMan, 
+        //               Aig_And( pMan, Aig_Not(pF1), pF2 ),
+        //               Aig_Not(pZ0) );
         
-        /// build up SAT variables
-        zi_vec.push_back( Aig_ObjCreateCi( pMan ) );
-        Aig_Obj_t *pZ0 = zi_vec[0];
-        pPos = Aig_Or( pMan, pPos, pZ0 );
-        pNeg = Aig_Or( pMan, pNeg, Aig_Not(pZ0) );
         
+        //pPos = Aig_And( pMan, pF1, Aig_Not(pF2) );
+        //pNeg = Aig_Or( pMan, pNeg, Aig_Not(pZ0) );
         //Aig_ObjConnect( pMan, pCo, Aig_And( pMan, Aig_And( pMan, pPos, pNeg ), pFc ), NULL );
         //Aig_ObjConnect( pMan, pCo, Aig_And( pMan, pPos, pFc ), NULL );
-        Aig_ObjConnect( pMan, pCo, Aig_And( pMan, pPos, pNeg ), NULL );
+        //Aig_ObjConnect( pMan, pCo, Aig_And( pMan, pPos, pNeg ), NULL );
         //Aig_ObjConnect( pMan, pCo, pPos, NULL );
         //Aig_ManPrintStats(pMan);    // check AIG manager
+        
+        aig_all_clause( pMan, pCo, pF1, pF2, xi_vec, yi_vec, zi_vec );
+        
         //Aig_ManDump(pMan);
         
         
-        /// derive CNF
+        /// derive CNF for the first part
         pMan->pData = NULL;
-        Cnf_Dat_t * pCnf = Cnf_DeriveFast( pMan, Aig_ManCoNum(pMan) );
+        Cnf_Dat_t * pCnf = Cnf_Derive( pMan, Aig_ManCoNum(pMan) );
         //print_cnf( pCnf );
         Vec_Int_t * vCiIds = Cnf_DataCollectPiSatNums( pCnf, pMan );
                 
-        /// write to sat_solver2
-        sat_solver2 * pSat = (sat_solver2 *)Cnf_DataWriteIntoSolver2( pCnf, 1, 0 );
-        
-        sat_add_variable_constraint( pSat, vCiIds, xi_vec.size(), pi_idx  );
-        
-        /// add the OR clause for the outputs
-        Cnf_DataWriteOrClause2( pSat, pCnf );
-        //Cnf_DataWriteAndClauses( pSat, pCnf );
-                
-        //printf( "Created SAT problem with %d variable and %d clauses. \n", sat_solver2_nvars(pSat), sat_solver2_nclauses(pSat) );
-        
-        /// simplify the SAT solver
-        int status = 0;// = sat_solver2_simplify(pSat);
-        /*
-        if ( status == 0 )
-        {
-            /// UNSAT, POS_UNATE
-            unate_vec[pi_idx] = POS_UNATE;
-            Vec_IntFree( vCiIds );
-            Cnf_DataFree( pCnf );
-            sat_solver2_delete( pSat );
-            pNtk->pModel = (int *)pMan->pData, pMan->pData = NULL;
-            Aig_ManStop( pMan );
-            continue;
-        }*/
-        
-        /// setup assumption for POS_UNATE
-        int num_assumption = 1, num_var = xi_vec.size();
-        int* lit_vec = new int[num_assumption+1];
-        
-        /// order of CI in vCiIds is the same as Aig_ManForEachCi
-        lit_vec[0] =  2*vCiIds->pArray[ num_var*2 ]+1;
-        /*
         for( int i=0; i<vCiIds->nSize; ++i )
         {
             std::cout << vCiIds->pArray[i] << std::endl;
         }
-        std::cout << lit_vec[0] << std::endl;
-        */
-        //std::cout << "Run SAT Solver" << std::endl;
+        
+        /// write to sat_solver2
+        sat_solver * pSat = (sat_solver *)Cnf_DataWriteIntoSolver( pCnf, 1, 0 );
+        sat_add_variable_constraint( pSat, vCiIds, xi_vec.size() );
+        
+        
+    int num_var = xi_vec.size();
+    int num_assumption = num_var+3; 
+    int* lit_vec = new int[num_assumption+1];
+    
+    for( int pi_idx=0; pi_idx<Abc_NtkPiNum(pNtk); ++pi_idx)
+    {
+        int status = 0;
+        
+        /// setup assumption
+        sat_make_assumption( lit_vec, vCiIds, num_var , pi_idx, 1 );
+        
         
         /// run SAT solver
         //status = sat_solver2_solve( pSat, NULL, NULL, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
-        status = sat_solver2_solve( pSat, &lit_vec[0], &lit_vec[num_assumption], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+        status = sat_solver_solve( pSat, lit_vec, lit_vec+num_assumption, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
         //Sat_Solver2PrintStats( stdout, pSat );
         
+        std::cout << "status=" << status << std::endl;
         /// l_False = -1 = UNSAT; l_True = 1 = SAT
-        //std::cout << "status=" << status << std::endl;
         if ( status == l_False )
         {
-            //std::cout << "pos" << std::endl;
             unate_vec[pi_idx] = POS_UNATE;
-            Vec_IntFree( vCiIds );
-            Cnf_DataFree( pCnf );
-            sat_solver2_delete( pSat );
-            pNtk->pModel = (int *)pMan->pData, pMan->pData = NULL;
-            Aig_ManStop( pMan );
-            delete lit_vec;
             continue;
         }
         
-        //////////////////////////////////////
-        /// not pos_unate, check neg_unate ///
-        //////////////////////////////////////
-        
-        //std::cout << "Run SAT Solver 2" << std::endl;
-        
         /// set assumption for NEG_UNATE
-        lit_vec[0] = 2*vCiIds->pArray[ num_var*2 ];
+        sat_make_assumption( lit_vec, vCiIds, num_var , pi_idx, 0 );
+        
         //status = sat_solver2_solve( pSat, NULL, NULL, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
-        status = sat_solver2_solve( pSat, &lit_vec[0], &lit_vec[num_assumption], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+        status = sat_solver_solve( pSat, lit_vec, lit_vec+num_assumption, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
         //Sat_Solver2PrintStats( stdout, pSat );
         
-        //std::cout << "status=" << status << std::endl;
+        std::cout << "status=" << status << std::endl;
         if ( status == l_False )
         {
             unate_vec[pi_idx] = NEG_UNATE;
-            //std::cout << "neg" << std::endl;
         }
         else
         {
             unate_vec[pi_idx] = BINATE;
-            //std::cout << "binate" << std::endl;
         }
-            Vec_IntFree( vCiIds );
-            Cnf_DataFree( pCnf );
-            sat_solver2_delete( pSat );
-            pNtk->pModel = (int *)pMan->pData, pMan->pData = NULL;
-            Aig_ManStop( pMan );
-            delete lit_vec;
-            
-        //std::cout << "end of PI" << std::endl;
     }
+    
+    Vec_IntFree( vCiIds );
+    Cnf_DataFree( pCnf );
+    sat_solver_delete( pSat );
+    pNtk->pModel = (int *)pMan->pData, pMan->pData = NULL;
+    Aig_ManStop( pMan );
+    delete lit_vec;
 }
 
 static void print_po_unateness(Abc_Ntk_t* pNtk)
@@ -303,23 +469,21 @@ static void print_po_unateness(Abc_Ntk_t* pNtk)
     int i;
     Abc_Obj_t* pPO;
     Abc_Obj_t* pPi;
-    Abc_NtkForEachPo( pNtk, pPO, i )
-    {
-        //std::cout << "node " << Abc_ObjName( pPO ) << ":" << std::endl;
-    }
-    Abc_NtkForEachPi( pNtk, pPi, i )
-    {
-        //std::cout << "input " << Abc_ObjName( pPi ) << ":" << std::endl;
-    }
     
     Abc_NtkForEachPo( pNtk, pPO, i )
     {
         Abc_Ntk_t * pNtkCone = Abc_NtkCreateCone( pNtk, Abc_ObjFanin0(pPO), Abc_ObjName(pPO), 0 );
         std::vector<Unateness> unate_vec;
         
-        solve_single_po_unateness( pNtkCone, unate_vec );
+        solve_po_unateness( pNtkCone, unate_vec, Abc_ObjFaninC0(pPO) );
         
-        for( auto u : unate_vec ) std::cout << u << std::endl;
+        int j;
+        Abc_Obj_t * ptr;
+        Abc_NtkForEachPi( pNtkCone, ptr, j )
+        {
+            std::cout << Abc_ObjName(ptr) << "\t: " << unate_vec[j] << std::endl;
+        }
+        //for( auto u : unate_vec ) std::cout << u << std::endl;
         
         Abc_NtkDelete( pNtkCone );
     }
@@ -353,6 +517,7 @@ int CommandPrintPOUnate(Abc_Frame_t* pAbc, int argc, char** argv)
     }
     
     /// strash network if it is not aig
+    
     Abc_Ntk_t * pNtkRes = pNtk;
     if( !Abc_NtkIsStrash(pNtk) )
     {

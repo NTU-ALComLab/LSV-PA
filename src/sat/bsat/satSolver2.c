@@ -1300,12 +1300,12 @@ int sat_solver2_addclause(sat_solver2* s, lit* begin, lit* end, int Id)
     begin = veci_begin( &s->temp_clause );
     end = begin + veci_size( &s->temp_clause );
     
-    /*
+    
     printf("addclause: ");
     for( i = begin; i < end; i++  )
         printf("%d ", (*i));
     printf("\n");
-    */
+    
     // insertion sort
     maxvar = lit_var(*begin);
     for (i = begin + 1; i < end; i++){

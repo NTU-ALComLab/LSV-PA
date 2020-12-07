@@ -1736,7 +1736,7 @@ int sat_solver_addclause(sat_solver* s, lit* begin, lit* end)
     int maxvar;
     lit last;
     assert( begin < end );
-    if ( s->fPrintClause )
+    if ( 1 || s->fPrintClause )
     {
         for ( i = begin; i < end; i++ )
             printf( "%s%d ", (*i)&1 ? "!":"", (*i)>>1 );
@@ -2087,6 +2087,7 @@ int sat_solver_solve(sat_solver* s, lit* begin, lit* end, ABC_INT64_T nConfLimit
 
 #ifdef SAT_USE_ANALYZE_FINAL
     // Perform assumptions:
+    printf("solve: "); printlits(begin, end); printf("\n");
     s->root_level = 0;
     for ( i = begin; i < end; i++ )
         if ( !sat_solver_push(s, *i) )
@@ -2097,7 +2098,7 @@ int sat_solver_solve(sat_solver* s, lit* begin, lit* end, ABC_INT64_T nConfLimit
         }
     assert(s->root_level == sat_solver_dl(s));
 #else
-    //printf("solve: "); printlits(begin, end); printf("\n");
+    printf("solve: "); printlits(begin, end); printf("\n");
     for (i = begin; i < end; i++){
 //        switch (lit_sign(*i) ? -s->assignss[lit_var(*i)] : s->assignss[lit_var(*i)]){
         switch (var_value(s, *i)) {
