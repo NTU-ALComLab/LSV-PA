@@ -41,10 +41,10 @@ Submission period:
 - Parts 1 and 2: 2020/10/15 11:00-13:00
 - Part 3: 2020/10/29 11:00-13:00
 
-### PA2
-Tentative topic: Unateness checking of global PI/PO
+### [PA2](./lsv/pa2/README.md)
+Topic: Unateness checking of global PI/PO
 
-Submission period: TBD
+Submission period: 2020/12/10 11:00-13:00
 
 #### Evaluation
 For PA1 and PA2, your submissions will be evaluated over [The EPFL Combinational Benchmark Suite](https://www.epfl.ch/labs/lsi/page-102566-en-html/benchmarks/).
