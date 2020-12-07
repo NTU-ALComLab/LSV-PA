@@ -85,41 +85,31 @@ void printCiInfo(Abc_Obj_t* nodeCi){
 	cout << "name: " << Abc_ObjName(nodeCi) << endl;
 }
 
-void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, Aig_Man_t* aigMan, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet){
+void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet){
 	////////////////////////////////////////////////////////////////////////
     //find pos unate, we have ~(F->G) = (F)(~G) in satSol                 //
 	//make x in F = 0, and x in G = 1                                     //
 	//turn on all the other control var to make other pi var be the same  //
 	//if SAT, which means we find a cex, then it is not untate            //
-	//if UNSAT, this is unate function                                    //
+	//if UNSAT, this pi is pos unate                                      //
 	////////////////////////////////////////////////////////////////////////
 	int nlits = vCiIds->nSize + 2;//n pi control + 2 pi
-    //cout << "we will add " << nlits << " assumptions" << endl;
     int *pLits = ABC_ALLOC(int, nlits);
     int idx;
 
-	//////////////////////////////
-    //adding control constrain  //
-    //////////////////////////////
+    //adding control constrain
     Abc_Obj_t* nodePi;
     int j;
 	Abc_NtkForEachPi(abcNtk_1Po, nodePi, j){
-        //printCiInfo(nodePi);
         int pi_F = ntkCnf->pVarNums[Abc_ObjId(nodePi)];
         int pi_G = pi_F + nFvar;
-        //cout << "pi_F = " << pi_F << endl;
-        //cout << "pi_G = " << pi_G << endl;
         idx = 0;
 
-        //////////////////////////////
-        //set pi_F = 0 and pi_G = 1 //
-        //////////////////////////////
+        //set pi_F = 0 and pi_G = 1 
         pLits[idx++] = toLitCond(pi_F, NEG);
         pLits[idx++] = toLitCond(pi_G, POS);
 
-		////////////////////////////////////////////////////////
-        //set all the other pi var be the same in F and F'    //
-        ////////////////////////////////////////////////////////
+        //set all the other pi var be the same in F and F'
         for(int i = 0; i < vCiIds->nSize; ++i){
             if(i == j){//this is current considered pi
                 //cout << "trun off constrain" << constrainSet[i] << endl;
@@ -144,6 +134,63 @@ void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, Aig_Man_t* aigMan, int 
         else if (status == UNSAT){
             //cout << "unsat" << endl;
             cout << "This is pos unate!" << endl;
+        }
+        else{
+            cout << "error in solveing SAT" << endl;
+        }
+	}
+	ABC_FREE(pLits);
+}
+
+void findNegUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet){
+	////////////////////////////////////////////////////////////////////////
+    //find neg unate, we have ~(F->G) = (F)(~G) in satSol                 //
+	//make x in F = 1, and x in G = 0                                     //
+	//turn on all the other control var to make other pi var be the same  //
+	//if SAT, which means we find a cex, then it is not untate            //
+	//if UNSAT, this pi is neg unate                                      //
+	////////////////////////////////////////////////////////////////////////
+	int nlits = vCiIds->nSize + 2;//n pi control + 2 pi
+    int *pLits = ABC_ALLOC(int, nlits);
+    int idx;
+
+    //adding control constrain
+    Abc_Obj_t* nodePi;
+    int j;
+	Abc_NtkForEachPi(abcNtk_1Po, nodePi, j){
+        int pi_F = ntkCnf->pVarNums[Abc_ObjId(nodePi)];
+        int pi_G = pi_F + nFvar;
+        idx = 0;
+
+        //set pi_F = 1 and pi_G = 0
+        pLits[idx++] = toLitCond(pi_F, POS);
+        pLits[idx++] = toLitCond(pi_G, NEG);
+
+        //set all the other pi var be the same in F and F'
+        for(int i = 0; i < vCiIds->nSize; ++i){
+            if(i == j){//this is current considered pi
+                //cout << "trun off constrain" << constrainSet[i] << endl;
+                pLits[idx++] = toLitCond(constrainSet[i], NEG);
+            }
+            else{
+                //cout << "turn on constrain " << constrainSet[i] << endl;
+                pLits[idx++] = toLitCond(constrainSet[i], POS);
+            }
+        }
+
+        assert(idx == nlits);
+ 
+ 		//solve this sat
+        //note: can we simplify the problem by status = sat_solver_simplify(satSol); ?
+        int status = sat_solver_solve( satSol, pLits, pLits + nlits, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+		//result
+        if ( status == SAT ){
+            //cout << "sat" << endl;                
+            cout << "This is not neg unate!" << endl;
+        }
+        else if (status == UNSAT){
+            //cout << "unsat" << endl;
+            cout << "This is neg unate!" << endl;
         }
         else{
             cout << "error in solveing SAT" << endl;
@@ -284,7 +331,8 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		}
 */
 
-		findPosUnate(vCiIds, ntkCnf, aigMan, nFvar, abcNtk_1Po, satSol, constrainSet);
+		findPosUnate(vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet);
+		findNegUnate(vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet);
 /*
 		//
 
