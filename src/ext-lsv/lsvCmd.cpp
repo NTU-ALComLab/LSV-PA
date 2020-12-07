@@ -283,6 +283,7 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
       printf("PI Id = %d, cnf Id = %d\n", Abc_ObjId(pPi), pCnfPos->pVarNums[Abc_ObjId(pPi)]);
     }
 
+    // manipulate CNF formula
     pCnfNeg = Cnf_DataDup(pCnfPos);
     Cnf_DataLift(pCnfNeg, pCnfPos->nVars);
 
@@ -294,17 +295,23 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
       printf("PI Id = %d, cnf Id = %d\n", Abc_ObjId(pPi), pCnfNeg->pVarNums[Abc_ObjId(pPi)]);
     }
 
-    // manipulate CNF formula
+
 
     // initialize SAT solver
-    //pSat = (sat_solver *)Cnf_DataWriteIntoSolver( pCnf, 1, 0 );
+    pSat = (sat_solver *)Cnf_DataWriteIntoSolver( pCnfPos, 1, 0 );
+    sat_solver_setnvars( pSat, pCnfPos->nVars * 2 );
+    for ( int i = 0; i < pCnfNeg->nClauses; i++ )
+    {
+      sat_solver_addclause( pSat, pCnfNeg->pClauses[i], pCnfNeg->pClauses[i+1] );
+    }
+
     // assert each output independently
    
-    //printf( "Created SAT problem with %d variable and %d clauses. \n", sat_solver_nvars(pSat), sat_solver_nclauses(pSat) );
+    printf( "Created SAT problem with %d variable and %d clauses. \n", sat_solver_nvars(pSat), sat_solver_nclauses(pSat) );
 
-    //status = sat_solver_simplify(pSat);
+    status = sat_solver_simplify(pSat);
 
-    //std::cout << status << std::endl; 
+    std::cout << status << std::endl; 
     // manipulate SAT solver
   }  
 }
