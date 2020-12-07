@@ -106,6 +106,9 @@ alias wl write_blif
 alias wp write_pla
 alias wv write_verilog
 
+# custom alias
+alias qq lsv_print_pounate
+
 # standard scripts
 alias resyn       "b; rw; rwz; b; rwz; b"
 alias resyn2      "b; rw; rf; b; rw; rwz; b; rfz; rwz; b"

@@ -11,6 +11,7 @@
 using namespace std;
 
 extern "C" Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+extern "C" Cnf_Dat_t * Cnf_Derive( Aig_Man_t * pAig, int nOutputs );
 
 static int Lsv_CommandPrintSopUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintPoUnate(Abc_Frame_t* pAbc, int argc, char** argv);
@@ -210,20 +211,44 @@ int Lsv_CommandPrintPoUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
   // implementation starts here
 
   Abc_Obj_t* pPo;
-  int i, j;
+  int i;
+  int total_var;
   Abc_NtkForEachPo(pNtk, pPo, i){
 
-    Abc_Ntk_t* pTFINtk = Abc_NtkCreateCone(pNtk, pPo, Abc_ObjName(pPo), 0); // single output network
+    Abc_Ntk_t* pTFINtk = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 1); // single output network
+    if(Abc_ObjFaninC0(pPo)){
+      Abc_NtkPo(pTFINtk,0)->fCompl0 ^= 1;
+    }
 
-    Aig_Man_t * pAig = Abc_NtkToDar(pTFINtk, 0, 0);
-    Cnf_Dat_t * pCnf_F = Cnf_Derive(pAig, 1);
     sat_solver * pSat;
 
+    Aig_Man_t * pAig = Abc_NtkToDar(pTFINtk, 0, 0);
+    // F
+    Cnf_Dat_t * pCnf_F = Cnf_Derive(pAig, 1);
+    // F_bar
+    Cnf_Dat_t * pCnf_F_bar = Cnf_DataDup(pCnf_F);
+    Cnf_DataLift(pCnf_F_bar, pCnf_F->nVars);
+
+    // add F into SAT
     pSat = (sat_solver*)Cnf_DataWriteIntoSolver( pCnf_F, 1, 0 );
 
-  }
+    // add F_bar into SAT
+    for ( i = 0; i < pCnf_F_bar->nClauses; i++ ){
+      if ( !sat_solver_addclause( pSat, pCnf_F_bar->pClauses[i], pCnf_F_bar->pClauses[i+1] ) )
+        {
+          sat_solver_delete( pSat );
+          continue;
+        }
+    }
 
-  cout << "good!" << endl;
+    total_var = pCnf_F->nVars*2;
+
+    // enabling variables and 
+
+
+  } // end of Abc_NtkForEachPo
+
+  cerr << "good!" << endl;
   
   return 0;
 
