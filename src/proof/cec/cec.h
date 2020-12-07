@@ -95,6 +95,7 @@ struct Cec_ParSmf_t_
 typedef struct Cec_ParFra_t_ Cec_ParFra_t;
 struct Cec_ParFra_t_
 {
+    int              jType;         // solver type
     int              nWords;        // the number of simulation words
     int              nRounds;       // the number of simulation rounds
     int              nItersMax;     // the maximum number of iterations of SAT sweeping
@@ -102,6 +103,9 @@ struct Cec_ParFra_t_
     int              TimeLimit;     // the runtime limit in seconds
     int              nLevelMax;     // restriction on the level nodes to be swept
     int              nDepthMax;     // the depth in terms of steps of speculative reduction
+    int              nCallsRecycle; // calls to perform before recycling SAT solver
+    int              nSatVarMax;    // the max number of SAT variables
+    int              nGenIters;     // pattern generation iterations
     int              fRewriting;    // enables AIG rewriting
     int              fCheckMiter;   // the circuit is the miter
 //    int              fFirstStop;    // stop on the first sat output
