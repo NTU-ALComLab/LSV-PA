@@ -3,6 +3,7 @@
 #include "base/main/mainInt.h"
 #include "sat/cnf/cnf.h"
 #include "sat/bsat/satSolver2.h"
+#include "aig/aig/aig.h"
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -11,17 +12,13 @@
 extern "C"
 {
   Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
-  //Abc_Ntk_t * Abc_NtkStrash( Abc_Ntk_t * pNtk, int fAllNodes, int fCleanup, int fRecord );
-  //Abc_Ntk_t * Abc_NtkDarToCnf( Abc_Ntk_t * pNtk, char * pFileName, int fFastAlgo, int fChangePol, int fVerbose );
-  //void * Cnf_DataWriteIntoSolver( Cnf_Dat_t * p, int nFrames, int fInit );
-  //int    Cnf_DataWriteOrClause2( void * pSat, Cnf_Dat_t * pCnf );
 }
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintPOUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
-bool debug = false;
+bool debug = true;
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
@@ -246,9 +243,7 @@ usage:
 }
 
 void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
-  std::cout << "-----------HI------------" << std::endl;
   // extract cone from Abc_Ntk
-  // iterate each PO and find the cone of each PO
   Abc_Obj_t* pPo;
   int i;
   Abc_Ntk_t* pCone;
@@ -258,15 +253,17 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
   sat_solver * pSat;
   int status;
 
+  // iterate each PO and find the cone of each PO
   Abc_NtkForEachPo(pNtk, pPo, i) {
     pCone = Abc_NtkCreateCone( pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 0 );
-    //Abc_Obj_t* pPi;
-    printf("PO Id = %d, name = %s\n", Abc_ObjId(pPo), Abc_ObjName(pPo));
     int j;
-    Abc_NtkForEachPi( pNtk, pPi, j ) {
-      printf("PI Id = %d, name = %s\n", Abc_ObjId(pPi), Abc_ObjName(pPi));
+
+    if (debug) {
+      printf("PO Id = %d, name = %s\n", Abc_ObjId(pPo), Abc_ObjName(pPo));
+      Abc_NtkForEachPi( pNtk, pPi, j ) {
+        printf("PI Id = %d, name = %s\n", Abc_ObjId(pPi), Abc_ObjName(pPi));
+      }
     }
-    std::cout << std::endl;
 
     // Turn Abc_Ntk into Aig_Man_t
     pCone = Abc_NtkStrash (pCone, 0, 0, 0 );
@@ -275,44 +272,57 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     // Turn Aig_Man_t to Cnf_Dat_t (pCnfPos for positive cofactor, pCnfNeg for negetive cofactor)
     pCnfPos = Cnf_Derive( pMan, Aig_ManCoNum(pMan) ); 
 
-    Abc_Print( 1, "CNF stats: Vars = %6d. Clauses = %7d. Literals = %8d.   \n", pCnfPos->nVars, pCnfPos->nClauses, pCnfPos->nLiterals );
-    Cnf_DataPrint( pCnfPos, 1  );
-
-    printf("PO Id = %d, cnf Id = %d\n", Abc_ObjId(pPo), pCnfPos->pVarNums[Abc_ObjId(pPo)]);
-    Abc_NtkForEachPi( pNtk, pPi, j ) {
-      printf("PI Id = %d, cnf Id = %d\n", Abc_ObjId(pPi), pCnfPos->pVarNums[Abc_ObjId(pPi)]);
-    }
-
     // manipulate CNF formula
+    // duplicate cnf formula
     pCnfNeg = Cnf_DataDup(pCnfPos);
     Cnf_DataLift(pCnfNeg, pCnfPos->nVars);
 
-    Abc_Print( 1, "CNF stats: Vars = %6d. Clauses = %7d. Literals = %8d.   \n", pCnfNeg->nVars, pCnfNeg->nClauses, pCnfNeg->nLiterals );
-    Cnf_DataPrint( pCnfNeg, 1  );
-
-    printf("PO Id = %d, cnf Id = %d\n", Abc_ObjId(pPo), pCnfNeg->pVarNums[Abc_ObjId(pPo)]);
-    Abc_NtkForEachPi( pNtk, pPi, j ) {
-      printf("PI Id = %d, cnf Id = %d\n", Abc_ObjId(pPi), pCnfNeg->pVarNums[Abc_ObjId(pPi)]);
+    // 
+    if (debug) {
+      Abc_Print( 1, "CNF stats: Vars = %6d. Clauses = %7d. Literals = %8d.   \n", pCnfPos->nVars, pCnfPos->nClauses, pCnfPos->nLiterals );
+      Cnf_DataPrint( pCnfPos, 1  );
+      printf("PO Id = %d, cnf Id = %d\n", Abc_ObjId(pPo), pCnfPos->pVarNums[Abc_ObjId(pPo)]);
+      Abc_NtkForEachPi( pNtk, pPi, j ) {
+        printf("PI Id = %d, cnf Id = %d\n", Abc_ObjId(pPi), pCnfPos->pVarNums[Abc_ObjId(pPi)]);
+      }
+      Abc_Print( 1, "CNF stats: Vars = %6d. Clauses = %7d. Literals = %8d.   \n", pCnfNeg->nVars, pCnfNeg->nClauses, pCnfNeg->nLiterals );
+      Cnf_DataPrint( pCnfNeg, 1  );
+      printf("PO Id = %d, cnf Id = %d\n", Abc_ObjId(pPo), pCnfNeg->pVarNums[Abc_ObjId(pPo)]);
+      Abc_NtkForEachPi( pNtk, pPi, j ) {
+        printf("PI Id = %d, cnf Id = %d\n", Abc_ObjId(pPi), pCnfNeg->pVarNums[Abc_ObjId(pPi)]);
+      }
     }
-
-
 
     // initialize SAT solver
     pSat = (sat_solver *)Cnf_DataWriteIntoSolver( pCnfPos, 1, 0 );
     sat_solver_setnvars( pSat, pCnfPos->nVars * 2 );
-    for ( int i = 0; i < pCnfNeg->nClauses; i++ )
-    {
+    for ( int i = 0; i < pCnfNeg->nClauses; i++ ) {
       sat_solver_addclause( pSat, pCnfNeg->pClauses[i], pCnfNeg->pClauses[i+1] );
     }
 
-    // assert each output independently
-   
-    printf( "Created SAT problem with %d variable and %d clauses. \n", sat_solver_nvars(pSat), sat_solver_nclauses(pSat) );
+    if (debug) printf( "Created SAT problem with %d variable and %d clauses. \n", sat_solver_nvars(pSat), sat_solver_nclauses(pSat) );
+    
+    // manipulate SAT solver
+
+    // Add clause for each PI
+    // Traverse each PI and add control variable
+    Aig_Obj_t * pObjPI;
+    int iter;
+    std::vector<int> piControl(Aig_ManCiNum(pMan));
+    Aig_ManForEachCi( pMan, pObjPI, iter ) {
+      piControl[iter] = sat_solver_addvar(pSat);
+      sat_solver_add_buffer_enable(pSat,pCnfPos->pVarNums[Aig_ObjId(pObjPI)],pCnfNeg->pVarNums[Aig_ObjId(pObjPI)],piControl[iter],0);
+      //printf("%d\n",iter);
+      if (debug) printf("%d\n",piControl[iter]);
+    }
+
+
+    if (debug) printf( "Created SAT problem with %d variable and %d clauses. \n", sat_solver_nvars(pSat), sat_solver_nclauses(pSat) );
 
     status = sat_solver_simplify(pSat);
-
     std::cout << status << std::endl; 
-    // manipulate SAT solver
+
+
   }  
 }
 
