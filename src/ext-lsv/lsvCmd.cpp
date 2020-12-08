@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <unordered_map>
 using namespace std;
 
 extern "C" Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
@@ -212,43 +213,170 @@ int Lsv_CommandPrintPoUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
 
   Abc_Obj_t* pPo;
   int i;
-  int total_var;
   Abc_NtkForEachPo(pNtk, pPo, i){
 
-    Abc_Ntk_t* pTFINtk = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 1); // single output network
+    Abc_Ntk_t* pTFINtk = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 0); // single output network
     if(Abc_ObjFaninC0(pPo)){
       Abc_NtkPo(pTFINtk,0)->fCompl0 ^= 1;
     }
-
+    
     sat_solver * pSat;
 
     Aig_Man_t * pAig = Abc_NtkToDar(pTFINtk, 0, 0);
     // F
-    Cnf_Dat_t * pCnf_F = Cnf_Derive(pAig, 1);
+    Cnf_Dat_t * pCnf_F = Cnf_Derive(pAig, Aig_ManCoNum(pAig));
     // F_bar
     Cnf_Dat_t * pCnf_F_bar = Cnf_DataDup(pCnf_F);
     Cnf_DataLift(pCnf_F_bar, pCnf_F->nVars);
 
+    
     // add F into SAT
     pSat = (sat_solver*)Cnf_DataWriteIntoSolver( pCnf_F, 1, 0 );
 
+    
     // add F_bar into SAT
-    for ( i = 0; i < pCnf_F_bar->nClauses; i++ ){
-      if ( !sat_solver_addclause( pSat, pCnf_F_bar->pClauses[i], pCnf_F_bar->pClauses[i+1] ) )
+    for (int jj = 0; jj < pCnf_F_bar->nClauses; jj++){
+      if ( !sat_solver_addclause( pSat, pCnf_F_bar->pClauses[jj], pCnf_F_bar->pClauses[jj+1] ) )
         {
           sat_solver_delete( pSat );
           continue;
         }
     }
 
-    total_var = pCnf_F->nVars*2;
-
+    
     // enabling variables and 
+    Abc_Obj_t* pPi_abc;
+    int j;
+
+    
+    unordered_map <int, int> var2alpha;
+    unordered_map <string, int> name2AigId;
+
+    // for each Ci add clause
+    Abc_NtkForEachPi(pTFINtk, pPi_abc, j){
+
+      int F_var = pCnf_F->pVarNums[Abc_ObjId(pPi_abc)];
+      int F_bar_var = F_var + pCnf_F->nVars;
+      int alpha = sat_solver_addvar(pSat);
+
+      var2alpha[F_var] = alpha;
+  
+      sat_solver_add_buffer_enable(pSat, F_var, F_bar_var, alpha, 0);
+      // cerr << Aig_ObjId(pPi) << endl;
+
+      // string s = (string) Abc_ObjName(pPi_abc);
+      // name2AigId[s] = Abc_ObjId(pPi_abc);
+      
+    }
 
 
+
+    // for each Ci set assumption and solve for each Ci
+    Abc_Obj_t* pPi_other;
+    int k;
+    int assump_num = Aig_ManCiNum(pAig) + 4;
+    int F_out_var = pCnf_F->pVarNums[Aig_ObjId(Aig_ManCo(pAig,0))];  // var number of F out
+    int F_bar_out_var = F_out_var + pCnf_F->nVars;  // var number of F_bar out
+
+    string pos_unate = "";
+    string neg_unate = "";
+    string binate = "";
+
+    Abc_NtkForEachPi(pTFINtk, pPi_abc, j){
+
+      // string s = (string) Abc_ObjName(pPi_abc);
+      // if(name2AigId.find(s)==name2AigId.end()){ //don't care inputs
+      //   pos_unate = pos_unate + s + ",";
+      //   neg_unate = neg_unate + s + ",";
+      //   continue;
+      // }
+
+      // positive unate
+      lit Lits[assump_num];
+      Lits[0] = toLitCond(F_out_var, 0);  // F = 1
+      Lits[1] = toLitCond(F_bar_out_var, 1); // F~ = 0
+      Lits[2] = toLitCond(pCnf_F->pVarNums[Abc_ObjId(pPi_abc)], 1); // F x = 0
+      Lits[3] = toLitCond((pCnf_F->pVarNums[Abc_ObjId(pPi_abc)] + pCnf_F->nVars), 0); // F~ x = 1
+
+      int idx = 4;
+      Abc_NtkForEachPi(pTFINtk, pPi_other, k){
+        int cur_alpha = var2alpha[pCnf_F->pVarNums[Abc_ObjId(pPi_other)]];
+        if(Abc_ObjId(pPi_abc) != Abc_ObjId(pPi_other)){ // not cofactor x
+          Lits[idx] = toLitCond(cur_alpha, 0);  // alpha
+        } else {  //cofactor x 
+          Lits[idx] = toLitCond(cur_alpha, 1);  // alpha~
+        }
+        ++idx;
+      }
+
+      int status_pos = sat_solver_solve(pSat, Lits, Lits + assump_num, 0, 0, 0, 0);
+
+      // negative unate
+      Lits[2] = toLitCond(pCnf_F->pVarNums[Abc_ObjId(pPi_abc)], 0); // F x = 1
+      Lits[3] = toLitCond((pCnf_F->pVarNums[Abc_ObjId(pPi_abc)] + pCnf_F->nVars), 1); // F~ x = 0
+
+      int status_neg = sat_solver_solve(pSat, Lits, Lits + assump_num, 0, 0, 0, 0);
+
+      string s = (string) Abc_ObjName(pPi_abc);
+      
+
+      // cerr << status_pos << " " << status_neg << endl;
+
+      if(status_pos==-1 && status_neg==-1){
+        name2AigId[s] = 0;
+      } else if(status_pos==-1 && status_neg==1){
+        name2AigId[s] = 1;
+      } else if(status_pos==1 && status_neg==-1){
+        name2AigId[s] = 2;
+      } else {
+        name2AigId[s] = 3;
+      }
+
+    }
+
+    Abc_NtkForEachPi(pNtk, pPi_abc, j){
+      string s = (string) Abc_ObjName(pPi_abc);
+      if(name2AigId.find(s)==name2AigId.end()){ //don't care inputs
+        pos_unate = pos_unate + s + ",";
+        neg_unate = neg_unate + s + ",";
+        continue;
+      }
+
+      if(name2AigId[s] == 0){
+        pos_unate = pos_unate + s + ",";
+        neg_unate = neg_unate + s + ",";
+      } else if(name2AigId[s] == 1){
+        pos_unate = pos_unate + s + ",";
+      } else if(name2AigId[s] == 2){
+        neg_unate = neg_unate + s + ",";
+      } else if(name2AigId[s] == 3){
+        binate = binate + s + ",";
+      }
+    }
+
+
+    // trim " ,"
+    pos_unate = pos_unate.substr(0, pos_unate.length()-1);
+    neg_unate = neg_unate.substr(0, neg_unate.length()-1);
+    binate = binate.substr(0, binate.length()-1);
+
+    // output restuls
+    cout << "node " << Abc_ObjName(pPo) << ":" << endl;
+    if(pos_unate!=""){
+      cout << "+unate inputs: " << pos_unate << endl;
+    }
+
+    if(neg_unate!=""){
+      cout << "-unate inputs: " << neg_unate << endl;
+    }
+
+    if(binate!=""){
+      cout << "binate inputs: " << binate << endl;
+    }
+  
   } // end of Abc_NtkForEachPo
 
-  cerr << "good!" << endl;
+
   
   return 0;
 
