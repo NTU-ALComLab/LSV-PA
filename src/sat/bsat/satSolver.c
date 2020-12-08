@@ -79,7 +79,7 @@ static const int varX  = 3;
 
 struct varinfo_t
 {
-    unsigned val    :  2;  // variable value 
+    unsigned val    :  2;  // variable value
     unsigned pol    :  1;  // last polarity
     unsigned tag    :  1;  // conflict analysis tag
     unsigned lev    : 28;  // variable level
@@ -95,19 +95,19 @@ static inline void    var_set_polar (sat_solver* s, int v, int pol)   { s->polar
 
 // variable tags
 static inline int     var_tag       (sat_solver* s, int v)            { return s->tags[v]; }
-static inline void    var_set_tag   (sat_solver* s, int v, int tag)   { 
+static inline void    var_set_tag   (sat_solver* s, int v, int tag)   {
     assert( tag > 0 && tag < 16 );
     if ( s->tags[v] == 0 )
         veci_push( &s->tagged, v );
-    s->tags[v] = tag;                           
+    s->tags[v] = tag;
 }
-static inline void    var_add_tag   (sat_solver* s, int v, int tag)   { 
+static inline void    var_add_tag   (sat_solver* s, int v, int tag)   {
     assert( tag > 0 && tag < 16 );
     if ( s->tags[v] == 0 )
         veci_push( &s->tagged, v );
-    s->tags[v] |= tag;                           
+    s->tags[v] |= tag;
 }
-static inline void    solver2_clear_tags(sat_solver* s, int start)    { 
+static inline void    solver2_clear_tags(sat_solver* s, int start)    {
     int i, * tagged = veci_begin(&s->tagged);
     for (i = start; i < veci_size(&s->tagged); i++)
         s->tags[tagged[i]] = 0;
@@ -156,7 +156,7 @@ static inline void order_update(sat_solver* s, int v) // updateorder
     orderpos[x] = i;
 }
 
-static inline void order_assigned(sat_solver* s, int v) 
+static inline void order_assigned(sat_solver* s, int v)
 {
 }
 
@@ -214,7 +214,7 @@ static inline int  order_select(sat_solver* s, float random_var_freq) // selectv
     return var_Undef;
 }
 
-void sat_solver_set_var_activity(sat_solver* s, int * pVars, int nVars) 
+void sat_solver_set_var_activity(sat_solver* s, int * pVars, int nVars)
 {
     int i;
     for (i = 0; i < s->size; i++)
@@ -248,7 +248,7 @@ void sat_solver_set_var_activity(sat_solver* s, int * pVars, int nVars)
 //=================================================================================================
 // variable activities
 
-static inline void solver_init_activities(sat_solver* s)  
+static inline void solver_init_activities(sat_solver* s)
 {
     // variable activities
     s->VarActType             = 0;
@@ -283,7 +283,7 @@ static inline void solver_init_activities(sat_solver* s)
     }
 }
 
-static inline void act_var_rescale(sat_solver* s)  
+static inline void act_var_rescale(sat_solver* s)
 {
     if ( s->VarActType == 0 )
     {
@@ -301,7 +301,7 @@ static inline void act_var_rescale(sat_solver* s)
         for (i = 0; i < s->size; i++)
             activity[i] *= 1e-100;
         s->var_inc = Abc_Dbl2Word( Abc_Word2Dbl(s->var_inc) * 1e-100 );
-        //printf( "Rescaling var activity...\n" ); 
+        //printf( "Rescaling var activity...\n" );
     }
     else if ( s->VarActType == 2 )
     {
@@ -309,11 +309,11 @@ static inline void act_var_rescale(sat_solver* s)
         int i;
         for (i = 0; i < s->size; i++)
             activity[i] = Xdbl_Div( activity[i], 200 ); // activity[i] / 2^200
-        s->var_inc = Xdbl_Div( s->var_inc, 200 ); 
+        s->var_inc = Xdbl_Div( s->var_inc, 200 );
     }
     else assert(0);
 }
-static inline void act_var_bump(sat_solver* s, int v) 
+static inline void act_var_bump(sat_solver* s, int v)
 {
     if ( s->VarActType == 0 )
     {
@@ -342,7 +342,7 @@ static inline void act_var_bump(sat_solver* s, int v)
     }
     else assert(0);
 }
-static inline void act_var_bump_global(sat_solver* s, int v) 
+static inline void act_var_bump_global(sat_solver* s, int v)
 {
     if ( !s->pGlobalVars || !s->pGlobalVars[v] )
         return;
@@ -373,7 +373,7 @@ static inline void act_var_bump_global(sat_solver* s, int v)
     }
     else assert( 0 );
 }
-static inline void act_var_bump_factor(sat_solver* s, int v) 
+static inline void act_var_bump_factor(sat_solver* s, int v)
 {
     if ( !s->factors )
         return;
@@ -405,19 +405,19 @@ static inline void act_var_bump_factor(sat_solver* s, int v)
     else assert( 0 );
 }
 
-static inline void act_var_decay(sat_solver* s)    
-{ 
+static inline void act_var_decay(sat_solver* s)
+{
     if ( s->VarActType == 0 )
-        s->var_inc += (s->var_inc >>  4); 
+        s->var_inc += (s->var_inc >>  4);
     else if ( s->VarActType == 1 )
         s->var_inc = Abc_Dbl2Word( Abc_Word2Dbl(s->var_inc) * Abc_Word2Dbl(s->var_decay) );
     else if ( s->VarActType == 2 )
-        s->var_inc = Xdbl_Mul(s->var_inc, s->var_decay); 
+        s->var_inc = Xdbl_Mul(s->var_inc, s->var_decay);
     else assert(0);
 }
 
 // clause activities
-static inline void act_clause_rescale(sat_solver* s) 
+static inline void act_clause_rescale(sat_solver* s)
 {
     if ( s->ClaActType == 0 )
     {
@@ -437,7 +437,7 @@ static inline void act_clause_rescale(sat_solver* s)
         s->cla_inc *= (float)1e-20;
     }
 }
-static inline void act_clause_bump(sat_solver* s, clause *c) 
+static inline void act_clause_bump(sat_solver* s, clause *c)
 {
     if ( s->ClaActType == 0 )
     {
@@ -450,12 +450,12 @@ static inline void act_clause_bump(sat_solver* s, clause *c)
     {
         float* act = (float *)veci_begin(&s->act_clas) + c->lits[c->size];
         *act += s->cla_inc;
-        if (*act > 1e20) 
+        if (*act > 1e20)
             act_clause_rescale(s);
     }
 }
-static inline void act_clause_decay(sat_solver* s)    
-{ 
+static inline void act_clause_decay(sat_solver* s)
+{
     if ( s->ClaActType == 0 )
         s->cla_inc += (s->cla_inc >> 10);
     else
@@ -661,7 +661,7 @@ static void sat_solver_canceluntil(sat_solver* s, int level) {
     int      bound;
     int      lastLev;
     int      c;
-    
+
     if (sat_solver_dl(s) <= level)
         return;
 
@@ -693,12 +693,12 @@ static void sat_solver_canceluntil(sat_solver* s, int level) {
 
 static void sat_solver_canceluntil_rollback(sat_solver* s, int NewBound) {
     int      c, x;
-   
+
     assert( sat_solver_dl(s) == 0 );
     assert( s->qtail == s->qhead );
     assert( s->qtail >= NewBound );
 
-    for (c = s->qtail-1; c >= NewBound; c--) 
+    for (c = s->qtail-1; c >= NewBound; c--)
     {
         x = lit_var(s->trail[c]);
         var_set_value(s, x, varX);
@@ -811,7 +811,7 @@ static int sat_solver_lit_removable(sat_solver* s, int x, int minl)
 /*_________________________________________________________________________________________________
 |
 |  analyzeFinal : (p : Lit)  ->  [void]
-|  
+|
 |  Description:
 |    Specialized analysis procedure to express the final conflict in terms of assumptions.
 |    Calculates the (possibly empty) set of assumptions that led to the assignment of 'p', and
@@ -928,7 +928,7 @@ static void sat_solver_analyze(sat_solver* s, int h, veci* learnt)
             }
         }else{
             clause* c = clause_read(s, h);
-            
+
             if (clause_learnt(c))
                 act_clause_bump(s,c);
             lits = clause_begin(c);
@@ -1295,7 +1295,7 @@ void sat_solver_setnvars(sat_solver* s,int n)
         s->trail     = ABC_REALLOC(lit,    s->trail,    s->cap);
         s->model     = ABC_REALLOC(int,    s->model,    s->cap);
         memset( s->wlists + 2*old_cap, 0, 2*(s->cap-old_cap)*sizeof(veci) );
-    } 
+    }
 
     for (var = s->size; var < n; var++){
         assert(!s->wlists[2*var].size);
@@ -1324,10 +1324,10 @@ void sat_solver_setnvars(sat_solver* s,int n)
         s->loads   [var] = 0;
         s->orderpos[var] = veci_size(&s->order);
         s->reasons [var] = 0;
-        s->model   [var] = 0; 
-        
+        s->model   [var] = 0;
+
         /* does not hold because variables enqueued at top level will not be reinserted in the heap
-           assert(veci_size(&s->order) == var); 
+           assert(veci_size(&s->order) == var);
          */
         veci_push(&s->order,var);
         order_update(s, var);
@@ -1612,7 +1612,7 @@ void sat_solver_reducedb(sat_solver* s)
                 pArray[j++] = pArray[k];
             else if ( !clause_learnt_h(pMem, pArray[k]) ) // problem clause
                 pArray[j++] = pArray[k];
-            else 
+            else
             {
                 c = clause_read(s, pArray[k]);
                 if ( !c->mark ) // useful learned clause
@@ -1648,9 +1648,9 @@ void sat_solver_rollback( sat_solver* s )
     assert( s->iTrailPivot >= 0 && s->iTrailPivot <= s->qtail );
     // reset implication queue
     sat_solver_canceluntil_rollback( s, s->iTrailPivot );
-    // update order 
+    // update order
     if ( s->iVarPivot < s->size )
-    { 
+    {
         if ( s->activity2 )
         {
             s->var_inc = s->var_inc2;
@@ -1802,7 +1802,7 @@ double luby(double y, int x)
         x = x % size;
     }
     return pow(y, (double)seq);
-} 
+}
 
 void luby_test()
 {
@@ -1867,7 +1867,7 @@ static lbool sat_solver_search(sat_solver* s, ABC_INT64_T nof_conflicts)
             sat_solver_record(s,&learnt_clause);
 #ifdef SAT_USE_ANALYZE_FINAL
 //            if (learnt_clause.size() == 1) level[var(learnt_clause[0])] = 0;    // (this is ugly (but needed for 'analyzeFinal()') -- in future versions, we will backtrack past the 'root_level' and redo the assumptions)
-            if ( learnt_clause.size == 1 ) 
+            if ( learnt_clause.size == 1 )
                 var_set_level(s, lit_var(learnt_clause.ptr[0]), 0);
 #endif
             act_var_decay(s);
@@ -1891,7 +1891,7 @@ static lbool sat_solver_search(sat_solver* s, ABC_INT64_T nof_conflicts)
                 s->progress_estimate = sat_solver_progress(s);
                 sat_solver_canceluntil(s,s->root_level);
                 veci_delete(&learnt_clause);
-                return l_Undef; 
+                return l_Undef;
             }
 
             // Simplify the set of problem clauses:
@@ -1917,7 +1917,7 @@ static lbool sat_solver_search(sat_solver* s, ABC_INT64_T nof_conflicts)
 
                 /*
                 veci apa; veci_new(&apa);
-                for (i = 0; i < s->size; i++) 
+                for (i = 0; i < s->size; i++)
                     veci_push(&apa,(int)(s->model.ptr[i] == l_True ? toLit(i) : lit_neg(toLit(i))));
                 printf("model: "); printlits((lit*)apa.ptr, (lit*)apa.ptr + veci_size(&apa)); printf("\n");
                 veci_delete(&apa);
@@ -1959,12 +1959,12 @@ int sat_solver_solve_internal(sat_solver* s)
             break;
         if (s->verbosity >= 1)
         {
-            printf("| %9.0f | %7.0f %8.0f | %7.0f %7.0f %8.0f %7.1f | %6.3f %% |\n", 
+            printf("| %9.0f | %7.0f %8.0f | %7.0f %7.0f %8.0f %7.1f | %6.3f %% |\n",
                 (double)s->stats.conflicts,
-                (double)s->stats.clauses, 
+                (double)s->stats.clauses,
                 (double)s->stats.clauses_literals,
-                (double)0, 
-                (double)s->stats.learnts, 
+                (double)0,
+                (double)s->stats.learnts,
                 (double)s->stats.learnts_literals,
                 Ratio,
                 s->progress_estimate*100);
@@ -2020,12 +2020,12 @@ int sat_solver_push(sat_solver* s, int p)
         {
             veci_resize(&s->conf_final,0);
             veci_push(&s->conf_final, lit_neg(p));
-            // the two lines below are a bug fix by Siert Wieringa 
+            // the two lines below are a bug fix by Siert Wieringa
             if (var_level(s, lit_var(p)) > 0)
                 veci_push(&s->conf_final, p);
         }
         //sat_solver_canceluntil(s, 0);
-        return false; 
+        return false;
     }
     else
     {
@@ -2102,14 +2102,14 @@ int sat_solver_solve(sat_solver* s, lit* begin, lit* end, ABC_INT64_T nConfLimit
     for (i = begin; i < end; i++){
 //        switch (lit_sign(*i) ? -s->assignss[lit_var(*i)] : s->assignss[lit_var(*i)]){
         switch (var_value(s, *i)) {
-        case var1: // l_True: 
+        case var1: // l_True:
             break;
         case varX: // l_Undef
             sat_solver_decision(s, *i);
             if (sat_solver_propagate(s) == 0)
                 break;
             // fallthrough
-        case var0: // l_False 
+        case var0: // l_False
             sat_solver_canceluntil(s, 0);
             return l_False;
         }
@@ -2178,7 +2178,7 @@ int sat_solver_solve_lexsat( sat_solver* s, int * pLits, int nLits )
     else if ( status == l_False )
     {
         // we proved that there is no assignment with iLitFail having polarity as in pLits
-        assert( Abc_LitIsCompl(pLits[iLitFail]) ); // literal is 0 
+        assert( Abc_LitIsCompl(pLits[iLitFail]) ); // literal is 0
         // (this assert may fail only if there is a sat assignment smaller than one originally given in pLits)
         // now we flip this literal (make it 1), change the last assumption
         // and contiue looking for the 000...0-assignment of other literals
@@ -2202,8 +2202,8 @@ int sat_solver_solve_lexsat( sat_solver* s, int * pLits, int nLits )
 }
 
 // This procedure is called on a set of assumptions to minimize their number.
-// The procedure relies on the fact that the current set of assumptions is UNSAT.  
-// It receives and returns SAT solver without assumptions. It returns the number 
+// The procedure relies on the fact that the current set of assumptions is UNSAT.
+// It receives and returns SAT solver without assumptions. It returns the number
 // of assumptions after minimization. The set of assumptions is returned in pLits.
 int sat_solver_minimize_assumptions( sat_solver* s, int * pLits, int nLits, int nConfLimit )
 {
@@ -2289,7 +2289,7 @@ int sat_solver_minimize_assumptions2( sat_solver* s, int * pLits, int nLits, int
         // if the result is UNSAT, the last literal can be dropped; otherwise, it is needed
         int RetValue = 1, LitNot = Abc_LitNot(pLits[0]);
         int status = l_False;
-        int Temp = s->nConfLimit; 
+        int Temp = s->nConfLimit;
         s->nConfLimit = nConfLimit;
 
         RetValue = sat_solver_push( s, LitNot ); assert( RetValue );
@@ -2407,7 +2407,7 @@ int sat_solver_store_change_last( sat_solver * s )
     if ( s->pStore ) return Sto_ManChangeLastClause( (Sto_Man_t *)s->pStore );
     return -1;
 }
- 
+
 void sat_solver_store_mark_roots( sat_solver * s )
 {
     if ( s->pStore ) Sto_ManMarkRoots( (Sto_Man_t *)s->pStore );
@@ -2430,4 +2430,3 @@ void * sat_solver_store_release( sat_solver * s )
 
 
 ABC_NAMESPACE_IMPL_END
-
