@@ -1,5 +1,5 @@
 --- lsv/pa2/ref/sin.txt	2020-12-07 20:00:58.403235616 -0800
-+++ lsv/pa2/out/sin.txt	2020-12-07 20:17:40.399650220 -0800
++++ lsv/pa2/out/sin.txt	2020-12-08 06:01:54.645485492 -0800
 @@ -1,55 +1,2 @@
  ABC command line: "lsv_print_pounate".
  

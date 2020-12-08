@@ -82,7 +82,9 @@ binate inputs: opcode[1],opcode[4]
 node invB:
 +unate inputs: opcode[3],op_ext[0],op_ext[1]
 binate inputs: opcode[0],opcode[1],opcode[2],opcode[4]
-error in adding output constrain to sat solver
+node sign:
++unate inputs: opcode[0],opcode[1],opcode[2],opcode[3],opcode[4],op_ext[0],op_ext[1]
+-unate inputs: opcode[0],opcode[1],opcode[2],opcode[3],opcode[4],op_ext[0],op_ext[1]
 node mem_write:
 +unate inputs: opcode[4],op_ext[0],op_ext[1]
 -unate inputs: opcode[2],opcode[3],op_ext[0],op_ext[1]

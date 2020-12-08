@@ -253,10 +253,8 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		//init sat solver by adding F CNF 
 		sat_solver* satSol = (sat_solver*)Cnf_DataWriteIntoSolver(ntkCnf, 1, 0);
 		if ( satSol == NULL ){
-			/*
 			cout << "Error! SAT solver is null" << endl;
-            continue;
-			*/
+            continue;	
         }
 
 		//add cnf G into sat solver
@@ -264,10 +262,8 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
         int i;
 		Cnf_CnfForClause(cnfG, pBeg, pEnd, i ){
 			if ( !sat_solver_addclause( satSol, pBeg, pEnd ) ){
-				/*
                 cout << "error in adding G cnf to sat solver" << endl;
                 continue;
-				*/
             }
         }
 
@@ -281,17 +277,69 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		//cout << "F_po = " << F_po << endl;
 		pLits[0] = toLitCond(F_po, POS);
 		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
-			/*
-            cout << "error in adding F_po constrain to sat solver" << endl;
-            continue;
-			*/
+            //this po is constant 1
+			//need to print all input as both +unate and -unate
+			//cout << "error in adding F_po constrain to sat solver" << endl;
+			Abc_Obj_t* pObj;
+            cout << "node " << Abc_ObjName( Abc_NtkPo( abcNtk_1Po, 0) ) << ":" << endl;
+			cout << "+unate inputs: ";
+			for(int i = 0; i < vCiIds->nSize; ++i){
+				pObj = Abc_NtkPi(abcNtk_1Po, i);
+				if(i == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+			}
+			cout << endl;
+			cout << "-unate inputs: ";
+            for(int i = 0; i < vCiIds->nSize; ++i){
+                pObj = Abc_NtkPi(abcNtk_1Po, i);
+                if(i == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+
+            }
+			cout << endl;
+
+			//free mem
+			ABC_FREE(pLits);
+			sat_solver_delete( satSol ); //cout << "ok to free sat" << endl;
+	        Vec_IntFree( vCiIds ); //cout << "ok to free vCiIds" << endl;
+		    Cnf_DataFree(ntkCnf); //cout << "ok to free CNF" << endl;
+			Cnf_DataFree(cnfG);
+			Aig_ManStop(aigMan); //cout << "ok to free AIG" << endl;
+
+			continue;
         }
 		pLits[0] = toLitCond(F_po + nFvar, NEG);
 		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
-			/*
-            cout << "error in adding G_po constrain to sat solver" << endl;
-            continue;
-			*/
+			//this po is constant 0
+			//need to print all input as both +unate and -unate
+            //cout << "error in adding G_po constrain to sat solver" << endl;
+			Abc_Obj_t* pObj;
+            cout << "node " << Abc_ObjName( Abc_NtkPo( abcNtk_1Po, 0) ) << ":" << endl;
+            cout << "+unate inputs: ";
+            for(int i = 0; i < vCiIds->nSize; ++i){
+                pObj = Abc_NtkPi(abcNtk_1Po, i);
+                if(i == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+            }
+			cout << endl;
+            cout << "-unate inputs: ";
+            for(int i = 0; i < vCiIds->nSize; ++i){
+                pObj = Abc_NtkPi(abcNtk_1Po, i);
+                if(i == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+            }
+			cout << endl;
+
+			//free mem
+            ABC_FREE(pLits);
+            sat_solver_delete( satSol ); //cout << "ok to free sat" << endl;
+            Vec_IntFree( vCiIds ); //cout << "ok to free vCiIds" << endl;
+            Cnf_DataFree(ntkCnf); //cout << "ok to free CNF" << endl;
+            Cnf_DataFree(cnfG);
+            Aig_ManStop(aigMan); //cout << "ok to free AIG" << endl;
+
+			continue;
+			
         }
 		ABC_FREE(pLits);
 
@@ -447,6 +495,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		sat_solver_delete( satSol ); //cout << "ok to free sat" << endl;
 		Vec_IntFree( vCiIds ); //cout << "ok to free vCiIds" << endl;
 		Cnf_DataFree(ntkCnf); //cout << "ok to free CNF" << endl;
+		Cnf_DataFree(cnfG);
 		Aig_ManStop(aigMan); //cout << "ok to free AIG" << endl;
 		//Abc_NtkDelete(abcNtk_1Po); cout << "ok to free ntk" << endl;
 	}
