@@ -4,17 +4,17 @@
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 
-void init_example(Abc_Frame_t* pAbc) {
+void init_PrintNodes(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
 }
 
-void destroy_example(Abc_Frame_t* pAbc) {}
+void destroy_PrintNodes(Abc_Frame_t* pAbc) {}
 
-Abc_FrameInitializer_t frame_initializer_example = {init_example, destroy_example};
+Abc_FrameInitializer_t frame_initializer_PrintNodes = {init_PrintNodes, destroy_PrintNodes};
 
-struct PackageRegistrationManager_example {
-  PackageRegistrationManager_example() { Abc_FrameAddInitializer(&frame_initializer_example); }
-} lsvPackageRegistrationManager_example;
+struct PackageRegistrationManager_PrintNodes {
+  PackageRegistrationManager_PrintNodes() { Abc_FrameAddInitializer(&frame_initializer_PrintNodes); }
+} lsvPackageRegistrationManager_PrintNodes;
 
 void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pObj;
