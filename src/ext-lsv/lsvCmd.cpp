@@ -18,7 +18,7 @@ static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintPOUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
-bool debug = true;
+bool debug = false;
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
@@ -216,6 +216,8 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
   }
 }
 
+bool myfunction (Abc_Obj_t * a, Abc_Obj_t * b) { return (a->Id < b->Id); }
+
 int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   int c;
@@ -258,7 +260,7 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     pCone = Abc_NtkCreateCone( pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 0 );
     int j;
     bool comp = pPo->fCompl0;
-
+         
     if (debug) {
       printf("===================================\n");
       printf("PO Id = %d, name = %s\n", Abc_ObjId(pPo), Abc_ObjName(pPo));
@@ -270,7 +272,22 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     // Turn Abc_Ntk into Aig_Man_t
     pCone = Abc_NtkStrash (pCone, 0, 0, 0 );
     pMan = Abc_NtkToDar(pCone, 0, 0 );
-
+    std::vector<Abc_Obj_t *> posPIName(0,0), negPIName(0,0), biPIName(0,0);
+    std::vector<std::string> conInName;
+    Abc_Obj_t* pObjPi;   
+    int m;      
+    Abc_Obj_t* pPPi; 
+    Abc_NtkForEachPi( pCone, pPPi, m ) {
+      conInName.push_back(Abc_ObjName(pPPi));
+    }
+    Abc_NtkForEachPi(pNtk,pObjPi, j) {
+      if(find(conInName.begin(), conInName.end(), Abc_ObjName(pObjPi))==conInName.end()) {
+        posPIName.push_back(pObjPi);
+        negPIName.push_back(pObjPi);
+      }
+    }
+    // 0: binate 1:+unate 2:-unate 3:+-unate
+    //std::vector<int> unateness(Aig_ManCiNum(pMan), 0);  
     // Turn Aig_Man_t to Cnf_Dat_t (pCnfPos for positive cofactor, pCnfNeg for negetive cofactor)
     pCnfPos = Cnf_Derive( pMan, Aig_ManCoNum(pMan) ); 
 
@@ -310,7 +327,7 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     // Traverse each PI and add control variable
     Aig_Obj_t * pObjPI;
     Aig_Obj_t * pObjPO = Aig_ManCo(pMan, 0);
-    std::vector<std::string> posPIName, negPIName;
+    
     int iter;
     std::vector<int> piControl(Aig_ManCiNum(pMan),0);
     Aig_ManForEachCi( pMan, pObjPI, iter ) {
@@ -338,7 +355,8 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
 
       status = sat_solver_solve(pSat, assumption, assumption + Aig_ManCiNum(pMan) + 4, 0, 0, 0, 0);
       if (status == l_False) {
-        (comp) ? negPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter))) : posPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter)));
+        (comp) ? negPIName.push_back(Abc_NtkPi(pCone,iter)) : posPIName.push_back(Abc_NtkPi(pCone,iter));
+        //unateness[iter] = (comp) ? 2 : 1;
         //printf("POSUnate  PI ID: %s\n", Abc_ObjName(Abc_NtkPi(pCone,iter)));
       }
 
@@ -348,9 +366,58 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
 
       status = sat_solver_solve(pSat, assumption, assumption + Aig_ManCiNum(pMan) + 4, 0, 0, 0, 0);
       if (status == l_False) {
-        (comp) ? posPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter))) : negPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter)));
+        (comp) ? posPIName.push_back(Abc_NtkPi(pCone,iter)) : negPIName.push_back(Abc_NtkPi(pCone,iter));
+        //if (unateness[iter] == 1 || unateness[iter] == 2) unateness[iter] = 3;
+        //else unateness[iter] = (comp) ? 1 : 2;
         //printf("NEGUnate  PI ID: %d\n", iter);
       }
+    }
+
+    // find binate
+    Aig_ManForEachCi( pMan, pObjPI, iter ) {
+      if(find(posPIName.begin(),posPIName.end(),Abc_NtkPi(pCone,iter))==posPIName.end() && find(negPIName.begin(),negPIName.end(),Abc_NtkPi(pCone,iter))==negPIName.end()){
+        biPIName.push_back(Abc_NtkPi(pCone,iter));
+      }
+    }
+
+    // Traverse PI & PO print out reseult
+    // check binate
+    /*
+    Aig_ManForEachCi( pMan, pObjPI, iter ) {
+      //printf("ID: %s, unateness: %d\n", Abc_ObjName(Abc_NtkPi(pCone,iter)), unateness[iter]);
+      if (unateness[iter] == 0) biPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter)));
+      else if (unateness[iter] == 1) posPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter)));
+      else if (unateness[iter] == 2) negPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter)));
+      else {
+        posPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter)));
+        negPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter)));
+      }
+    }
+    */
+    sort(posPIName.begin(), posPIName.end(), myfunction);
+    sort(negPIName.begin(), negPIName.end(), myfunction);
+
+    printf("node %s:\n", Abc_ObjName(pPo));
+    if (posPIName.size() > 0) {
+      printf("+unate inputs: %s", Abc_ObjName(posPIName[0]));
+      for (int i = 1; i < posPIName.size(); i++) {
+        printf(",%s", Abc_ObjName(posPIName[i]));
+      }
+      printf("\n");
+    }
+    if (negPIName.size() > 0) {
+      printf("-unate inputs: %s", Abc_ObjName(negPIName[0]));
+      for (int i = 1; i < negPIName.size(); i++) {
+        printf(",%s", Abc_ObjName(negPIName[i]));
+      }
+      printf("\n");
+    }
+    if (biPIName.size() > 0) {
+      printf("binate inputs: %s", Abc_ObjName(biPIName[0]));
+      for (int i = 1; i < biPIName.size(); i++) {
+        printf(",%s", Abc_ObjName(biPIName[i]));
+      }
+      printf("\n");
     }
   }  
 }
