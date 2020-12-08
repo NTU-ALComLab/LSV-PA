@@ -1,3 +1,2 @@
-read lsv/example/my_test.blif 
-strash
-dsat
+read benchmarks/arithmetic/sin.aig
+lsv_print_pounate

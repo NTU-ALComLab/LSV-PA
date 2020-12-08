@@ -129,10 +129,18 @@ void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
         }
 
         assert(idx == nlits);
- 
+
  		//solve this sat
         //note: can we simplify the problem by status = sat_solver_simplify(satSol); ?
+		sat_solver_simplify(satSol);
+		/*
+		if ( status == 0 ){
+            printf( "The problem is UNSATISFIABLE after simplification.\n" );
+		}
+		*/
+
         int status = sat_solver_solve( satSol, pLits, pLits + nlits, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+		
 		//result
         if ( status == SAT ){
             //cout << "sat" << endl;                
@@ -188,6 +196,7 @@ void findNegUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
 
         assert(idx == nlits);
  
+		sat_solver_simplify(satSol);
  		//solve this sat
         //note: can we simplify the problem by status = sat_solver_simplify(satSol); ?
         int status = sat_solver_solve( satSol, pLits, pLits + nlits, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
@@ -228,23 +237,33 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 	Abc_Obj_t* nodeCo;
 
 	int i;
-	int fUseAllCis = 1;
+	//int fUseAllCis = 0;
 	Abc_NtkForEachPo( abcNtk, nodeCo, i ) {
 		//get single output abc_ntk
-		abcNtk_1Po = Abc_NtkCreateCone( abcNtk, Abc_ObjFanin0(nodeCo), Abc_ObjName(nodeCo), fUseAllCis );
+		abcNtk_1Po = Abc_NtkCreateCone( abcNtk, Abc_ObjFanin0(nodeCo), Abc_ObjName(nodeCo), 1 );
 		
 		//check output negative
 		if (Abc_ObjFaninC0(nodeCo) ){
 			Abc_NtkPo(abcNtk_1Po, 0)->fCompl0  ^= 1;
 		}
-	
+/*
+		//check po is const
+		if(Abc_NodeIsConst(Abc_NtkPo(abcNtk_1Po, 0))){
+			cout << "it is const!" << endl;
+		}
+*/	
 		//get aig
 		Aig_Man_t* aigMan   = Abc_NtkToDar(abcNtk_1Po, 0, 0);
 
 		//get F cnf
-		Cnf_Dat_t* ntkCnf = Cnf_Derive( aigMan, Aig_ManCoNum(aigMan) );
-		Vec_Int_t * vCiIds = Cnf_DataCollectPiSatNums( ntkCnf, aigMan );
-
+		//Cnf_Dat_t* ntkCnf = Cnf_Derive( aigMan, Aig_ManCoNum(aigMan) );
+		Cnf_Dat_t* ntkCnf = Cnf_Derive( aigMan, 1);
+		Vec_Int_t * vCiIds = Cnf_DataCollectPiSatNums( ntkCnf, aigMan );//pi's var eg: 345
+/*		
+		for(int i = 0; i < vCiIds->nSize; ++i){
+			cout << vCiIds->pArray[i] << endl;
+		}
+*/
 		//get G cnf
 		Cnf_Dat_t* cnfG = Cnf_DataDup(ntkCnf);
 		int nFvar  = ntkCnf->nVars - 1;
@@ -306,6 +325,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 			Cnf_DataFree(cnfG);
 			Aig_ManStop(aigMan); //cout << "ok to free AIG" << endl;
 
+			//return 0;
 			continue;
         }
 		pLits[0] = toLitCond(F_po + nFvar, NEG);
@@ -338,11 +358,11 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
             Cnf_DataFree(cnfG);
             Aig_ManStop(aigMan); //cout << "ok to free AIG" << endl;
 
+			//return 0;
 			continue;
 			
         }
 		ABC_FREE(pLits);
-
 
 		//create my constrain
 		//////////////////////////////////////////////////////////////////////////////
@@ -388,6 +408,8 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
         vector<Abc_Obj_t*> binate;
         binate.reserve(vCiIds->nSize);
 
+		//Note!!!!!!!!!!!!!!!!!!
+		//Since abcNtk_1Po does not contain all pi, the pi ID will be different from original ntk ID
 		Abc_Obj_t* pObj;
 		for(int i = 0; i < vCiIds->nSize; ++i){
 			pObj = Abc_NtkPi(abcNtk_1Po, i);
@@ -410,6 +432,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 				binate.push_back(pObj);
             }
 		}
+
 		//cout << endl;
 		sort(p_unate.begin(), p_unate.end(), myCompare);
 		sort(n_unate.begin(), n_unate.end(), myCompare);
