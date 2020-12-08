@@ -216,6 +216,10 @@ void findNegUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
 	ABC_FREE(pLits);
 }
 
+bool myCompare(Abc_Obj_t* n1, Abc_Obj_t* n2){
+    return Abc_ObjId(n1) < Abc_ObjId(n2);
+}
+
 //main function
 int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 {
@@ -321,22 +325,69 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		findNegUnate(vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet, resultRecord);
 
 		//print result
+		vector<Abc_Obj_t*> p_unate;
+        p_unate.reserve(vCiIds->nSize);
+        vector<Abc_Obj_t*> n_unate;
+        n_unate.reserve(vCiIds->nSize);
+        vector<Abc_Obj_t*> binate;
+        binate.reserve(vCiIds->nSize);
+
+		Abc_Obj_t* pObj;
 		for(int i = 0; i < vCiIds->nSize; ++i){
-			cout << Abc_ObjName(Abc_NtkPi(abcNtk_1Po, i)) << " is ";
+			pObj = Abc_NtkPi(abcNtk_1Po, i);
+			//cout << Abc_ObjName(pObj) << " is ";
 			if(resultRecord[i] == POS_UNATE){
-				cout << "pos unate" << endl;
+				//cout << "pos unate" << endl;
+				p_unate.push_back(pObj);
 			}
 			else if(resultRecord[i] == NEG_UNATE){
-                cout << "neg unate" << endl;
+                //cout << "neg unate" << endl;
+				n_unate.push_back(pObj);
             }
 			else if(resultRecord[i] == UNATE){
-                cout << "both pos unate and neg unate" << endl;
+                //cout << "both pos unate and neg unate" << endl;
+				p_unate.push_back(pObj);
+				n_unate.push_back(pObj);
             }
 			else if(resultRecord[i] == BINATE){
-                cout << "binate" << endl;
+                //cout << "binate" << endl;
+				binate.push_back(pObj);
             }
 		}
-		cout << endl;
+		//cout << endl;
+		sort(p_unate.begin(), p_unate.end(), myCompare);
+		sort(n_unate.begin(), n_unate.end(), myCompare);
+		sort(binate.begin(), binate.end(), myCompare);
+
+		if(!(p_unate.empty() && n_unate.empty() && binate.empty())){
+			cout << "node " << Abc_ObjName( Abc_NtkPo( abcNtk_1Po, 0) ) << ":" << endl;
+		}
+		if(!p_unate.empty()){
+			cout << "+unate inputs: ";
+            for(vector<Abc_Obj_t*>::iterator idx = p_unate.begin(); idx != p_unate.end(); ++idx){
+                if(idx == p_unate.begin()) cout << Abc_ObjName(*idx);
+                else cout << "," << Abc_ObjName(*idx);
+            }
+            cout << endl;
+		}
+		if(!n_unate.empty()){
+            cout << "-unate inputs: ";
+            for(vector<Abc_Obj_t*>::iterator idx = n_unate.begin(); idx != n_unate.end(); ++idx){
+                if(idx == n_unate.begin())  cout << Abc_ObjName(*idx);
+                else cout << "," << Abc_ObjName(*idx);
+            }
+            cout << endl;
+        }
+		if(!binate.empty()){
+            cout << "binate inputs: ";
+            for(vector<Abc_Obj_t*>::iterator idx = binate.begin(); idx != binate.end(); ++idx){
+                if(idx == binate.begin()) cout << Abc_ObjName(*idx);
+                else cout << "," << Abc_ObjName(*idx);
+            }
+            cout << endl;
+		}
+
+
 /*
 		//
 
