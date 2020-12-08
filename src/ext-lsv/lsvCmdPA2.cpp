@@ -32,17 +32,14 @@ struct inputnode{
 };
 
 void Lsv_NtkPrintpounate(Abc_Ntk_t* pNtk) {
-  //cout<<"test\n";
-  /*
   Abc_Obj_t* pObj;
   int i;
   Abc_NtkForEachNode(pNtk, pObj, i) {
-    
     Abc_Obj_t* pFanin;
     int j;
     //get input
     Abc_ObjForEachFanin(pObj, pFanin, j) {
-      //printf("Fanin-%d: Id = %d, name = %s\n", j, Abc_ObjId(pFanin),Abc_ObjName(pFanin)); //return char*
+      printf("Fanin-%d: Id = %d, name = %s\n", j, Abc_ObjId(pFanin),Abc_ObjName(pFanin)); //return char*
     }
     inputnode node[j];
     Abc_ObjForEachFanin(pObj, pFanin, j) {
@@ -52,125 +49,12 @@ void Lsv_NtkPrintpounate(Abc_Ntk_t* pNtk) {
     }
     //get SOP
     char* SOP = NULL;
-    bool positiveSOP = false;
-    int SOPline = 0;
     if (Abc_NtkHasSop(pNtk)) {
       SOP = (char*)pObj->pData;
+      cout << SOP << endl;
+      //it is SOP char list
     }
-    //printf("SOP:\n%s",SOP);
-    if(SOP!=NULL && strlen(SOP)>3){ //mean didn't have SOP or not const
-      //cout<<strlen(SOP)<<endl;
-      printf("node %s:\n", Abc_ObjName(pObj));
-      //get information
-      if(SOP[j+1]=='1')positiveSOP = true;
-      SOPline = strlen(SOP)/(j+3);
-      //operate 
-      for(int word=0; word<j; ++word){
-        for(int loop=0; loop<SOPline; ++loop){
-          int index = word+loop*(j+3);
-          if(node[word].type==0){
-            if(SOP[index]=='1'){node[word].type=1;}
-            else if(SOP[index]=='0'){node[word].type=2;}
-            else if(SOP[index]=='-'){}
-            else cerr<<"error SOP"<<endl;
-          }
-          else if(node[word].type==1){
-            if(SOP[index]=='1'){node[word].type=1;}
-            else if(SOP[index]=='0'){node[word].type=3;}
-            else if(SOP[index]=='-'){}
-            else cerr<<"error SOP"<<endl;
-          }
-          else if(node[word].type==2){
-            if(SOP[index]=='1'){node[word].type=3;}
-            else if(SOP[index]=='0'){node[word].type=2;}
-            else if(SOP[index]=='-'){}
-            else cerr<<"error SOP"<<endl;
-          }
-          else if(node[word].type==3){
-            if(SOP[index]=='1'){node[word].type=3;}
-            else if(SOP[index]=='0'){node[word].type=3;}
-            else if(SOP[index]=='-'){node[word].type=3;}
-            else cerr<<"error SOP"<<endl;
-          }
-          else{
-            cerr<<"error node type"<<endl;
-          }
-        }
-      }
-      //check negative
-      if(positiveSOP == false){
-        for(int i=0; i<j; ++i){
-          if(node[i].type==1)node[i].type=2;
-          else if(node[i].type==2)node[i].type=1;
-        }
-      }
-      //insertion sort
-      for(int i=1;i<j;i++){
-        for(int index = i; index>0; --index){
-          if(node[index].ID < node[index-1].ID){//need change
-            inputnode temp;
-            temp.ID = node[index].ID;
-            temp.name = node[index].name;
-            temp.type = node[index].type;
-            node[index].ID = node[index-1].ID;
-            node[index].name = node[index-1].name;
-            node[index].type = node[index-1].type;
-            node[index-1].ID = temp.ID;
-            node[index-1].name = temp.name;
-            node[index-1].type = temp.type;
-          }
-          else break;
-        }
-      }
-      //count each type number
-      int pos_unate = 0;
-      int neg_unate = 0;
-      int bi_unate = 0;
-      for(int i=0; i<j; ++i){
-        if(node[i].type==0){++pos_unate; ++neg_unate;}
-        else if(node[i].type==1)++pos_unate;
-        else if(node[i].type==2)++neg_unate;
-        else if(node[i].type==3)++bi_unate;
-      }
-      //output
-      int checkcount=0;
-      if(pos_unate>0){
-        printf("+unate inputs: ");
-        for(int i=0; i<j; ++i){
-          if(node[i].type==0 || node[i].type==1){
-            ++checkcount;
-            cout<<node[i].name;//<<'('<<node[i].ID<<")";
-            if(checkcount!=pos_unate)cout<<',';
-          }
-        }
-        cout<<endl;
-      }
-      checkcount=0;
-      if(neg_unate>0){
-        printf("-unate inputs: ");
-        for(int i=0; i<j; ++i){
-          if(node[i].type==0 || node[i].type==2){
-            ++checkcount;
-            cout<<node[i].name;//<<'('<<node[i].ID<<")";
-            if(checkcount!=neg_unate)cout<<',';
-          }
-        }
-        cout<<endl;
-      }
-      checkcount=0;
-      if(bi_unate>0){
-        printf("binate inputs: ");
-        for(int i=0; i<j; ++i){
-          if(node[i].type==3){
-            ++checkcount;
-            cout<<node[i].name;//<<'('<<node[i].ID<<")";
-            if(checkcount!=bi_unate)cout<<',';
-          }
-        }
-        cout<<endl;
-      }
-    }
-  }*/
+  }
 }
 
 int Lsv_CommandPrintpounate(Abc_Frame_t* pAbc, int argc, char** argv) {
