@@ -257,8 +257,10 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
   Abc_NtkForEachPo(pNtk, pPo, i) {
     pCone = Abc_NtkCreateCone( pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 0 );
     int j;
+    bool comp = pPo->fCompl0;
 
     if (debug) {
+      printf("===================================\n");
       printf("PO Id = %d, name = %s\n", Abc_ObjId(pPo), Abc_ObjName(pPo));
       Abc_NtkForEachPi( pNtk, pPi, j ) {
         printf("PI Id = %d, name = %s\n", Abc_ObjId(pPi), Abc_ObjName(pPi));
@@ -307,22 +309,49 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     // Add clause for each PI
     // Traverse each PI and add control variable
     Aig_Obj_t * pObjPI;
+    Aig_Obj_t * pObjPO = Aig_ManCo(pMan, 0);
+    std::vector<std::string> posPIName, negPIName;
     int iter;
-    std::vector<int> piControl(Aig_ManCiNum(pMan));
+    std::vector<int> piControl(Aig_ManCiNum(pMan),0);
     Aig_ManForEachCi( pMan, pObjPI, iter ) {
       piControl[iter] = sat_solver_addvar(pSat);
-      sat_solver_add_buffer_enable(pSat,pCnfPos->pVarNums[Aig_ObjId(pObjPI)],pCnfNeg->pVarNums[Aig_ObjId(pObjPI)],piControl[iter],0);
-      //printf("%d\n",iter);
+      sat_solver_add_buffer_enable(pSat, pCnfPos->pVarNums[Aig_ObjId(pObjPI)], pCnfNeg->pVarNums[Aig_ObjId(pObjPI)], piControl[iter],0);
       if (debug) printf("%d\n",piControl[iter]);
     }
 
+    // assumption which can be modified by PI, PO, neg unate, pos unate
+    lit assumption[Aig_ManCiNum(pMan) + 4];
 
-    if (debug) printf( "Created SAT problem with %d variable and %d clauses. \n", sat_solver_nvars(pSat), sat_solver_nclauses(pSat) );
+    // iterate each PI and tuning assumption
+    Aig_ManForEachCi( pMan, pObjPI, iter ) {
+      // seting each PI
+      for (int j = 0; j < Aig_ManCiNum(pMan); j++) {
+        // if is the PI we want set not enabe
+        assumption[j] = (j == iter) ?  toLitCond(piControl[j], 1) : toLitCond(piControl[j], 0);
+      }
+      assumption[piControl.size()] = toLitCond(pCnfPos->pVarNums[Aig_ObjId(pObjPI)], 0);
+      assumption[piControl.size() + 1] = toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pObjPI)], 1);
+      
+      // positive unate assumption
+      assumption[piControl.size() + 2] = toLitCond(pCnfPos->pVarNums[Aig_ObjId(pObjPO)], 1);
+      assumption[piControl.size() + 3] = toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pObjPO)], 0);
 
-    status = sat_solver_simplify(pSat);
-    std::cout << status << std::endl; 
+      status = sat_solver_solve(pSat, assumption, assumption + Aig_ManCiNum(pMan) + 4, 0, 0, 0, 0);
+      if (status == l_False) {
+        (comp) ? negPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter))) : posPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter)));
+        //printf("POSUnate  PI ID: %s\n", Abc_ObjName(Abc_NtkPi(pCone,iter)));
+      }
 
+      // negative unate assumption
+      assumption[piControl.size() + 2] = toLitCond(pCnfPos->pVarNums[Aig_ObjId(pObjPO)], 0);
+      assumption[piControl.size() + 3] = toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pObjPO)], 1);
 
+      status = sat_solver_solve(pSat, assumption, assumption + Aig_ManCiNum(pMan) + 4, 0, 0, 0, 0);
+      if (status == l_False) {
+        (comp) ? posPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter))) : negPIName.push_back(Abc_ObjName(Abc_NtkPi(pCone,iter)));
+        //printf("NEGUnate  PI ID: %d\n", iter);
+      }
+    }
   }  
 }
 
