@@ -1,0 +1,15 @@
+Benchmark,Result
+benchmarks/random_control/arbiter.aig,Pass
+benchmarks/random_control/cavlc.aig,Pass
+benchmarks/random_control/ctrl.aig,Fail
+benchmarks/random_control/dec.aig,Pass
+benchmarks/random_control/i2c.aig,Fail
+benchmarks/random_control/int2float.aig,Pass
+benchmarks/random_control/mem_ctrl.aig,Fail
+benchmarks/random_control/priority.aig,Pass
+benchmarks/random_control/router.aig,Fail
+benchmarks/arithmetic/adder.aig,Pass
+benchmarks/arithmetic/bar.aig,Pass
+benchmarks/arithmetic/max.aig,Pass
+benchmarks/arithmetic/sin.aig,Fail
+Score,56

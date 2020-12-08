@@ -253,8 +253,10 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		//init sat solver by adding F CNF 
 		sat_solver* satSol = (sat_solver*)Cnf_DataWriteIntoSolver(ntkCnf, 1, 0);
 		if ( satSol == NULL ){
+			/*
 			cout << "Error! SAT solver is null" << endl;
             continue;
+			*/
         }
 
 		//add cnf G into sat solver
@@ -262,8 +264,10 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
         int i;
 		Cnf_CnfForClause(cnfG, pBeg, pEnd, i ){
 			if ( !sat_solver_addclause( satSol, pBeg, pEnd ) ){
-                cout << "error in adding output constrain to sat solver" << endl;
+				/*
+                cout << "error in adding G cnf to sat solver" << endl;
                 continue;
+				*/
             }
         }
 
@@ -277,13 +281,17 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		//cout << "F_po = " << F_po << endl;
 		pLits[0] = toLitCond(F_po, POS);
 		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
-            cout << "error in adding output constrain to sat solver" << endl;
+			/*
+            cout << "error in adding F_po constrain to sat solver" << endl;
             continue;
+			*/
         }
 		pLits[0] = toLitCond(F_po + nFvar, NEG);
 		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
-            cout << "error in adding output constrain to sat solver" << endl;
+			/*
+            cout << "error in adding G_po constrain to sat solver" << endl;
             continue;
+			*/
         }
 		ABC_FREE(pLits);
 
