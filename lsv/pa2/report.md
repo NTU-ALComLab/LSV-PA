@@ -29,7 +29,7 @@ Next, we create the Aig manager `pMan` with `AbcNtkToDar`, and generate the CNF 
 
 Now, the SAT solver `pSat` contains the formulas of two identical circuits of the fanin cone of the current PO. Below, we add clauses to enforce the equivalence of the PIs of the two circuits.
 
-```cpp=
+```cpp
     ...
     
     // add equivalence clauses
@@ -49,7 +49,7 @@ Now, the SAT solver `pSat` contains the formulas of two identical circuits of th
 
 Since there are `PiNum` PIs, we allocate `PiNum` enabling variables using `sat_solver_setnvars`. For each PI, we use `sat_solver_add_buffer_enable` to encode the equivalence relation as a clause and add it into `pSat`. To obtain the corresponding variable of a PI, we take advantage of the `Id` stored in `Aig_Obj_t` that is accessed through `pCopy`. The corresponding variable can then be obtained as the `Id`th entry of `pVarNums`.
 We next set the assumptions.
-```cpp=
+```cpp
     ...
     
     // set assumptions
@@ -66,7 +66,7 @@ We next set the assumptions.
 
 The number of total assumption literals is `PiNum + 4`, including `PiNum` enabling literals, `2` PI literals, and `2` PO literals. When finding the unateness of a PI, we have to fix the value of the corresponding PIs in both circuits to `0` and `1`. We enable all such clauses here and later disable the considering clause when solving. Below, we describe the solving process.
 
-```cpp=
+```cpp
     ...
     
     Abc_Obj_t * pConePo = Abc_NtkPo( pNtkCone, 0 );
