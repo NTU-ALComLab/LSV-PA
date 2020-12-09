@@ -6,10 +6,8 @@
 #include "sat/bsat/satSolver.h"
 
 #include <iostream>
-#include <queue>
 #include <vector>
 #include <algorithm>
-#include <functional>
 #include <string.h>
 
 using namespace std;
@@ -20,9 +18,12 @@ namespace pounate{
 ///                         BASIC TYPES                              ///
 ////////////////////////////////////////////////////////////////////////
 
-typedef pair<int, Abc_Obj_t* > IdObj;
-typedef priority_queue< IdObj, vector<IdObj>, greater<IdObj> > IdObjQueue;
-
+#define NOTUSED -2
+#define INIT -1
+#define BINATE 3
+#define POS 1
+#define NEG 2
+#define BOTH 0
 
 ////////////////////////////////////////////////////////////////////////
 ///                        DECLARATIONS                              ///
@@ -56,8 +57,8 @@ void record_pio_var(Cnf_Dat_t *pCnf, vector<int>& vpis, int& vpo){
     Aig_ManForEachCi( pCnf->pMan, pObj, i )
     {
         assert( pCnf->pVarNums[pObj->Id] >= 0 );
-        while(vpis[k] == -2) k++;
-        assert(vpis[k] == -1);
+        while(vpis[k] == NOTUSED) k++;
+        assert(vpis[k] == INIT);
         vpis[k] = pCnf->pVarNums[pObj->Id] ;
         k++;
     }
@@ -73,10 +74,10 @@ void connect_pi(sat_solver *pSat, vector<int>& posCofPiVars, int VarShift, vecto
     lit Lits[3];
     assert(ForceEqVars.size()== posCofPiVars.size());
     for(int i=0; i< posCofPiVars.size(); ++i){
-        if(posCofPiVars[i] == -2) 
-            assert(ForceEqVars[i] == -2);
+        if(posCofPiVars[i] == NOTUSED) 
+            assert(ForceEqVars[i] == NOTUSED);
         else{
-            assert(ForceEqVars[i] != -2 && posCofPiVars[i]>=0 );
+            assert(ForceEqVars[i] != NOTUSED && posCofPiVars[i]>=0 );
             ForceEqVars[i] = sat_solver_addvar(pSat); // ax
 
             // (~ax + x <-> x')
@@ -147,12 +148,11 @@ int init_assump( vector<int>& posCofPiVars, vector<int>& ForceEqVars, lit* assum
 
     int k=0; 
     for(int i=0;i< posCofPiVars.size(); ++i){ 
-        if(posCofPiVars[i]!=-2){
+        if(posCofPiVars[i]!= NOTUSED){
             assert( posCofPiVars[i]>=0 && ForceEqVars[i] >=0);
-            assumpList[k] = toLitCond(ForceEqVars[i], 0); // ax=1 force x<->x'
-            k++;
+            assumpList[k++] = toLitCond(ForceEqVars[i], 0); // ax=1 force x<->x'
         }
-        else assert(ForceEqVars[i] == -2);
+        else assert(ForceEqVars[i] == NOTUSED);
     }
     return k+4;
 
@@ -166,7 +166,7 @@ void setUnateVec( sat_solver *pSat, vector<int>& UnateVec, int posCofPoVar, vect
 
     int k=0;
     for(int i=0; i< posCofPiVars.size(); ++i){
-        if(posCofPiVars[i]!=-2 ){
+        if(posCofPiVars[i]!= NOTUSED ){
             //set ax
             assumpList[k] = toLitCond( ForceEqVars[i], 1); // ax=0 
             assumpList[assumpSize-4] = toLitCond( posCofPiVars[i], 0); // x =1
@@ -177,11 +177,10 @@ void setUnateVec( sat_solver *pSat, vector<int>& UnateVec, int posCofPoVar, vect
             //test negative unate
             test_unate( i, pSat, UnateVec, posCofPoVar, VarShift, 1 , assumpList, assumpSize ); 
             //reset ax
-            assumpList[k] = toLitCond(ForceEqVars[i], 0); // ax=1 force x<->x'
-            k++;
+            assumpList[k++] = toLitCond(ForceEqVars[i], 0); // ax=1 force x<->x'
         }
         else
-            UnateVec [i] = 0; //both positive and negative unate
+            UnateVec [i] = BOTH; //both positive and negative unate
 
     }
 }
@@ -190,13 +189,15 @@ void print_unate( Abc_Ntk_t * pNtk, vector<int>& UnateVec, int n){
     //n=1: pos, n=2: neg, n=3: bi
     bool occur=false;
     for(int i=0; i< UnateVec.size(); ++i){
-        if(!occur && (UnateVec[i] == n || ( n!= 3 && UnateVec[i] == 0 ) ) ){
-            cout<< ( (n == 3) ? "binate inputs:" : ( (n==2) ? "-unate inputs:" : "+unate inputs:" ) );
-            printf(" %s",Abc_ObjName(Abc_NtkPi(pNtk,i) ) );
-            occur = true;
+        if  (UnateVec[i] == n || ( n!= BINATE && UnateVec[i] == BOTH ) ){
+            if(!occur){
+                cout<< ( (n == BINATE) ? "binate inputs:" : ( ( n == NEG ) ? "-unate inputs:" : "+unate inputs:" ) );
+                printf(" %s",Abc_ObjName(Abc_NtkPi(pNtk,i) ) );
+                occur = true;
+            }
+            else
+                printf(",%s",Abc_ObjName(Abc_NtkPi(pNtk,i) ) );
         }
-        else if(occur && (UnateVec[i] == n || ( n!= 3 && UnateVec[i] == 0 ) ) )
-            printf(",%s",Abc_ObjName(Abc_NtkPi(pNtk,i) ) );
     }
     if(occur) printf("\n");
 }
@@ -210,16 +211,15 @@ void set_nonused_pi( Abc_Ntk_t * pNtk, Abc_Ntk_t * pNtkPo, vector<int>& posCofPi
         assert( k < piNum );
         while( strcmp(Abc_ObjName( Abc_NtkPi(pNtk,k) ), Abc_ObjName( pNodePi )) !=0 ){
                //not equal
-               posCofPiVars[k]= -2; //set not used flag 
-               ForceEqVars[k]= -2;
-               k++;
+               posCofPiVars[k]= NOTUSED; //set not used flag 
+               ForceEqVars[k++]= NOTUSED;
                assert( k< piNum );
         }
         k++;
     }
     for( ; k< piNum ; ++k){
-        posCofPiVars[k]= -2; //set not used flag 
-        ForceEqVars[k]= -2;
+        posCofPiVars[k]= NOTUSED; //set not used flag 
+        ForceEqVars[k]= NOTUSED;
     }
 }
 
@@ -232,14 +232,14 @@ void Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
     int piNum = Abc_NtkPiNum(pNtk);
 
     //store cnf variable num
-    vector<int>  posCofPiVars(piNum, -1), ForceEqVars(piNum,-1);  
+    vector<int>  posCofPiVars(piNum, INIT), ForceEqVars(piNum, INIT);  
     int posCofPoVar=0, negCofVarShift=0;
 
     //assumption list
     lit* assumpList = new lit [ piNum+4 ];
 
     //represent the unateness of each pi
-    vector<int> UnateVec(Abc_NtkPiNum(pNtk),3);
+    vector<int> UnateVec(Abc_NtkPiNum(pNtk), BINATE);
     // Encode:
     // 11: binate 
     // 00: positive and negative unate
@@ -266,17 +266,17 @@ void Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
 
         printf("node %s:\n", Abc_ObjName(pObj));
         //print pos unate
-        print_unate( pNtk, UnateVec, 1);
+        print_unate( pNtk, UnateVec, POS);
         //print neg unate
-        print_unate( pNtk, UnateVec, 2);
+        print_unate( pNtk, UnateVec, NEG);
         //print binate
-        print_unate( pNtk, UnateVec, 3);
+        print_unate( pNtk, UnateVec, BINATE);
 
         //reset
         posCofPoVar=0; negCofVarShift=0;
-        resetVec(UnateVec, 3);
-        resetVec(posCofPiVars,-1);
-        resetVec(ForceEqVars, -1);
+        resetVec(UnateVec, BINATE);
+        resetVec(posCofPiVars, INIT);
+        resetVec(ForceEqVars, INIT);
         Abc_NtkDelete( pNtkPo );
         Aig_ManStop( pMan );
         sat_solver_delete( pSat );
