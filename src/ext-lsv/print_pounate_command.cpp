@@ -309,8 +309,13 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 	int i;
 	//int fUseAllCis = 0;
 	Abc_NtkForEachPo( abcNtk, nodeCo, i ) {
-		if(Abc_ObjId(nodeCo) != 13)continue;
-		cout << "consider " << Abc_ObjName(nodeCo) << endl;
+		//if(i != Abc_NtkPoNum(abcNtk) - 1)continue;
+		//cout << "consider " << Abc_ObjName(nodeCo) << endl;
+
+		//init usedCiID
+		for(int i = 0, n = usedCiID.size(); i < n; ++i){
+			usedCiID[i] = UNDEF;
+		}
 
 		//get single output abc_ntk
 		abcNtk_1Po = Abc_NtkCreateCone( abcNtk, Abc_ObjFanin0(nodeCo), Abc_ObjName(nodeCo), 0 );
@@ -376,19 +381,35 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 			Abc_Obj_t* pObj;
             cout << "node " << Abc_ObjName( Abc_NtkPo( abcNtk_1Po, 0) ) << ":" << endl;
 			cout << "+unate inputs: ";
+
+			int j;
+			Abc_NtkForEachPi( abcNtk, pObj, j ){
+				if(j == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+			}
+			/*	
 			for(int i = 0; i < vCiIds->nSize; ++i){
 				pObj = Abc_NtkPi(abcNtk_1Po, i);
 				if(i == 0) cout << Abc_ObjName(pObj);
                 else cout << "," << Abc_ObjName(pObj);
 			}
+			*/
 			cout << endl;
 			cout << "-unate inputs: ";
+
+			Abc_NtkForEachPi( abcNtk, pObj, j ){
+                if(j == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+            }
+
+			/*
             for(int i = 0; i < vCiIds->nSize; ++i){
                 pObj = Abc_NtkPi(abcNtk_1Po, i);
                 if(i == 0) cout << Abc_ObjName(pObj);
                 else cout << "," << Abc_ObjName(pObj);
 
             }
+			*/
 			cout << endl;
 
 			//free mem
@@ -410,18 +431,34 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 			Abc_Obj_t* pObj;
             cout << "node " << Abc_ObjName( Abc_NtkPo( abcNtk_1Po, 0) ) << ":" << endl;
             cout << "+unate inputs: ";
-            for(int i = 0; i < vCiIds->nSize; ++i){
+			int j;
+            Abc_NtkForEachPi( abcNtk, pObj, j ){
+                if(j == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+            }
+
+
+/*
+			for(int i = 0; i < vCiIds->nSize; ++i){
                 pObj = Abc_NtkPi(abcNtk_1Po, i);
                 if(i == 0) cout << Abc_ObjName(pObj);
                 else cout << "," << Abc_ObjName(pObj);
             }
+*/
 			cout << endl;
             cout << "-unate inputs: ";
-            for(int i = 0; i < vCiIds->nSize; ++i){
+            Abc_NtkForEachPi( abcNtk, pObj, j ){
+                if(j == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+            }
+
+/*  
+  			for(int i = 0; i < vCiIds->nSize; ++i){
                 pObj = Abc_NtkPi(abcNtk_1Po, i);
                 if(i == 0) cout << Abc_ObjName(pObj);
                 else cout << "," << Abc_ObjName(pObj);
             }
+*/
 			cout << endl;
 
 			//free mem
