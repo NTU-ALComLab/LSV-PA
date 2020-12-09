@@ -279,7 +279,7 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     }
 
     // Turn Abc_Ntk into Aig_Man_t
-    pCone = Abc_NtkStrash (pCone, 0, 0, 0 );
+    //pCone = Abc_NtkStrash (pCone, 0, 0, 0 );
     pMan = Abc_NtkToDar(pCone, 0, 0 );
     //std::vector<Abc_Obj_t *> posPIName(0,0), negPIName(0,0), biPIName(0,0);
     std::vector<int> posPID(0,0), negPID(0,0), biPID(0,0);
@@ -339,9 +339,10 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     // Traverse each PI and add control variable
     Aig_Obj_t * pObjPI;
     Aig_Obj_t * pObjPO = Aig_ManCo(pMan, 0);
+    int CI_num = Aig_ManCiNum(pMan);
     
     int iter;
-    std::vector<int> piControl(Aig_ManCiNum(pMan),0);
+    std::vector<int> piControl(CI_num,0);
     Aig_ManForEachCi( pMan, pObjPI, iter ) {
       piControl[iter] = sat_solver_addvar(pSat);
       sat_solver_add_buffer_enable(pSat, pCnfPos->pVarNums[Aig_ObjId(pObjPI)], pCnfNeg->pVarNums[Aig_ObjId(pObjPI)], piControl[iter],0);
@@ -349,21 +350,22 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     }
 
     // assumption which can be modified by PI, PO, neg unate, pos unate
-    lit assumption[Aig_ManCiNum(pMan) + 4];
+
+    lit * assumption = new lit[CI_num + 4];
 
     // iterate each PI and tuning assumption
     Aig_ManForEachCi( pMan, pObjPI, iter ) {
       // seting each PI
-      for (int j = 0; j < Aig_ManCiNum(pMan); j++) {
+      for (int j = 0; j < CI_num; j++) {
         // if is the PI we want set not enabe
         assumption[j] = (j == iter) ?  toLitCond(piControl[j], 1) : toLitCond(piControl[j], 0);
       }
-      assumption[piControl.size()] = toLitCond(pCnfPos->pVarNums[Aig_ObjId(pObjPI)], 0);
-      assumption[piControl.size() + 1] = toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pObjPI)], 1);
+      assumption[CI_num] = toLitCond(pCnfPos->pVarNums[Aig_ObjId(pObjPI)], 0);
+      assumption[CI_num + 1] = toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pObjPI)], 1);
       
       // positive unate assumption
-      assumption[piControl.size() + 2] = toLitCond(pCnfPos->pVarNums[Aig_ObjId(pObjPO)], 1);
-      assumption[piControl.size() + 3] = toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pObjPO)], 0);
+      assumption[CI_num + 2] = toLitCond(pCnfPos->pVarNums[Aig_ObjId(pObjPO)], 1);
+      assumption[CI_num + 3] = toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pObjPO)], 0);
 
       status = sat_solver_solve(pSat, assumption, assumption + Aig_ManCiNum(pMan) + 4, 0, 0, 0, 0);
       if (status == l_False) {
@@ -374,8 +376,8 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
       }
 
       // negative unate assumption
-      assumption[piControl.size() + 2] = toLitCond(pCnfPos->pVarNums[Aig_ObjId(pObjPO)], 0);
-      assumption[piControl.size() + 3] = toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pObjPO)], 1);
+      assumption[CI_num + 2] = toLitCond(pCnfPos->pVarNums[Aig_ObjId(pObjPO)], 0);
+      assumption[CI_num + 3] = toLitCond(pCnfNeg->pVarNums[Aig_ObjId(pObjPO)], 1);
 
       status = sat_solver_solve(pSat, assumption, assumption + Aig_ManCiNum(pMan) + 4, 0, 0, 0, 0);
       if (status == l_False) {
