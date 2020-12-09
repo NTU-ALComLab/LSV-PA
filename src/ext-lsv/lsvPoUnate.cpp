@@ -59,8 +59,7 @@ void record_pio_var(Cnf_Dat_t *pCnf, vector<int>& vpis, int& vpo){
         assert( pCnf->pVarNums[pObj->Id] >= 0 );
         while(vpis[k] == NOTUSED) k++;
         assert(vpis[k] == INIT);
-        vpis[k] = pCnf->pVarNums[pObj->Id] ;
-        k++;
+        vpis[k++] = pCnf->pVarNums[pObj->Id] ;
     }
     //Po
     assert( Aig_ManCoNum(pCnf->pMan) == 1 );
