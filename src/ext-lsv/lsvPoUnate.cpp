@@ -50,6 +50,27 @@ struct PackageRegistrationManager {
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 
+void set_nonused_pi( Abc_Ntk_t * pNtk, Abc_Ntk_t * pNtkPo, vector<int>& posCofPiVars, vector<int>& ForceEqVars){
+
+    int j=0, k=0;
+    int piNum = Abc_NtkPiNum(pNtk);
+    Abc_Obj_t *pNodePi;
+    Abc_NtkForEachPi(pNtkPo, pNodePi, j ){
+        assert( k < piNum );
+        while( strcmp(Abc_ObjName( Abc_NtkPi(pNtk,k) ), Abc_ObjName( pNodePi )) !=0 ){
+               //not equal
+               posCofPiVars[k]= NOTUSED;  
+               ForceEqVars[k++]= NOTUSED;
+               assert( k< piNum );
+        }
+        k++;
+    }
+    for( ; k< piNum ; ++k){
+        posCofPiVars[k]= NOTUSED;  
+        ForceEqVars[k]= NOTUSED;
+    }
+}
+
 void record_pio_var(Cnf_Dat_t *pCnf, vector<int>& vpis, int& vpo){
     
     Aig_Obj_t * pObj; int i=0, k=0;
@@ -125,23 +146,6 @@ sat_solver * construct_CNF(Aig_Man_t * pMan, int& posCofPoVar, vector<int>& posC
 }
 
 
-void resetVec(vector<int>& Vec, int v){
-    fill(Vec.begin(), Vec.end(),v);     
-}
-
-void test_unate( int i, sat_solver *pSat, vector<int>& UnateVec, int posCofPoVar, int VarShift, int isNeg,
-                 lit* assumpList, int assumpSize ){
-        
-        //check for positive unate, F~x -> Fx,  check F~x ^ ~Fx unsat
-        //check for negative unate  Fx -> F~x,  check Fx ^ ~F~x unsat
-        assumpList[assumpSize-2] = toLitCond( posCofPoVar, 1^isNeg);
-        assumpList[assumpSize-1] = toLitCond( posCofPoVar+VarShift, 0^isNeg); 
-
-        int status = sat_solver_solve( pSat,assumpList, assumpList+assumpSize, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
-        if ( status == l_False ) //unsat
-            UnateVec[i] &= (1 << isNeg); 
-}
-
 int init_assump( vector<int>& posCofPiVars, vector<int>& ForceEqVars, lit* assumpList){
 
     int k=0; 
@@ -154,6 +158,19 @@ int init_assump( vector<int>& posCofPiVars, vector<int>& ForceEqVars, lit* assum
     }
     return k+4;
 
+}
+
+void test_unate( int i, sat_solver *pSat, vector<int>& UnateVec, int posCofPoVar, int VarShift, int isNeg,
+                 lit* assumpList, int assumpSize ){
+        
+    //check for positive unate, F~x -> Fx,  check F~x ^ ~Fx unsat
+    //check for negative unate  Fx -> F~x,  check Fx ^ ~F~x unsat
+    assumpList[assumpSize-2] = toLitCond( posCofPoVar, 1^isNeg);
+    assumpList[assumpSize-1] = toLitCond( posCofPoVar+VarShift, 0^isNeg); 
+
+    int status = sat_solver_solve( pSat,assumpList, assumpList+assumpSize, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+    if ( status == l_False ) //unsat
+        UnateVec[i] &= (1 << isNeg); 
 }
 
 void setUnateVec( sat_solver *pSat, vector<int>& UnateVec, int posCofPoVar, vector<int>& posCofPiVars, 
@@ -183,6 +200,10 @@ void setUnateVec( sat_solver *pSat, vector<int>& UnateVec, int posCofPoVar, vect
     }
 }
 
+void resetVec(vector<int>& Vec, int v){
+    fill(Vec.begin(), Vec.end(),v);     
+}
+
 void print_unate( Abc_Ntk_t * pNtk, vector<int>& UnateVec, int n){
     
     bool occur=false;
@@ -200,26 +221,6 @@ void print_unate( Abc_Ntk_t * pNtk, vector<int>& UnateVec, int n){
     if(occur) printf("\n");
 }
 
-void set_nonused_pi( Abc_Ntk_t * pNtk, Abc_Ntk_t * pNtkPo, vector<int>& posCofPiVars, vector<int>& ForceEqVars){
-
-    int j=0, k=0;
-    int piNum = Abc_NtkPiNum(pNtk);
-    Abc_Obj_t *pNodePi;
-    Abc_NtkForEachPi(pNtkPo, pNodePi, j ){
-        assert( k < piNum );
-        while( strcmp(Abc_ObjName( Abc_NtkPi(pNtk,k) ), Abc_ObjName( pNodePi )) !=0 ){
-               //not equal
-               posCofPiVars[k]= NOTUSED;  
-               ForceEqVars[k++]= NOTUSED;
-               assert( k< piNum );
-        }
-        k++;
-    }
-    for( ; k< piNum ; ++k){
-        posCofPiVars[k]= NOTUSED;  
-        ForceEqVars[k]= NOTUSED;
-    }
-}
 
 extern "C"{
 void Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
