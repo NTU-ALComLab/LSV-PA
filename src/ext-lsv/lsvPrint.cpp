@@ -522,7 +522,9 @@ int Network::setpNtkCone(Abc_Obj_t* pFanout) {
 #ifdef MINISAT
   int lsv_solve(void* pSat, int *lits, int nvar){
     int ret = -1, status;
-    status = sat_solver_solve( (sat_solver*)pSat, lits, lits+nvar, (ABC_INT64_T)INT_MAX, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+
+    // status = sat_solver_solve( (sat_solver*)pSat, lits, lits+nvar, (ABC_INT64_T)INT_MAX, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+    status = sat_solver_solve( (sat_solver*)pSat, lits, lits+nvar, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
     if ( status == l_Undef )      ret = -1;
     else if ( status == l_True )  ret = 0;
     else if ( status == l_False ) ret = 1;
