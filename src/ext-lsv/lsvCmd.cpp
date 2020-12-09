@@ -198,35 +198,11 @@ void Lsv_vecPrint(Abc_Ntk_t* pNtk, vector<int>& PosUnate, vector<int>& NegUnate,
             cout << ", "[i == 0] << Abc_ObjName(Abc_NtkCi(pNtk, BiUnate[i]));
         cout << '\n';
     }
-
-    // if (!PosUnate.empty()) {
-    //     printf("+unate inputs:");
-    //     for (int i = 0; i < PosUnate.size(); ++i)
-    //         if (i == 0) printf(" %s", Abc_ObjName(Abc_NtkCi(pNtk, PosUnate[i])));
-    //         else        printf(",%s", Abc_ObjName(Abc_NtkCi(pNtk, PosUnate[i])));
-    //     printf("\n");
-    // }
-
-    // if (!NegUnate.empty()) {
-    //     printf("-unate inputs:");
-    //     for (int i = 0; i < NegUnate.size(); ++i)
-    //         if (i == 0) printf(" %s", Abc_ObjName(Abc_NtkCi(pNtk, NegUnate[i])));
-    //         else        printf(",%s", Abc_ObjName(Abc_NtkCi(pNtk, NegUnate[i])));
-    //     printf("\n");
-    // }
-
-    // if (!BiUnate.empty()) {
-    //     printf("binate inputs:");
-    //     for (int i = 0; i < BiUnate.size(); ++i)
-    //         if (i == 0) printf(" %s", Abc_ObjName(Abc_NtkCi(pNtk, BiUnate[i])));
-    //         else        printf(",%s", Abc_ObjName(Abc_NtkCi(pNtk, BiUnate[i])));
-    //     printf("\n");
-    // }
 }
 
 Abc_Ntk_t* Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
     Abc_Ntk_t  * pNtkNew;
-    Abc_Obj_t  * pPo, * pPi, * pNode;
+    Abc_Obj_t  * pPo, * pPi;
 
     Aig_Man_t  * pMan;
     Aig_Obj_t  * pObj, * pObjCo;
@@ -235,8 +211,8 @@ Abc_Ntk_t* Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
     sat_solver * pSat;
 
     int * assume = nullptr;
-    int idx_pPo, offset, status, i, j;
-    bool isComplment, isPosUnate, isNegUnate;
+    int   idx_pPo, offset, status, i, j;
+    bool  isPosUnate, isNegUnate;
 
     vector<int> PosUnate, NegUnate, BiNate;
     unordered_map<string, int> nameMapping;
@@ -246,22 +222,20 @@ Abc_Ntk_t* Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
         cout << "node " << Abc_ObjName(pPo) << ":\n";
 
         // create a single po cone circuit
-        pNode   = Abc_ObjFanin0(pPo);
-        pNtkNew = Abc_NtkCreateCone(pNtk, pNode, Abc_ObjName(pPo), 0);
+        pNtkNew = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 0);
 
         // convert single po Abc_Ntk_t into Aig_Man_t
         pMan = Abc_NtkToDar(pNtkNew, 0, 0);
+
+        // check the complementation of original po
+        // isComplment = Abc_ObjFaninC0(pPo);
+        if (Abc_ObjFaninC0(pPo)) Aig_ManFlipFirstPo(pMan);
 
         // get co pobj
         pObjCo = Aig_ManCo(pMan, 0);
 
         // derive CNF of function F
         pCnfPos = Cnf_Derive(pMan, Aig_ManCoNum(pMan)); // function F
-
-        // check the phase of po
-        // isComplment = (Aig_ObjPhase(Aig_ManCo(pMan, idx_pPo)) == 0);
-        isComplment = Abc_ObjFaninC0(pPo);
-        // cout << "[isComplment]: " << isComplment << '\n';
         
         // complment function F
         // Aig_ManFlipFirstPo(pMan);
@@ -281,17 +255,14 @@ Abc_Ntk_t* Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
         pSat = sat_solver_new();
         sat_solver_setnvars(pSat, pCnfPos->nVars + pCnfNeg->nVars + Aig_ManCiNum(pMan));
         offset = pCnfPos->nVars + pCnfNeg->nVars;
-        // cout << "Aig_ManCiNum(pMan): " << Aig_ManCiNum(pMan) << '\n';
 
-        // add clauses of pCnfPos to sat solver
-        for (j = 0; j < pCnfPos->nClauses; ++j)
+        // add clauses of pCnfPos and pCnfNeg to sat solver
+        for (j = 0; j < pCnfPos->nClauses; ++j) {
             if (!sat_solver_addclause(pSat, pCnfPos->pClauses[j], pCnfPos->pClauses[j+1]))
                 assert(0); // need to check tautology ???
-
-        // add clauses of pCnfNeg to sat solver
-        for (j = 0; j < pCnfNeg->nClauses; ++j)
             if (!sat_solver_addclause(pSat, pCnfNeg->pClauses[j], pCnfNeg->pClauses[j+1]))
                 assert(0); // need to check tautology ???
+        }
 
         // adds clauses to assert the equivalence between two variables controlled by an enabling variable.
         assume = new int[Aig_ManCiNum(pMan) + 4]();
@@ -303,54 +274,47 @@ Abc_Ntk_t* Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
             nameMapping[Abc_ObjName(Abc_NtkCi(pNtkNew, i))] = i;
         }
 
+        assume[0] = toLitCond(pCnfPos->pVarNums[pObjCo->Id], 0); // let  F = 1
+        assume[1] = toLitCond(pCnfNeg->pVarNums[pObjCo->Id], 1); // let ~F = 1
         // Aig_ManForEachCi(pMan, pObj, i) {
         Abc_NtkForEachPi(pNtk, pPi, i) {
             isPosUnate = isNegUnate = true;
 
+            // check ci if a dont care
             auto it = nameMapping.find(Abc_ObjName(Abc_NtkCi(pNtk, i)));
             if (it != nameMapping.end()) {
-                j = it->second;
+                j    = it->second;
                 pObj = Aig_ManCi(pMan, j);
-
-                // cofactor
-                assume[0]     = toLitCond(pCnfPos->pVarNums[pObj->Id], 0);
-                assume[1]     = toLitCond(pCnfNeg->pVarNums[pObj->Id], 1);
 
                 // close enable variable
                 assume[j + 4] = toLitCond(offset + j, 1);
 
-                // pos-unate
-                assume[2]     = toLitCond(pCnfPos->pVarNums[pObjCo->Id], 1);
-                assume[3]     = toLitCond(pCnfNeg->pVarNums[pObjCo->Id], 0);
+                // pos-unate (cofactor)
+                assume[2]     = toLitCond(pCnfPos->pVarNums[pObj->Id], 1);
+                assume[3]     = toLitCond(pCnfNeg->pVarNums[pObj->Id], 0);
                 
                 status = sat_solver_solve(pSat, assume, assume + Aig_ManCiNum(pMan) + 4, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
                 isPosUnate = (status == l_False) ;
 
-                // neg-unate
-                assume[2]     = toLitCond(pCnfPos->pVarNums[pObjCo->Id], 0);
-                assume[3]     = toLitCond(pCnfNeg->pVarNums[pObjCo->Id], 1);
+                // neg-unate (cofactor)
+                assume[2]     = toLitCond(pCnfPos->pVarNums[pObj->Id], 0);
+                assume[3]     = toLitCond(pCnfNeg->pVarNums[pObj->Id], 1);
                 status = sat_solver_solve(pSat, assume, assume + Aig_ManCiNum(pMan) + 4, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
                 isNegUnate = (status == l_False) ;
 
                 // reset
-                assume[0]     = toLitCond(pCnfPos->pVarNums[pObj->Id], 0);
-                assume[1]     = toLitCond(pCnfNeg->pVarNums[pObj->Id], 0);
+                assume[2]     = toLitCond(pCnfPos->pVarNums[pObj->Id], 0);
+                assume[3]     = toLitCond(pCnfNeg->pVarNums[pObj->Id], 0);
                 assume[j + 4] = toLitCond(offset + j, 0);
             }
 
-            if (isComplment) swap(isPosUnate, isNegUnate);
             if (!isPosUnate && !isNegUnate) {
                 BiNate.push_back(i);
             }
             else {
                 if (isPosUnate) PosUnate.push_back(i);
                 if (isNegUnate) NegUnate.push_back(i);
-            }
-
-            // if (isComplment)
-            //     cout << Abc_ObjName(Abc_NtkCi(pNtk, i)) << " " << isNegUnate << " " << isPosUnate << '\n';
-            // else
-            //     cout << Abc_ObjName(Abc_NtkCi(pNtk, i)) << " " << isPosUnate << " " << isNegUnate << '\n';           
+            }           
         }
 
         // print results
@@ -368,8 +332,6 @@ Abc_Ntk_t* Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
         PosUnate.resize(0);
         NegUnate.resize(0);
         nameMapping.clear();
-        // break;
-        // cout << '\n';
     }
 
     return nullptr;
@@ -405,7 +367,7 @@ int Lsv_CommandPrintPoUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
     return 0;
 
 usage:
-    Abc_Print(-2, "usage: lsv_print_sopunate [-h]\n");
+    Abc_Print(-2, "usage: lsv_print_pounate [-h]\n");
     Abc_Print(-2, "\t        print the unate information for each primary output in terms of all primary inputs.\n");
     Abc_Print(-2, "\t-h    : print the command usage\n");
     return 1;
