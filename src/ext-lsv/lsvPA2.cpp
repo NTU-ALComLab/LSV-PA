@@ -35,8 +35,6 @@ struct PackageRegistrationManager {
 
 int Lsv_CommandPrintPounate(Abc_Frame_t* pAbc, int argc, char** argv)
 {
-  //std::fstream ofs;
-	//ofs.open("output.txt",std::ios::out);
   
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   Abc_Obj_t* pObj_PO;
@@ -97,8 +95,6 @@ int Lsv_CommandPrintPounate(Abc_Frame_t* pAbc, int argc, char** argv)
     Cnf_DataLift(pCnfp,pCnf->nVars);
     //Initalize SAT
     sat_solver * pSat;
-    // pSat = sat_solver_new();
-    // sat_solver_setnvars(pSat, pCnf->nVars*2   + Abc_NtkPiNum(pNtk_PO));
     pSat = (sat_solver *)Cnf_DataWriteIntoSolver( pCnf, 1, 0 );
     for ( j = 0; j < pCnfp->nClauses; j++ )
     {
@@ -111,7 +107,6 @@ int Lsv_CommandPrintPounate(Abc_Frame_t* pAbc, int argc, char** argv)
     }
     //Add equivalent constraint (Alpha_y' + (y1=y2)) = (y1' + y2 + Alpha_y')(y1 + y2' + Alpha_y')
     //Create the alpha variable for each PI
-    //sat_solver_setnvars(pSat,sat_solver_nvars(pSat) + Aig_ManCiNum(pMan));
     std::map<int,int> Alpha_mapping;
     Aig_ManForEachCi(pMan,aigObj_PI,j){
       int alpha = pCnf->nVars*2+j+1;
@@ -136,7 +131,7 @@ int Lsv_CommandPrintPounate(Abc_Frame_t* pAbc, int argc, char** argv)
     
 
     lit Assumption[4+Aig_ManCiNum(pMan)]; // pos-cofactor, neg-cofactor, PO1, PO2, all alpha
-    //Solve positive unate
+    //Solve SAT
     Aig_ManForEachCi(pMan,aigObj_PI,j){
       //printf("%d\n",j);
       //cofactor
@@ -157,7 +152,7 @@ int Lsv_CommandPrintPounate(Abc_Frame_t* pAbc, int argc, char** argv)
         }
       }
 
-      //solve
+      //solve positive unate
       status = sat_solver_solve( pSat, Assumption, Assumption+4+Aig_ManCiNum(pMan), (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
       if ( status == l_Undef )
       {
@@ -176,28 +171,12 @@ int Lsv_CommandPrintPounate(Abc_Frame_t* pAbc, int argc, char** argv)
       }
       else
           assert( 0 );
-    }
-    //Solve negative unate
-    Aig_ManForEachCi(pMan,aigObj_PI,j){
-      //printf("%d\n",j);
+
+      //solve negative unate
       //cofactor
       Assumption[0] = toLitCond(pCnf->pVarNums[Aig_ObjId(aigObj_PI)],0);
       Assumption[1] = toLitCond(pCnfp->pVarNums[Aig_ObjId(aigObj_PI)],1);
-      //PO
-      Assumption[2] = toLitCond(pCnf->pVarNums[PO_id],0);
-      Assumption[3] = toLitCond(pCnfp->pVarNums[PO_id],1);
-      //alpha
-      int k;
-      Aig_Obj_t* aigObj_PI_temp;
-      Aig_ManForEachCi(pMan,aigObj_PI_temp,k){
-        if(Aig_ObjId(aigObj_PI_temp) == Aig_ObjId(aigObj_PI)){
-          Assumption[4+k] = toLitCond(Alpha_mapping.at(Aig_ObjId(aigObj_PI_temp)),1);
-        }
-        else{
-          Assumption[4+k] = toLitCond(Alpha_mapping.at(Aig_ObjId(aigObj_PI_temp)),0);
-        }
-      }
-      //solve
+
       status = sat_solver_solve( pSat, Assumption, Assumption+4+Aig_ManCiNum(pMan), (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
       if ( status == l_Undef )
       {
