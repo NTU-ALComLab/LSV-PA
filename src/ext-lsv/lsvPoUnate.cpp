@@ -127,7 +127,6 @@ sat_solver * construct_CNF(Aig_Man_t * pMan, int& posCofPoVar, vector<int>& posC
 
 
 void resetVec(vector<int>& Vec, int v){
-    //reset the content of UnateVec to binary value:11
     fill(Vec.begin(), Vec.end(),v);     
 }
 
@@ -186,7 +185,7 @@ void setUnateVec( sat_solver *pSat, vector<int>& UnateVec, int posCofPoVar, vect
 }
 
 void print_unate( Abc_Ntk_t * pNtk, vector<int>& UnateVec, int n){
-    //n=1: pos, n=2: neg, n=3: bi
+    
     bool occur=false;
     for(int i=0; i< UnateVec.size(); ++i){
         if  (UnateVec[i] == n || ( n!= BINATE && UnateVec[i] == BOTH ) ){
@@ -211,14 +210,14 @@ void set_nonused_pi( Abc_Ntk_t * pNtk, Abc_Ntk_t * pNtkPo, vector<int>& posCofPi
         assert( k < piNum );
         while( strcmp(Abc_ObjName( Abc_NtkPi(pNtk,k) ), Abc_ObjName( pNodePi )) !=0 ){
                //not equal
-               posCofPiVars[k]= NOTUSED; //set not used flag 
+               posCofPiVars[k]= NOTUSED;  
                ForceEqVars[k++]= NOTUSED;
                assert( k< piNum );
         }
         k++;
     }
     for( ; k< piNum ; ++k){
-        posCofPiVars[k]= NOTUSED; //set not used flag 
+        posCofPiVars[k]= NOTUSED;  
         ForceEqVars[k]= NOTUSED;
     }
 }
@@ -234,8 +233,6 @@ void Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
     //store cnf variable num
     vector<int>  posCofPiVars(piNum, INIT), ForceEqVars(piNum, INIT);  
     int posCofPoVar=0, negCofVarShift=0;
-
-    //assumption list
     lit* assumpList = new lit [ piNum+4 ];
 
     //represent the unateness of each pi
@@ -265,11 +262,8 @@ void Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
         setUnateVec( pSat, UnateVec, posCofPoVar, posCofPiVars, negCofVarShift, ForceEqVars, assumpList );
 
         printf("node %s:\n", Abc_ObjName(pObj));
-        //print pos unate
         print_unate( pNtk, UnateVec, POS);
-        //print neg unate
         print_unate( pNtk, UnateVec, NEG);
-        //print binate
         print_unate( pNtk, UnateVec, BINATE);
 
         //reset
