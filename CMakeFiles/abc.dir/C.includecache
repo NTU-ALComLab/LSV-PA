@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/yen-hsiang/Desktop/LSV-PA/src/base/main/main.c
+misc/util/abc_global.h
+-
+
+src/misc/util/abc_global.h
+time.h
+-
+stdarg.h
+-
+stdlib.h
+-
+assert.h
+-
+stdio.h
+-
+string.h
+-
+crtdbg.h
+-
+abc_namespaces.h
+src/misc/util/abc_namespaces.h
+limits.h
+-
+stddef.h
+-
+stdint.h
+-
+
+src/misc/util/abc_namespaces.h
+

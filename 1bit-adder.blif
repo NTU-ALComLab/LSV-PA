@@ -1,0 +1,7 @@
+.model fulladder
+.inputs a b
+.outputs cout
+
+.names a b cout
+-1 1
+.end
