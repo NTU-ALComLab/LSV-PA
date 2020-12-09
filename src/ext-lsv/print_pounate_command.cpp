@@ -17,11 +17,11 @@ extern "C" void * Cnf_DataWriteIntoSolver( Cnf_Dat_t * p, int nFrames, int fInit
 #define SAT 1
 #define UNSAT -1
 
-#define UNDEF -1
-#define NEG_UNATE 0
+#define UNDEF 0
 #define POS_UNATE 1
-#define BINATE 2
-#define UNATE 3
+#define NEG_UNATE 2
+#define BINATE 3
+#define UNATE 4
 
 
 namespace
@@ -92,7 +92,7 @@ void printCiInfo(Abc_Obj_t* nodeCi){
 	cout << "name: " << Abc_ObjName(nodeCi) << endl;
 }
 
-void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet, int* resultRecord){
+void findPosUnate(Abc_Ntk_t* abcNtk, Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet, int* resultRecord, vector<int> & usedCiID){
 	////////////////////////////////////////////////////////////////////////
     //find pos unate, we have ~(F->G) = (F)(~G) in satSol                 //
 	//make x in F = 0, and x in G = 1                                     //
@@ -104,10 +104,27 @@ void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
     int *pLits = ABC_ALLOC(int, nlits);
     int idx;
 
-    //adding control constrain
+    int idx_usedCiID = 0;
+
+	//cout << "in find pos unate" << endl;
+	
+	//adding control constrain
     Abc_Obj_t* nodePi;
     int j;
 	Abc_NtkForEachPi(abcNtk_1Po, nodePi, j){
+
+		//cout << "current node pi = " << Abc_ObjName(nodePi) << endl;
+		//set idx_usedCiID
+        for(int n = usedCiID.size(); idx_usedCiID < n; ++idx_usedCiID){
+			//cout << "idx_usedCiID = " << idx_usedCiID << endl;
+            //cout << "name = " << Abc_ObjName(Abc_NtkPi(abcNtk, idx_usedCiID)) << endl;
+
+            if(!strcmp(Abc_ObjName(nodePi), Abc_ObjName(Abc_NtkPi(abcNtk, idx_usedCiID)))){
+                //cout << "find!" << endl;
+				break;
+            }
+        }
+
         int pi_F = ntkCnf->pVarNums[Abc_ObjId(nodePi)];
         int pi_G = pi_F + nFvar;
         idx = 0;
@@ -149,7 +166,9 @@ void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
         else if (status == UNSAT){
             //cout << "unsat" << endl;
             //cout << "This is pos unate!" << endl;
-			resultRecord[j] = POS_UNATE;
+			
+			//resultRecord[j] = POS_UNATE;
+			usedCiID[idx_usedCiID] = POS_UNATE;
         }
         else{
             cout << "error in solveing SAT" << endl;
@@ -158,7 +177,7 @@ void findPosUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
 	ABC_FREE(pLits);
 }
 
-void findNegUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet, int* resultRecord){
+void findNegUnate(Abc_Ntk_t* abcNtk, Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* abcNtk_1Po, sat_solver* satSol, int* constrainSet, int* resultRecord, vector<int> & usedCiID){
 	////////////////////////////////////////////////////////////////////////
     //find neg unate, we have ~(F->G) = (F)(~G) in satSol                 //
 	//make x in F = 1, and x in G = 0                                     //
@@ -170,10 +189,28 @@ void findNegUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
     int *pLits = ABC_ALLOC(int, nlits);
     int idx;
 
+	int idx_usedCiID = 0;
+
+	//cout << "in find neg unate" << endl;
+	
     //adding control constrain
     Abc_Obj_t* nodePi;
     int j;
 	Abc_NtkForEachPi(abcNtk_1Po, nodePi, j){
+		//printCiInfo(nodePi);
+
+		//cout << "current node pi = " << Abc_ObjName(nodePi) << endl;
+		//set idx_usedCiID
+		for(int n = usedCiID.size(); idx_usedCiID < n; ++idx_usedCiID){
+			//cout << "idx_usedCiID = " << idx_usedCiID << endl;
+            //cout << "name = " << Abc_ObjName(Abc_NtkPi(abcNtk, idx_usedCiID)) << endl;
+
+			if(!strcmp(Abc_ObjName(nodePi), Abc_ObjName(Abc_NtkPi(abcNtk, idx_usedCiID)))){
+				//cout << "find!" << endl;
+				break;
+			}
+		}
+		
         int pi_F = ntkCnf->pVarNums[Abc_ObjId(nodePi)];
         int pi_G = pi_F + nFvar;
         idx = 0;
@@ -204,29 +241,56 @@ void findNegUnate(Vec_Int_t * vCiIds, Cnf_Dat_t* ntkCnf, int nFvar, Abc_Ntk_t* a
         if ( status == SAT ){
             //cout << "sat" << endl;                
             //cout << "This is not neg unate!" << endl;
+
+			/*
 			if(resultRecord[j] == UNDEF){//not pos unate
 				resultRecord[j] = BINATE;
+			}
+			*/
+
+			if(usedCiID[idx_usedCiID] == UNDEF){
+				usedCiID[idx_usedCiID] = BINATE;
 			}
         }
         else if (status == UNSAT){
             //cout << "unsat" << endl;
             //cout << "This is neg unate!" << endl;
+			/*
 			if(resultRecord[j] == POS_UNATE){
 				resultRecord[j] = UNATE;
 			}
 			else{
 				resultRecord[j] = NEG_UNATE;
 			}
+			*/
+			if(usedCiID[idx_usedCiID] == POS_UNATE){
+                usedCiID[idx_usedCiID] = UNATE;
+            }
+            else{
+                usedCiID[idx_usedCiID] = NEG_UNATE;
+            }
+
         }
         else{
             cout << "error in solveing SAT" << endl;
         }
+		
 	}
 	ABC_FREE(pLits);
 }
 
 bool myCompare(Abc_Obj_t* n1, Abc_Obj_t* n2){
     return Abc_ObjId(n1) < Abc_ObjId(n2);
+}
+
+void printOriginalNtkPi(Abc_Ntk_t* abcNtk){
+	cout << "original ntk pi:" << endl;
+	Abc_Obj_t* nodePi;
+	int j;
+	Abc_NtkForEachPi(abcNtk, nodePi, j){
+		printCiInfo(nodePi);
+	}
+	cout << endl;
 }
 
 //main function
@@ -236,16 +300,26 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 	Abc_Ntk_t* abcNtk_1Po;
 	Abc_Obj_t* nodeCo;
 
+	vector<int> usedCiID;//0: init, 1: + unate, 2: -unate 3: binate 4: unate 
+	usedCiID.reserve(Abc_NtkPiNum(abcNtk));
+	usedCiID.resize(Abc_NtkPiNum(abcNtk));
+
+	//printOriginalNtkPi(abcNtk);
+
 	int i;
 	//int fUseAllCis = 0;
 	Abc_NtkForEachPo( abcNtk, nodeCo, i ) {
+		if(Abc_ObjId(nodeCo) != 13)continue;
+		cout << "consider " << Abc_ObjName(nodeCo) << endl;
+
 		//get single output abc_ntk
-		abcNtk_1Po = Abc_NtkCreateCone( abcNtk, Abc_ObjFanin0(nodeCo), Abc_ObjName(nodeCo), 1 );
+		abcNtk_1Po = Abc_NtkCreateCone( abcNtk, Abc_ObjFanin0(nodeCo), Abc_ObjName(nodeCo), 0 );
 		
 		//check output negative
 		if (Abc_ObjFaninC0(nodeCo) ){
 			Abc_NtkPo(abcNtk_1Po, 0)->fCompl0  ^= 1;
 		}
+
 /*
 		//check po is const
 		if(Abc_NodeIsConst(Abc_NtkPo(abcNtk_1Po, 0))){
@@ -397,9 +471,16 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		}
 
 		//solve problem
-		findPosUnate(vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet, resultRecord);
-		findNegUnate(vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet, resultRecord);
-
+		findPosUnate(abcNtk, vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet, resultRecord, usedCiID);
+		findNegUnate(abcNtk, vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet, resultRecord, usedCiID);
+/*
+		cout << "after find" << endl;
+		for(int i = 0, n = usedCiID.size(); i < n; ++i){
+			cout << usedCiID[i] << endl;
+		}
+		cout << endl;
+*/
+		
 		//print result
 		vector<Abc_Obj_t*> p_unate;
         p_unate.reserve(vCiIds->nSize);
@@ -407,12 +488,33 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
         n_unate.reserve(vCiIds->nSize);
         vector<Abc_Obj_t*> binate;
         binate.reserve(vCiIds->nSize);
+		
+		Abc_Obj_t* pPi;
+		int j;
+		Abc_NtkForEachPi( abcNtk, pPi, j ){
+			if(usedCiID[j] == POS_UNATE){
+                //cout << "pos unate" << endl;
+                p_unate.push_back(pPi);
+            }
+            else if(usedCiID[j] == NEG_UNATE){
+                //cout << "neg unate" << endl;
+                n_unate.push_back(pPi);
+            }
+            else if(usedCiID[j] == UNATE || usedCiID[j] == UNDEF){
+                //cout << "both pos unate and neg unate" << endl;
+                p_unate.push_back(pPi);
+                n_unate.push_back(pPi);
+            }
+            else if(usedCiID[j] == BINATE){
+                //cout << "binate" << endl;
+                binate.push_back(pPi);
+            }
+		}
 
-		//Note!!!!!!!!!!!!!!!!!!
-		//Since abcNtk_1Po does not contain all pi, the pi ID will be different from original ntk ID
+		/*
 		Abc_Obj_t* pObj;
 		for(int i = 0; i < vCiIds->nSize; ++i){
-			pObj = Abc_NtkPi(abcNtk_1Po, i);
+            pObj = Abc_NtkPi(abcNtk_1Po, i);
 			//cout << Abc_ObjName(pObj) << " is ";
 			if(resultRecord[i] == POS_UNATE){
 				//cout << "pos unate" << endl;
@@ -432,6 +534,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 				binate.push_back(pObj);
             }
 		}
+		*/
 
 		//cout << endl;
 		sort(p_unate.begin(), p_unate.end(), myCompare);
@@ -521,6 +624,7 @@ int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 		Cnf_DataFree(cnfG);
 		Aig_ManStop(aigMan); //cout << "ok to free AIG" << endl;
 		//Abc_NtkDelete(abcNtk_1Po); cout << "ok to free ntk" << endl;
+		
 	}
     return 0;
 }
