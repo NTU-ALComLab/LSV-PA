@@ -36522,18 +36522,18 @@ int Abc_CommandAbc9Fraig( Abc_Frame_t * pAbc, int argc, char ** argv )
     extern void Cec4_ManSetParams( Cec_ParFra_t * pPars );
     extern Gia_Man_t * Cec2_ManSimulateTest( Gia_Man_t * p, Cec_ParFra_t * pPars );
     extern Gia_Man_t * Cec3_ManSimulateTest( Gia_Man_t * p, Cec_ParFra_t * pPars );
-<<<<<<< HEAD
-    Cec_ParFra_t ParsFra, * pPars = &ParsFra;
-    Gia_Man_t * pTemp;
-    int c, fUseAlgo = 0, fUseAlgoG = 0;
-    Cec_ManFraSetDefaultParams( pPars );
-    pPars->fSatSweeping = 1;
-=======
+// <<<<<<< HEAD
+    // Cec_ParFra_t ParsFra, * pPars = &ParsFra;
+    // Gia_Man_t * pTemp;
+    // int c, fUseAlgo = 0, fUseAlgoG = 0;
+    // Cec_ManFraSetDefaultParams( pPars );
+    // pPars->fSatSweeping = 1;
+// =======
     extern Gia_Man_t * Cec4_ManSimulateTest( Gia_Man_t * p, Cec_ParFra_t * pPars );
     Cec_ParFra_t ParsFra, * pPars = &ParsFra; Gia_Man_t * pTemp;
     int c, fUseAlgo = 0, fUseAlgoG = 0, fUseAlgoG2 = 0;
     Cec4_ManSetParams( pPars );
->>>>>>> upstream/master
+// >>>>>>> upstream/master
     Extra_UtilGetoptReset();
     while ( ( c = Extra_UtilGetopt( argc, argv, "JWRILDCNPrmdckngxwvh" ) ) != EOF )
     {

@@ -24,6 +24,7 @@ set gnuplotunix gnuplot
 #load_plugin C:\_projects\abc\lib\bip_win.exe "BIP"
 
 # standard aliases
+alias lpp lsv_print_pounate
 alias hi history
 alias b balance
 alias cg clockgate
