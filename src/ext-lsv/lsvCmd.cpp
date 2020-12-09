@@ -12,7 +12,11 @@ static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintPoUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
-extern "C" Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+extern "C" {
+    Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+    Abc_Ntk_t * Abc_NtkDC2( Abc_Ntk_t * pNtk, int fBalance, int fUpdateLevel, int fFanout, int fPower, int fVerbose );
+    Abc_Ntk_t * Abc_NtkDarFraig( Abc_Ntk_t * pNtk, int nConfLimit, int fDoSparse, int fProve, int fTransfer, int fSpeculate, int fChoicing, int fVerbose );
+}
 
 void init(Abc_Frame_t* pAbc) {
     Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
@@ -303,8 +307,6 @@ Abc_Ntk_t* Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
                 isNegUnate = (status == l_False) ;
 
                 // reset
-                assume[2]     = toLitCond(pCnfPos->pVarNums[pObj->Id], 0);
-                assume[3]     = toLitCond(pCnfNeg->pVarNums[pObj->Id], 0);
                 assume[j + 4] = toLitCond(offset + j, 0);
             }
 
@@ -360,7 +362,10 @@ int Lsv_CommandPrintPoUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
         return 0;
     }
 
-    Lsv_NtkPrintPoUnate(pNtk);
+    Abc_Ntk_t* pNtkNew;
+    pNtkNew = Abc_NtkDarFraig(pNtk, 100, 1, 0, 0, 0, 0, 0);
+    pNtkNew = Abc_NtkDC2(pNtkNew, 1, 1, 1, 0, 0);
+    Lsv_NtkPrintPoUnate(pNtkNew);
 
     // replace the current network
     // Abc_FrameReplaceCurrentNetwork(pAbc, Lsv_NtkPrintPoUnate(pNtk));
