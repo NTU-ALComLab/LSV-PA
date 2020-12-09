@@ -5,3 +5,11 @@ benchmarks/random_control/ctrl.aig,Pass
 benchmarks/random_control/dec.aig,Pass
 benchmarks/random_control/i2c.aig,Pass
 benchmarks/random_control/int2float.aig,Pass
+benchmarks/random_control/mem_ctrl.aig,Pass
+benchmarks/random_control/priority.aig,Pass
+benchmarks/random_control/router.aig,Pass
+benchmarks/arithmetic/adder.aig,Pass
+benchmarks/arithmetic/bar.aig,Pass
+benchmarks/arithmetic/max.aig,Pass
+benchmarks/arithmetic/sin.aig,Pass
+Score,91
