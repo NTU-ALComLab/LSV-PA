@@ -8,7 +8,7 @@
 ## Implementation
 The SAT-based implementation derives the fanin cone of each PO and checks the unateness of each PI with respect to that PO. By doing this, the SAT solver does not need to consider the clauses that encode the relations of logic gates outside the fanin cone, which improves the efficiency. The following code snippet describes the algorithm.
 
-```cpp=
+```cpp
 Abc_NtkForEachPo( pNtk, pPo, i ) {
 
     // create fanin cone, CNFs, and SAT solver
