@@ -33,11 +33,9 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     int i = 0;
     Abc_Obj_t *pPO;
     Abc_NtkForEachPo(pNtk, pPO, i) {
-        __Lsv_NtkPrintPOUnate_Cone(
-            Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pPO), Abc_ObjName(pPO), 0),
-            pNtk,
-            Abc_ObjFaninC0(pPO)
-        );
+        Abc_Ntk_t* pConeNtk = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pPO), Abc_ObjName(pPO), 0);
+        __Lsv_NtkPrintPOUnate_Cone(pConeNtk, pNtk, Abc_ObjFaninC0(pPO));
+        Abc_NtkDelete(pConeNtk);
     }
 }
 
@@ -139,6 +137,14 @@ static void __Lsv_NtkPrintPOUnate_Cone(Abc_Ntk_t* pConeNtk, Abc_Ntk_t* pParentNt
             unateness_vecs[p].clear();
         }
     }
+
+    // Clean up
+    ABC_FREE(constraint);
+    sat_solver_delete(pSat);
+    Cnf_DataFree(pCnf);
+    Cnf_DataFree(pCnf_negcf);
+    Cnf_ManFree();
+    Aig_ManStop(pMan);
 }
 
 int Lsv_CommandPrintPOUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
