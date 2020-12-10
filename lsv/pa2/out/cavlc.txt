@@ -1,0 +1,32 @@
+ABC command line: "lsv_print_pounate".
+
+node coeff_token[0]:
+binate inputs: totalcoeffs[0],totalcoeffs[1],totalcoeffs[2],totalcoeffs[3],totalcoeffs[4],ctable[0],ctable[1],ctable[2],trailingones[0],trailingones[1]
+node coeff_token[1]:
+binate inputs: totalcoeffs[0],totalcoeffs[1],totalcoeffs[2],totalcoeffs[3],totalcoeffs[4],ctable[0],ctable[1],ctable[2],trailingones[0],trailingones[1]
+node coeff_token[2]:
+binate inputs: totalcoeffs[0],totalcoeffs[1],totalcoeffs[2],totalcoeffs[3],totalcoeffs[4],ctable[0],ctable[1],ctable[2],trailingones[0],trailingones[1]
+node coeff_token[3]:
+-unate inputs: ctable[2]
+binate inputs: totalcoeffs[0],totalcoeffs[1],totalcoeffs[2],totalcoeffs[3],totalcoeffs[4],ctable[0],ctable[1],trailingones[0],trailingones[1]
+node coeff_token[4]:
++unate inputs: ctable[0],ctable[1],trailingones[0],trailingones[1]
+-unate inputs: ctable[2],trailingones[0],trailingones[1]
+binate inputs: totalcoeffs[0],totalcoeffs[1],totalcoeffs[2],totalcoeffs[3],totalcoeffs[4]
+node coeff_token[5]:
++unate inputs: ctable[0],ctable[1],trailingones[0],trailingones[1]
+-unate inputs: ctable[2],trailingones[0],trailingones[1]
+binate inputs: totalcoeffs[0],totalcoeffs[1],totalcoeffs[2],totalcoeffs[3],totalcoeffs[4]
+node ctoken_len[0]:
+binate inputs: totalcoeffs[0],totalcoeffs[1],totalcoeffs[2],totalcoeffs[3],totalcoeffs[4],ctable[0],ctable[1],ctable[2],trailingones[0],trailingones[1]
+node ctoken_len[1]:
+binate inputs: totalcoeffs[0],totalcoeffs[1],totalcoeffs[2],totalcoeffs[3],totalcoeffs[4],ctable[0],ctable[1],ctable[2],trailingones[0],trailingones[1]
+node ctoken_len[2]:
++unate inputs: ctable[2]
+binate inputs: totalcoeffs[0],totalcoeffs[1],totalcoeffs[2],totalcoeffs[3],totalcoeffs[4],ctable[0],ctable[1],trailingones[0],trailingones[1]
+node ctoken_len[3]:
+-unate inputs: ctable[2]
+binate inputs: totalcoeffs[0],totalcoeffs[1],totalcoeffs[2],totalcoeffs[3],totalcoeffs[4],ctable[0],ctable[1],trailingones[0],trailingones[1]
+node ctoken_len[4]:
+-unate inputs: ctable[0],ctable[1],ctable[2],trailingones[0],trailingones[1]
+binate inputs: totalcoeffs[0],totalcoeffs[1],totalcoeffs[2],totalcoeffs[3],totalcoeffs[4]
