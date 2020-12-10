@@ -7,7 +7,7 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-time_limit="300s"
+time_limit="30s"
 pa_cmd="lsv_print_pounate"
 pa_dir="lsv/pa2"
 ref_dir="${pa_dir}/ref"
@@ -33,7 +33,11 @@ grade_one_branch () {
     student="$1"
     result="${pa_dir}/${student}.csv"
     git switch "${student}"
-    rm src/ext-lsv/*.o src/ext-lsv/*.d
+    rm src/ext-lsv/*.o src/ext-lsv/*.d \
+        src/sat/bsat/*.o src/sat/bsat/*.d \
+        src/sat/cnf/*.o src/sat/cnf/*.d \
+        src/proof/fra/*.o src/proof/fra/*.d \
+        src/base/abci/*.o src/base/abci/*.d
     make -j8
     echo "Benchmark,Result" > "${result}"
     rm -rf "${out_dir}" "${diff_dir}"
