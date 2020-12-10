@@ -125,7 +125,7 @@ void Lsv_NtkPrintpounate(Abc_Ntk_t* pNtk) {
     sat_solver* pSat = sat_solver_new();
     //need more numCI var to use buffer_enable
     int offset = 2*(cnfconeaig->nVars);
-    sat_solver_setnvars(pSat,offset+Aig_ManCiNum(coneaig)+2);
+    sat_solver_setnvars(pSat,offset+Aig_ManCiNum(coneaig)+1);
     //add clause
     for(int k=0;k<cnfconeaig->nClauses;k++){
       sat_solver_addclause(pSat,cnfconeaig->pClauses[k],cnfconeaig->pClauses[k+1]);
@@ -139,7 +139,7 @@ void Lsv_NtkPrintpounate(Abc_Ntk_t* pNtk) {
     //sat_solver_add_and(pSat,out,in1,in2,cin1,cin2,cout)
     sat_solver_add_and(pSat,offset+Aig_ManCiNum(coneaig),cnfconeaig->pVarNums[coneaig_CO->Id],negcnfconeaig->pVarNums[coneaig_CO->Id],1,0,0);
     //add and for negitive F(x) = 1 and F(~x) = 0
-    sat_solver_add_and(pSat,offset+Aig_ManCiNum(coneaig)+1,cnfconeaig->pVarNums[coneaig_CO->Id],negcnfconeaig->pVarNums[coneaig_CO->Id],0,1,0);
+    //sat_solver_add_and(pSat,offset+Aig_ManCiNum(coneaig)+1,cnfconeaig->pVarNums[coneaig_CO->Id],negcnfconeaig->pVarNums[coneaig_CO->Id],0,1,0);
     //make assume lit
     //0~2 use to another, 3~N+2 use to enable
     //toLitCond(XXX,0) mean set XXX=1
@@ -171,7 +171,9 @@ void Lsv_NtkPrintpounate(Abc_Ntk_t* pNtk) {
           status = sat_solver_solve(pSat, assume, assume+Cinum+3, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
           posUnate = (status == l_False) ;
           //neg-unate: F(x)->F(~x) so can't (~F(~x) and F(x)) so set F(~x) = 0 and F(x) = 1
-          assume[2] = toLitCond(offset+Aig_ManCiNum(coneaig)+1, 0);
+          //assume[2] = toLitCond(offset+Aig_ManCiNum(coneaig)+1, 0);
+          assume[0] = toLitCond(cnfconeaig->pVarNums[index], 1);
+          assume[1] = toLitCond(negcnfconeaig->pVarNums[index], 0);
           status = sat_solver_solve(pSat, assume, assume+Cinum+3, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
           negUnate = (status == l_False) ;
           //reset enable
