@@ -1,9 +1,12 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
+#include "aig/aig/aig.h"
+#include "aig/saig/saig.h"
+
 #include "base/main/mainInt.h"
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
-
+//extern Aig_Man_t *Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
 }
@@ -35,6 +38,8 @@ void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
 
 int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  //Aig_Man_t* pMan;
+
   int c;
   Extra_UtilGetoptReset();
   while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
@@ -49,6 +54,8 @@ int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_Print(-1, "Empty network.\n");
     return 1;
   }
+  //pMan = Abc_NtkToDar( pNtk, 0, 0 );
+
   Lsv_NtkPrintNodes(pNtk);
   return 0;
 
