@@ -607,8 +607,11 @@ static inline int sat_solver_enqueue(sat_solver* s, lit l, int from)
 #ifdef VERBOSEDEBUG
     printf(L_IND"enqueue("L_LIT")\n", L_ind, L_lit(l));
 #endif
-    if (var_value(s, v) != varX)
+    if (var_value(s, v) != varX){
+        // printf("return here!!!\n");
+        // printf("%d , %d \n", var_value(s, v), lit_sign(l));
         return var_value(s, v) == lit_sign(l);
+    }
     else{
 /*
         if ( s->pCnfFunc )
@@ -635,6 +638,7 @@ static inline int sat_solver_enqueue(sat_solver* s, lit l, int from)
 #ifdef VERBOSEDEBUG
         printf(L_IND"bind("L_LIT")\n", L_ind, L_lit(l));
 #endif
+        // printf("line 641\n");
         var_set_value(s, v, lit_sign(l));
         var_set_level(s, v, sat_solver_dl(s));
         s->reasons[v] = from;
@@ -1772,20 +1776,28 @@ int sat_solver_addclause(sat_solver* s, lit* begin, lit* end)
 
     // delete duplicates
     last = lit_Undef;
+    // printf("begin = %p , " ,begin);
     for (i = j = begin; i < end; i++){
-        //printf("lit: "L_LIT", value = %d\n", L_lit(*i), (lit_sign(*i) ? -s->assignss[lit_var(*i)] : s->assignss[lit_var(*i)]));
+        // printf("j = %p, ",j);
+        // printf("lit: "L_LIT", value = %d\n", L_lit(*i), (lit_sign(*i) ? -s->assigns[lit_var(*i)] : s->assigns[lit_var(*i)]));
         if (*i == lit_neg(last) || var_value(s, lit_var(*i)) == lit_sign(*i))
             return true;   // tautology
         else if (*i != last && var_value(s, lit_var(*i)) == varX)
             last = *j++ = *i;
     }
+    // printf("j = %p, ",j);
+    // printf("\n");
 //    j = i;
 
-    if (j == begin)          // empty clause
+    if (j == begin){          // empty clause
+        // printf("empty clause\n");
         return false;
+    }
 
-    if (j - begin == 1) // unit clause
+    if (j - begin == 1){ // unit clause
+        // printf("unit clause\n");
         return sat_solver_enqueue(s,*begin,0);
+    }
 
     // create new clause
     sat_solver_clause_new(s,begin,j,0);

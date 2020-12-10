@@ -50,7 +50,6 @@ int Fra_FraigSat( Aig_Man_t * pMan, ABC_INT64_T nConfLimit, ABC_INT64_T nInsLimi
     {
         extern void * Cnf_DataWriteIntoSolver2( Cnf_Dat_t * p, int nFrames, int fInit );
         extern int    Cnf_DataWriteOrClause2( void * pSat, Cnf_Dat_t * pCnf );
-
         sat_solver2 * pSat;
         Cnf_Dat_t * pCnf;
         int status, RetValue = 0;
