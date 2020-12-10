@@ -1,5 +1,5 @@
 --- lsv/pa2/ref/arbiter.txt	2020-11-30 16:50:08.398983623 +0800
-+++ lsv/pa2/out/arbiter.txt	2020-12-10 16:47:45.422885862 +0800
++++ lsv/pa2/out/arbiter.txt	2020-12-10 19:02:42.741482559 +0800
 @@ -1,389 +1,2 @@
  ABC command line: "lsv_print_pounate".
  

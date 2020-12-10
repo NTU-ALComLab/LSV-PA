@@ -1,5 +1,5 @@
 --- lsv/pa2/ref/priority.txt	2020-11-30 16:50:08.434986508 +0800
-+++ lsv/pa2/out/priority.txt	2020-12-10 16:47:45.758889802 +0800
++++ lsv/pa2/out/priority.txt	2020-12-10 19:02:43.069486591 +0800
 @@ -1,25 +1,2 @@
  ABC command line: "lsv_print_pounate".
  
