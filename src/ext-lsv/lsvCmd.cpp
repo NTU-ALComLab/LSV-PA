@@ -2,12 +2,14 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 #include "lsv_print_sopunate.cpp"
+#include "lsv_print_pounate.cpp"
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintSopunate, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_pounate", Lsv_CommandPrintPOunate, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
