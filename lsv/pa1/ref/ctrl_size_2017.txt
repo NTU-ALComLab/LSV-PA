@@ -1,4 +1,5 @@
 ABC command line: "read benchmarks/best_results/size/ctrl_size_2017.blif; 
+lsv_print_sopunate".
 
 node sel_reg_dst[0]:
 +unate inputs: opcode[0],opcode[1],opcode[2]

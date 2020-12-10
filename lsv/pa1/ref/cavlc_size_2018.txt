@@ -1,4 +1,5 @@
 ABC command line: "read benchmarks/best_results/size/cavlc_size_2018.blif; l
+lsv_print_sopunate".
 
 node po00:
 +unate inputs: n23,n29
