@@ -1,5 +1,5 @@
 --- lsv/pa2/ref/cavlc.txt	2020-11-30 16:50:08.398983623 +0800
-+++ lsv/pa2/out/cavlc.txt	2020-12-10 16:40:31.129858698 +0800
++++ lsv/pa2/out/cavlc.txt	2020-12-10 18:47:01.840903164 +0800
 @@ -1,32 +1,2 @@
  ABC command line: "lsv_print_pounate".
  
