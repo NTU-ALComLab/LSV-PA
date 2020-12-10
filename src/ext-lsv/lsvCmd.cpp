@@ -51,7 +51,7 @@ int Lsv_CommandPrintNodes(Abc_Frame_t *pAbc, int argc, char **argv)
 
   Abc_NtkForEachCo(pNtk_origin, pCo_origin, o)
   {
-    //take the fanin of PO, because po is special node cannot be used
+    //take the fanin of PO, because po is special node cannot be usedhw
     Abc_Obj_t *pCo;
     pCo = Abc_ObjFanin0(pCo_origin);
     cout << "node " << Abc_ObjName(pCo_origin) << ":" << endl;
