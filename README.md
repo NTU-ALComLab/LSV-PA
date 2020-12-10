@@ -1,5 +1,5 @@
 # LSV-PA
-This a repository to host programming assignments of the course **Logic Synthesis and Verification** at National Taiwan University.
+This is a repository to host programming assignments of the course **Logic Synthesis and Verification** at National Taiwan University.
 It is forked from the repository [ABC](https://github.com/berkeley-abc/abc) of UC Berkeley.
 
 ## Submission Workflow
