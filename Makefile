@@ -1,4 +1,5 @@
-CC   := gcc
+
+C   := gcc
 CXX  := g++
 AR   := ar
 LD   := $(CXX)
