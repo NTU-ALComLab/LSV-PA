@@ -1232,7 +1232,7 @@ Vec_Int_t * Gia_RsbFindOutputs( Gia_Man_t * p, Vec_Int_t * vWin, Vec_Int_t * vIn
     Gia_ManIncrementTravId( p );
     Gia_ManForEachObjVec( vIns, p, pObj, i ) 
         Gia_ObjSetTravIdCurrent( p, pObj );
-	Gia_ManForEachObjVec( vWin, p, pObj, i ) 
+    Gia_ManForEachObjVec( vWin, p, pObj, i ) 
         if ( !Gia_ObjIsTravIdCurrent(p, pObj) && Gia_ObjIsAnd(pObj) )
         {
             Vec_IntAddToEntry( vRefs, Gia_ObjFaninId0p(p, pObj), 1 );

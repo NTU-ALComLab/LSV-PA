@@ -862,8 +862,6 @@ FILE * Io_FileOpen( const char * FileName, const char * PathVar, const char * Mo
     }
 }
 
-// <<<<<<< HEAD
-// =======
 /**Function*************************************************************
 
   Synopsis    [Tranform SF into PLA.]
@@ -920,7 +918,6 @@ void Io_TransformSF2PLA( char * pNameIn, char * pNameOut )
     ABC_FREE( pBuffer );
 }
 
-// >>>>>>> upstream/master
 ////////////////////////////////////////////////////////////////////////
 ///                       END OF FILE                                ///
 ////////////////////////////////////////////////////////////////////////
