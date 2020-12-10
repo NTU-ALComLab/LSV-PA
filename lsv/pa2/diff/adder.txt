@@ -1,5 +1,5 @@
 --- lsv/pa2/ref/adder.txt	2020-11-30 16:50:08.394983303 +0800
-+++ lsv/pa2/out/adder.txt	2020-12-10 16:50:42.612052874 +0800
++++ lsv/pa2/out/adder.txt	2020-12-10 19:05:57.427856490 +0800
 @@ -1,514 +1,2 @@
  ABC command line: "lsv_print_pounate".
  
