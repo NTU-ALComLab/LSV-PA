@@ -1,0 +1,2911 @@
+ABC command line: "read benchmarks/best_results/size/voter_size_2020.blif; lsv_print_sopunate".
+
+node [5]:
+-unate inputs: pi0919,pi0920,pi0921,pi0922,pi0923,pi0924
+node [6]:
+binate inputs: pi0673,pi0674,pi0675,pi0676,pi0677,pi0678
+node [7]:
+-unate inputs: pi0805,pi0806,pi0807,pi0808,pi0809,pi0810
+node [8]:
+binate inputs: pi0751,pi0752,pi0753,pi0754,pi0755,pi0756
+node [9]:
+binate inputs: pi0685,pi0686,pi0687,pi0688,pi0689,pi0690
+node [10]:
+-unate inputs: pi0979,pi0980,pi0981,pi0982,pi0983,pi0984
+node [11]:
+binate inputs: pi0745,pi0746,pi0747,pi0748,pi0749,pi0750
+node [12]:
+-unate inputs: pi0025,pi0026,pi0027,pi0028,pi0029,pi0030
+node [13]:
+binate inputs: pi0121,pi0122,pi0123,pi0124,pi0125,pi0126
+node [14]:
+binate inputs: pi0133,pi0134,pi0135,pi0136,pi0137,pi0138
+node [15]:
+-unate inputs: pi0709,pi0710,pi0711,pi0712,pi0713,pi0714
+node [16]:
+binate inputs: pi0991,pi0992,pi0993,pi0994,pi0995,pi0996
+node [17]:
+binate inputs: pi0313,pi0314,pi0315,pi0316,pi0317,pi0318
+node [18]:
+binate inputs: pi0307,pi0308,pi0309,pi0310,pi0311,pi0312
+node [20]:
+binate inputs: pi0373,pi0374,pi0375,pi0376,pi0377,pi0378
+node [21]:
+binate inputs: pi0931,pi0932,pi0933,pi0934,pi0935,pi0936
+node [22]:
+binate inputs: pi0961,pi0962,pi0963,pi0964,pi0965,pi0966
+node [23]:
+binate inputs: pi0733,pi0734,pi0735,pi0736,pi0737,pi0738
+node [24]:
+-unate inputs: pi0607,pi0608,pi0609,pi0610,pi0611,pi0612
+node [25]:
+binate inputs: pi0025,pi0026,pi0027,pi0028,pi0029,pi0030
+node [26]:
+binate inputs: pi0925,pi0926,pi0927,pi0928,pi0929,pi0930
+node [27]:
+-unate inputs: pi0679,pi0680,pi0681,pi0682,pi0683,pi0684
+node [28]:
+binate inputs: pi0325,pi0326,pi0327,pi0328,pi0329,pi0330
+node [29]:
+-unate inputs: pi0115,pi0116,pi0117,pi0118,pi0119,pi0120
+node [30]:
+binate inputs: pi0127,pi0128,pi0129,pi0130,pi0131,pi0132
+node [31]:
+-unate inputs: pi0523,pi0524,pi0525,pi0526,pi0527,pi0528
+node [32]:
+binate inputs: pi0193,pi0194,pi0195,pi0196,pi0197,pi0198
+node [33]:
+binate inputs: pi0397,pi0398,pi0399,pi0400,pi0401,pi0402
+node [34]:
+binate inputs: pi0391,pi0392,pi0393,pi0394,pi0395,pi0396
+node [36]:
+-unate inputs: pi0229,pi0230,pi0231,pi0232,pi0233,pi0234
+node [37]:
+-unate inputs: pi0961,pi0962,pi0963,pi0964,pi0965,pi0966
+node [38]:
+binate inputs: pi0097,pi0098,pi0099,pi0100,pi0101,pi0102
+node [39]:
+-unate inputs: pi0931,pi0932,pi0933,pi0934,pi0935,pi0936
+node [40]:
+binate inputs: pi0025,pi0026,pi0027,pi0028,pi0029,pi0030
+node [41]:
+binate inputs: pi0655,pi0656,pi0657,pi0658,pi0659,pi0660
+node [42]:
+binate inputs: pi0043,pi0044,pi0045,pi0046,pi0047,pi0048
+node [43]:
+binate inputs: pi0379,pi0380,pi0381,pi0382,pi0383,pi0384
+node [44]:
+binate inputs: pi0583,pi0584,pi0585,pi0586,pi0587,pi0588
+node [45]:
+binate inputs: pi0151,pi0152,pi0153,pi0154,pi0155,pi0156
+node [46]:
+binate inputs: pi0973,pi0974,pi0975,pi0976,pi0977,pi0978
+node [47]:
+-unate inputs: pi0841,pi0842,pi0843,pi0844,pi0845,pi0846
+node [48]:
+binate inputs: pi0271,pi0272,pi0273,pi0274,pi0275,pi0276
+node [49]:
+binate inputs: pi0277,pi0278,pi0279,pi0280,pi0281,pi0282
+node [51]:
+-unate inputs: pi0511,pi0512,pi0513,pi0514,pi0515,pi0516
+node [52]:
+-unate inputs: pi0577,pi0578,pi0579,pi0580,pi0581,pi0582
+node [53]:
+-unate inputs: pi0295,pi0296,pi0297,pi0298,pi0299,pi0300
+node [54]:
+binate inputs: pi0805,pi0806,pi0807,pi0808,pi0809,pi0810
+node [55]:
+binate inputs: pi0559,pi0560,pi0561,pi0562,pi0563,pi0564
+node [56]:
+binate inputs: pi0853,pi0854,pi0855,pi0856,pi0857,pi0858
+node [57]:
+-unate inputs: pi0235,pi0236,pi0237,pi0238,pi0239,pi0240
+node [58]:
+-unate inputs: pi0241,pi0242,pi0243,pi0244,pi0245,pi0246
+node [59]:
+binate inputs: pi0355,pi0356,pi0357,pi0358,pi0359,pi0360
+node [60]:
+binate inputs: pi0133,pi0134,pi0135,pi0136,pi0137,pi0138
+node [61]:
+binate inputs: pi0547,pi0548,pi0549,pi0550,pi0551,pi0552
+node [62]:
+-unate inputs: pi0271,pi0272,pi0273,pi0274,pi0275,pi0276
+node [63]:
+binate inputs: pi0733,pi0734,pi0735,pi0736,pi0737,pi0738
+node [64]:
+binate inputs: pi0775,pi0776,pi0777,pi0778,pi0779,pi0780
+node [65]:
+binate inputs: pi0589,pi0590,pi0591,pi0592,pi0593,pi0594
+node [66]:
+binate inputs: pi0937,pi0938,pi0939,pi0940,pi0941,pi0942
+node [67]:
+-unate inputs: pi0505,pi0506,pi0507,pi0508,pi0509,pi0510
+node [68]:
+binate inputs: pi0541,pi0542,pi0543,pi0544,pi0545,pi0546
+node [69]:
+binate inputs: pi0823,pi0824,pi0825,pi0826,pi0827,pi0828
+node [70]:
+-unate inputs: pi0013,pi0014,pi0015,pi0016,pi0017,pi0018
+node [71]:
+binate inputs: pi0619,pi0620,pi0621,pi0622,pi0623,pi0624
+node [72]:
+binate inputs: pi0625,pi0626,pi0627,pi0628,pi0629,pi0630
+node [74]:
+binate inputs: pi0145,pi0146,pi0147,pi0148,pi0149,pi0150
+node [75]:
+binate inputs: pi0343,pi0344,pi0345,pi0346,pi0347,pi0348
+node [76]:
+binate inputs: pi0349,pi0350,pi0351,pi0352,pi0353,pi0354
+node [77]:
+binate inputs: pi0343,pi0344,pi0345,pi0346,pi0347,pi0348
+node [78]:
+binate inputs: pi0349,pi0350,pi0351,pi0352,pi0353,pi0354
+node [80]:
+binate inputs: pi0607,pi0608,pi0609,pi0610,pi0611,pi0612
+node [81]:
+binate inputs: pi0949,pi0950,pi0951,pi0952,pi0953,pi0954
+node [82]:
+-unate inputs: pi0517,pi0518,pi0519,pi0520,pi0521,pi0522
+node [83]:
+binate inputs: pi0835,pi0836,pi0837,pi0838,pi0839,pi0840
+node [84]:
+-unate inputs: pi0463,pi0464,pi0465,pi0466,pi0467,pi0468
+node [85]:
+binate inputs: pi0517,pi0518,pi0519,pi0520,pi0521,pi0522
+node [86]:
+binate inputs: pi0091,pi0092,pi0093,pi0094,pi0095,pi0096
+node [87]:
+binate inputs: pi0697,pi0698,pi0699,pi0700,pi0701,pi0702
+node [88]:
+-unate inputs: pi0361,pi0362,pi0363,pi0364,pi0365,pi0366
+node [89]:
+-unate inputs: pi0355,pi0356,pi0357,pi0358,pi0359,pi0360
+node [91]:
+binate inputs: pi0481,pi0482,pi0483,pi0484,pi0485,pi0486
+node [92]:
+binate inputs: pi0181,pi0182,pi0183,pi0184,pi0185,pi0186
+node [93]:
+binate inputs: pi0169,pi0170,pi0171,pi0172,pi0173,pi0174
+node [94]:
+binate inputs: pi0931,pi0932,pi0933,pi0934,pi0935,pi0936
+node [95]:
+-unate inputs: pi0529,pi0530,pi0531,pi0532,pi0533,pi0534
+node [96]:
+-unate inputs: pi0097,pi0098,pi0099,pi0100,pi0101,pi0102
+node [97]:
+-unate inputs: pi0445,pi0446,pi0447,pi0448,pi0449,pi0450
+node [98]:
+-unate inputs: pi0187,pi0188,pi0189,pi0190,pi0191,pi0192
+node [99]:
+binate inputs: pi0229,pi0230,pi0231,pi0232,pi0233,pi0234
+node [100]:
+binate inputs: pi0055,pi0056,pi0057,pi0058,pi0059,pi0060
+node [101]:
+binate inputs: pi0457,pi0458,pi0459,pi0460,pi0461,pi0462
+node [102]:
+binate inputs: pi0331,pi0332,pi0333,pi0334,pi0335,pi0336
+node [103]:
+binate inputs: pi0595,pi0596,pi0597,pi0598,pi0599,pi0600
+node [104]:
+binate inputs: pi0499,pi0500,pi0501,pi0502,pi0503,pi0504
+node [105]:
+binate inputs: pi0517,pi0518,pi0519,pi0520,pi0521,pi0522
+node [106]:
+binate inputs: pi0295,pi0296,pi0297,pi0298,pi0299,pi0300
+node [107]:
+-unate inputs: pi0367,pi0368,pi0369,pi0370,pi0371,pi0372
+node [108]:
+binate inputs: pi0169,pi0170,pi0171,pi0172,pi0173,pi0174
+node [109]:
+-unate inputs: pi0415,pi0416,pi0417,pi0418,pi0419,pi0420
+node [131]:
+binate inputs: pi0703,pi0704,pi0705,pi0706,pi0707,pi0708
+node [155]:
+-unate inputs: pi0031,pi0032,pi0033,pi0034,pi0035,pi0036
+node [156]:
+binate inputs: pi0553,pi0554,pi0555,pi0556,pi0557,pi0558
+node [158]:
+-unate inputs: pi0421,pi0422,pi0423,pi0424,pi0425,pi0426
+node [159]:
+binate inputs: pi0307,pi0308,pi0309,pi0310,pi0311,pi0312
+node [160]:
+binate inputs: pi0235,pi0236,pi0237,pi0238,pi0239,pi0240
+node [161]:
+binate inputs: pi0577,pi0578,pi0579,pi0580,pi0581,pi0582
+node [162]:
+-unate inputs: pi0673,pi0674,pi0675,pi0676,pi0677,pi0678
+node [163]:
+-unate inputs: pi0613,pi0614,pi0615,pi0616,pi0617,pi0618
+node [164]:
+binate inputs: pi0817,pi0818,pi0819,pi0820,pi0821,pi0822
+node [165]:
+binate inputs: pi0607,pi0608,pi0609,pi0610,pi0611,pi0612
+node [166]:
+-unate inputs: pi0787,pi0788,pi0789,pi0790,pi0791,pi0792
+node [167]:
+-unate inputs: pi0811,pi0812,pi0813,pi0814,pi0815,pi0816
+node [168]:
+binate inputs: pi0103,pi0104,pi0105,pi0106,pi0107,pi0108
+node [169]:
+-unate inputs: pi0427,pi0428,pi0429,pi0430,pi0431,pi0432
+node [170]:
+binate inputs: pi0193,pi0194,pi0195,pi0196,pi0197,pi0198
+node [171]:
+binate inputs: pi0505,pi0506,pi0507,pi0508,pi0509,pi0510
+node [173]:
+-unate inputs: pi0493,pi0494,pi0495,pi0496,pi0497,pi0498
+node [174]:
+-unate inputs: pi0079,pi0080,pi0081,pi0082,pi0083,pi0084
+node [175]:
+-unate inputs: pi0955,pi0956,pi0957,pi0958,pi0959,pi0960
+node [176]:
+binate inputs: pi0865,pi0866,pi0867,pi0868,pi0869,pi0870
+node [177]:
+binate inputs: pi0205,pi0206,pi0207,pi0208,pi0209,pi0210
+node [178]:
+-unate inputs: pi0781,pi0782,pi0783,pi0784,pi0785,pi0786
+node [179]:
+binate inputs: pi0031,pi0032,pi0033,pi0034,pi0035,pi0036
+node [180]:
+binate inputs: pi0637,pi0638,pi0639,pi0640,pi0641,pi0642
+node [181]:
+binate inputs: pi0649,pi0650,pi0651,pi0652,pi0653,pi0654
+node [182]:
+binate inputs: pi0631,pi0632,pi0633,pi0634,pi0635,pi0636
+node [183]:
+binate inputs: pi0643,pi0644,pi0645,pi0646,pi0647,pi0648
+node [185]:
+-unate inputs: pi0667,pi0668,pi0669,pi0670,pi0671,pi0672
+node [186]:
+-unate inputs: pi0967,pi0968,pi0969,pi0970,pi0971,pi0972
+node [187]:
+binate inputs: pi0715,pi0716,pi0717,pi0718,pi0719,pi0720
+node [188]:
+-unate inputs: pi0559,pi0560,pi0561,pi0562,pi0563,pi0564
+node [189]:
+binate inputs: pi0691,pi0692,pi0693,pi0694,pi0695,pi0696
+node [191]:
+-unate inputs: pi0403,pi0404,pi0405,pi0406,pi0407,pi0408
+node [192]:
+binate inputs: pi0505,pi0506,pi0507,pi0508,pi0509,pi0510
+node [193]:
+-unate inputs: pi0499,pi0500,pi0501,pi0502,pi0503,pi0504
+node [194]:
+binate inputs: pi0499,pi0500,pi0501,pi0502,pi0503,pi0504
+node [196]:
+binate inputs: pi0241,pi0242,pi0243,pi0244,pi0245,pi0246
+node [197]:
+-unate inputs: pi0205,pi0206,pi0207,pi0208,pi0209,pi0210
+node [198]:
+binate inputs: pi0805,pi0806,pi0807,pi0808,pi0809,pi0810
+node [199]:
+binate inputs: pi0661,pi0662,pi0663,pi0664,pi0665,pi0666
+node [200]:
+binate inputs: pi0961,pi0962,pi0963,pi0964,pi0965,pi0966
+node [201]:
+binate inputs: pi0781,pi0782,pi0783,pi0784,pi0785,pi0786
+node [202]:
+binate inputs: pi0163,pi0164,pi0165,pi0166,pi0167,pi0168
+node [203]:
+binate inputs: pi0751,pi0752,pi0753,pi0754,pi0755,pi0756
+node [204]:
+binate inputs: pi0925,pi0926,pi0927,pi0928,pi0929,pi0930
+node [205]:
+binate inputs: pi0937,pi0938,pi0939,pi0940,pi0941,pi0942
+node [207]:
+binate inputs: pi0727,pi0728,pi0729,pi0730,pi0731,pi0732
+node [208]:
+binate inputs: pi0547,pi0548,pi0549,pi0550,pi0551,pi0552
+node [209]:
+-unate inputs: pi0937,pi0938,pi0939,pi0940,pi0941,pi0942
+node [210]:
+-unate inputs: pi0145,pi0146,pi0147,pi0148,pi0149,pi0150
+node [211]:
+binate inputs: pi0415,pi0416,pi0417,pi0418,pi0419,pi0420
+node [212]:
+binate inputs: pi0007,pi0008,pi0009,pi0010,pi0011,pi0012
+node [213]:
+binate inputs: pi0319,pi0320,pi0321,pi0322,pi0323,pi0324
+node [214]:
+binate inputs: pi0037,pi0038,pi0039,pi0040,pi0041,pi0042
+node [215]:
+binate inputs: pi0067,pi0068,pi0069,pi0070,pi0071,pi0072
+node [216]:
+binate inputs: pi0151,pi0152,pi0153,pi0154,pi0155,pi0156
+node [217]:
+-unate inputs: pi0487,pi0488,pi0489,pi0490,pi0491,pi0492
+node [218]:
+-unate inputs: pi0091,pi0092,pi0093,pi0094,pi0095,pi0096
+node [219]:
+-unate inputs: pi0433,pi0434,pi0435,pi0436,pi0437,pi0438
+node [220]:
+-unate inputs: pi0277,pi0278,pi0279,pi0280,pi0281,pi0282
+node [221]:
+binate inputs: pi0619,pi0620,pi0621,pi0622,pi0623,pi0624
+node [222]:
+binate inputs: pi0895,pi0896,pi0897,pi0898,pi0899,pi0900
+node [223]:
+-unate inputs: pi0883,pi0884,pi0885,pi0886,pi0887,pi0888
+node [224]:
+binate inputs: pi0919,pi0920,pi0921,pi0922,pi0923,pi0924
+node [225]:
+binate inputs: pi0907,pi0908,pi0909,pi0910,pi0911,pi0912
+node [226]:
+-unate inputs: pi0685,pi0686,pi0687,pi0688,pi0689,pi0690
+node [227]:
+binate inputs: pi0127,pi0128,pi0129,pi0130,pi0131,pi0132
+node [228]:
+-unate inputs: pi0379,pi0380,pi0381,pi0382,pi0383,pi0384
+node [229]:
+binate inputs: pi0403,pi0404,pi0405,pi0406,pi0407,pi0408
+node [230]:
+binate inputs: pi0409,pi0410,pi0411,pi0412,pi0413,pi0414
+node [232]:
+-unate inputs: pi0895,pi0896,pi0897,pi0898,pi0899,pi0900
+node [233]:
+binate inputs: pi0097,pi0098,pi0099,pi0100,pi0101,pi0102
+node [234]:
+binate inputs: pi0745,pi0746,pi0747,pi0748,pi0749,pi0750
+node [235]:
+binate inputs: pi0433,pi0434,pi0435,pi0436,pi0437,pi0438
+node [236]:
+-unate inputs: pi0823,pi0824,pi0825,pi0826,pi0827,pi0828
+node [237]:
+binate inputs: pi0055,pi0056,pi0057,pi0058,pi0059,pi0060
+node [238]:
+binate inputs: pi0337,pi0338,pi0339,pi0340,pi0341,pi0342
+node [239]:
+binate inputs: pi0739,pi0740,pi0741,pi0742,pi0743,pi0744
+node [240]:
+-unate inputs: pi0739,pi0740,pi0741,pi0742,pi0743,pi0744
+node [241]:
+binate inputs: pi0511,pi0512,pi0513,pi0514,pi0515,pi0516
+node [242]:
+binate inputs: pi0337,pi0338,pi0339,pi0340,pi0341,pi0342
+node [243]:
+binate inputs: pi0003,pi0004,pi0005
+node [244]:
+binate inputs: pi0841,pi0842,pi0843,pi0844,pi0845,pi0846
+node [245]:
+-unate inputs: pi0193,pi0194,pi0195,pi0196,pi0197,pi0198
+node [246]:
+binate inputs: pi0493,pi0494,pi0495,pi0496,pi0497,pi0498
+node [247]:
+-unate inputs: pi0109,pi0110,pi0111,pi0112,pi0113,pi0114
+node [248]:
+binate inputs: pi0907,pi0908,pi0909,pi0910,pi0911,pi0912
+node [249]:
+binate inputs: pi0643,pi0644,pi0645,pi0646,pi0647,pi0648
+node [250]:
+-unate inputs: pi0139,pi0140,pi0141,pi0142,pi0143,pi0144
+node [251]:
+-unate inputs: pi0409,pi0410,pi0411,pi0412,pi0413,pi0414
+node [252]:
+binate inputs: pi0361,pi0362,pi0363,pi0364,pi0365,pi0366
+node [253]:
+binate inputs: pi0085,pi0086,pi0087,pi0088,pi0089,pi0090
+node [254]:
+binate inputs: pi0823,pi0824,pi0825,pi0826,pi0827,pi0828
+node [255]:
+binate inputs: pi0583,pi0584,pi0585,pi0586,pi0587,pi0588
+node [256]:
+binate inputs: pi0061,pi0062,pi0063,pi0064,pi0065,pi0066
+node [257]:
+-unate inputs: pi0721,pi0722,pi0723,pi0724,pi0725,pi0726
+node [258]:
+binate inputs: pi0361,pi0362,pi0363,pi0364,pi0365,pi0366
+node [259]:
+binate inputs: pi0139,pi0140,pi0141,pi0142,pi0143,pi0144
+node [260]:
+binate inputs: pi0781,pi0782,pi0783,pi0784,pi0785,pi0786
+node [261]:
+binate inputs: pi0649,pi0650,pi0651,pi0652,pi0653,pi0654
+node [262]:
+-unate inputs: pi0439,pi0440,pi0441,pi0442,pi0443,pi0444
+node [263]:
+binate inputs: pi0589,pi0590,pi0591,pi0592,pi0593,pi0594
+node [264]:
+-unate inputs: pi0003,pi0004,pi0005
+node [266]:
+-unate inputs: pi0469,pi0470,pi0471,pi0472,pi0473,pi0474
+node [267]:
+binate inputs: pi0367,pi0368,pi0369,pi0370,pi0371,pi0372
+node [268]:
+binate inputs: pi0943,pi0944,pi0945,pi0946,pi0947,pi0948
+node [269]:
+binate inputs: pi0079,pi0080,pi0081,pi0082,pi0083,pi0084
+node [270]:
+-unate inputs: pi0007,pi0008,pi0009,pi0010,pi0011,pi0012
+node [271]:
+-unate inputs: pi0889,pi0890,pi0891,pi0892,pi0893,pi0894
+node [272]:
+-unate inputs: pi0451,pi0452,pi0453,pi0454,pi0455,pi0456
+node [273]:
+binate inputs: pi0709,pi0710,pi0711,pi0712,pi0713,pi0714
+node [274]:
+-unate inputs: pi0019,pi0020,pi0021,pi0022,pi0023,pi0024
+node [275]:
+binate inputs: pi0973,pi0974,pi0975,pi0976,pi0977,pi0978
+node [276]:
+-unate inputs: pi0073,pi0074,pi0075,pi0076,pi0077,pi0078
+node [277]:
+binate inputs: pi0475,pi0476,pi0477,pi0478,pi0479,pi0480
+node [278]:
+binate inputs: pi0703,pi0704,pi0705,pi0706,pi0707,pi0708
+node [279]:
+binate inputs: pi0877,pi0878,pi0879,pi0880,pi0881,pi0882
+node [280]:
+-unate inputs: pi0247,pi0248,pi0249,pi0250,pi0251,pi0252
+node [281]:
+binate inputs: pi0457,pi0458,pi0459,pi0460,pi0461,pi0462
+node [282]:
+binate inputs: pi0223,pi0224,pi0225,pi0226,pi0227,pi0228
+node [283]:
+binate inputs: pi0019,pi0020,pi0021,pi0022,pi0023,pi0024
+node [284]:
+binate inputs: pi0529,pi0530,pi0531,pi0532,pi0533,pi0534
+node [285]:
+binate inputs: pi0445,pi0446,pi0447,pi0448,pi0449,pi0450
+node [286]:
+binate inputs: pi0103,pi0104,pi0105,pi0106,pi0107,pi0108
+node [287]:
+binate inputs: pi0397,pi0398,pi0399,pi0400,pi0401,pi0402
+node [289]:
+binate inputs: pi0721,pi0722,pi0723,pi0724,pi0725,pi0726
+node [290]:
+binate inputs: pi0121,pi0122,pi0123,pi0124,pi0125,pi0126
+node [291]:
+binate inputs: pi0019,pi0020,pi0021,pi0022,pi0023,pi0024
+node [293]:
+binate inputs: pi0247,pi0248,pi0249,pi0250,pi0251,pi0252
+node [294]:
+-unate inputs: pi0475,pi0476,pi0477,pi0478,pi0479,pi0480
+node [295]:
+binate inputs: pi0091,pi0092,pi0093,pi0094,pi0095,pi0096
+node [296]:
+binate inputs: pi0655,pi0656,pi0657,pi0658,pi0659,pi0660
+node [297]:
+-unate inputs: pi0385,pi0386,pi0387,pi0388,pi0389,pi0390
+node [298]:
+binate inputs: pi0175,pi0176,pi0177,pi0178,pi0179,pi0180
+node [299]:
+binate inputs: pi0085,pi0086,pi0087,pi0088,pi0089,pi0090
+node [300]:
+binate inputs: pi0553,pi0554,pi0555,pi0556,pi0557,pi0558
+node [301]:
+binate inputs: pi0535,pi0536,pi0537,pi0538,pi0539,pi0540
+node [302]:
+binate inputs: pi0325,pi0326,pi0327,pi0328,pi0329,pi0330
+node [303]:
+binate inputs: pi0955,pi0956,pi0957,pi0958,pi0959,pi0960
+node [304]:
+-unate inputs: pi0835,pi0836,pi0837,pi0838,pi0839,pi0840
+node [305]:
+binate inputs: pi0373,pi0374,pi0375,pi0376,pi0377,pi0378
+node [306]:
+-unate inputs: pi0163,pi0164,pi0165,pi0166,pi0167,pi0168
+node [307]:
+binate inputs: pi0217,pi0218,pi0219,pi0220,pi0221,pi0222
+node [308]:
+-unate inputs: pi0037,pi0038,pi0039,pi0040,pi0041,pi0042
+node [309]:
+-unate inputs: pi0661,pi0662,pi0663,pi0664,pi0665,pi0666
+node [310]:
+-unate inputs: pi0691,pi0692,pi0693,pi0694,pi0695,pi0696
+node [311]:
+binate inputs: pi0847,pi0848,pi0849,pi0850,pi0851,pi0852
+node [312]:
+binate inputs: pi0601,pi0602,pi0603,pi0604,pi0605,pi0606
+node [313]:
+-unate inputs: pi0745,pi0746,pi0747,pi0748,pi0749,pi0750
+node [314]:
+-unate inputs: pi0199,pi0200,pi0201,pi0202,pi0203,pi0204
+node [315]:
+binate inputs: pi0421,pi0422,pi0423,pi0424,pi0425,pi0426
+node [316]:
+-unate inputs: pi0397,pi0398,pi0399,pi0400,pi0401,pi0402
+node [317]:
+-unate inputs: pi0583,pi0584,pi0585,pi0586,pi0587,pi0588
+node [318]:
+binate inputs: pi0967,pi0968,pi0969,pi0970,pi0971,pi0972
+node [319]:
+-unate inputs: pi0553,pi0554,pi0555,pi0556,pi0557,pi0558
+node [320]:
+binate inputs: pi0223,pi0224,pi0225,pi0226,pi0227,pi0228
+node [321]:
+-unate inputs: pi0847,pi0848,pi0849,pi0850,pi0851,pi0852
+node [322]:
+binate inputs: pi0067,pi0068,pi0069,pi0070,pi0071,pi0072
+node [323]:
+binate inputs: pi0811,pi0812,pi0813,pi0814,pi0815,pi0816
+node [325]:
+-unate inputs: pi0769,pi0770,pi0771,pi0772,pi0773,pi0774
+node [326]:
+binate inputs: pi0679,pi0680,pi0681,pi0682,pi0683,pi0684
+node [327]:
+binate inputs: pi0793,pi0794,pi0795,pi0796,pi0797,pi0798
+node [329]:
+binate inputs: pi0901,pi0902,pi0903,pi0904,pi0905,pi0906
+node [331]:
+binate inputs: pi0799,pi0800,pi0801,pi0802,pi0803,pi0804
+node [332]:
+binate inputs: pi0889,pi0890,pi0891,pi0892,pi0893,pi0894
+node [333]:
+binate inputs: pi0145,pi0146,pi0147,pi0148,pi0149,pi0150
+node [334]:
+binate inputs: pi0283,pi0284,pi0285,pi0286,pi0287,pi0288
+node [335]:
+binate inputs: pi0571,pi0572,pi0573,pi0574,pi0575,pi0576
+node [336]:
+binate inputs: pi0757,pi0758,pi0759,pi0760,pi0761,pi0762
+node [337]:
+-unate inputs: pi0349,pi0350,pi0351,pi0352,pi0353,pi0354
+node [338]:
+binate inputs: pi0463,pi0464,pi0465,pi0466,pi0467,pi0468
+node [339]:
+-unate inputs: pi0799,pi0800,pi0801,pi0802,pi0803,pi0804
+node [340]:
+-unate inputs: pi0301,pi0302,pi0303,pi0304,pi0305,pi0306
+node [341]:
+binate inputs: pi0031,pi0032,pi0033,pi0034,pi0035,pi0036
+node [342]:
+-unate inputs: pi0973,pi0974,pi0975,pi0976,pi0977,pi0978
+node [343]:
+-unate inputs: pi0253,pi0254,pi0255,pi0256,pi0257,pi0258
+node [344]:
+binate inputs: pi0313,pi0314,pi0315,pi0316,pi0317,pi0318
+node [345]:
+-unate inputs: pi0067,pi0068,pi0069,pi0070,pi0071,pi0072
+node [346]:
+-unate inputs: pi0331,pi0332,pi0333,pi0334,pi0335,pi0336
+node [347]:
+-unate inputs: pi0337,pi0338,pi0339,pi0340,pi0341,pi0342
+node [348]:
+-unate inputs: pi0727,pi0728,pi0729,pi0730,pi0731,pi0732
+node [349]:
+-unate inputs: pi0319,pi0320,pi0321,pi0322,pi0323,pi0324
+node [350]:
+-unate inputs: pi0325,pi0326,pi0327,pi0328,pi0329,pi0330
+node [351]:
+binate inputs: pi0241,pi0242,pi0243,pi0244,pi0245,pi0246
+node [352]:
+binate inputs: pi0625,pi0626,pi0627,pi0628,pi0629,pi0630
+node [353]:
+-unate inputs: pi0601,pi0602,pi0603,pi0604,pi0605,pi0606
+node [354]:
+binate inputs: pi0673,pi0674,pi0675,pi0676,pi0677,pi0678
+node [355]:
+binate inputs: pi0451,pi0452,pi0453,pi0454,pi0455,pi0456
+node [356]:
+-unate inputs: pi0901,pi0902,pi0903,pi0904,pi0905,pi0906
+node [359]:
+binate inputs: pi0829,pi0830,pi0831,pi0832,pi0833,pi0834
+node [360]:
+binate inputs: pi0487,pi0488,pi0489,pi0490,pi0491,pi0492
+node [362]:
+-unate inputs: pi0289,pi0290,pi0291,pi0292,pi0293,pi0294
+node [363]:
+binate inputs: pi0379,pi0380,pi0381,pi0382,pi0383,pi0384
+node [364]:
+binate inputs: pi0463,pi0464,pi0465,pi0466,pi0467,pi0468
+node [365]:
+binate inputs: pi0727,pi0728,pi0729,pi0730,pi0731,pi0732
+node [493]:
+binate inputs: pi0079,pi0080,pi0081,pi0082,pi0083,pi0084
+node [494]:
+binate inputs: pi0787,pi0788,pi0789,pi0790,pi0791,pi0792
+node [502]:
+-unate inputs: pi0655,pi0656,pi0657,pi0658,pi0659,pi0660
+node [514]:
+-unate inputs: pi0535,pi0536,pi0537,pi0538,pi0539,pi0540
+node [519]:
+-unate inputs: pi0085,pi0086,pi0087,pi0088,pi0089,pi0090
+node [559]:
+-unate inputs: pi0541,pi0542,pi0543,pi0544,pi0545,pi0546
+node [379]:
+-unate inputs: pi0733,pi0734,pi0735,pi0736,pi0737,pi0738
+node [643]:
+binate inputs: pi0739,pi0740,pi0741,pi0742,pi0743,pi0744
+node [484]:
+binate inputs: pi0109,pi0110,pi0111,pi0112,pi0113,pi0114
+node [483]:
+binate inputs: pi0115,pi0116,pi0117,pi0118,pi0119,pi0120
+node [871]:
+binate inputs: pi0955,pi0956,pi0957,pi0958,pi0959,pi0960
+node [797]:
+-unate inputs: pi0565,pi0566,pi0567,pi0568,pi0569,pi0570
+node [840]:
+-unate inputs: pi0169,pi0170,pi0171,pi0172,pi0173,pi0174
+node [842]:
+-unate inputs: pi0157,pi0158,pi0159,pi0160,pi0161,pi0162
+node [896]:
+binate inputs: pi0385,pi0386,pi0387,pi0388,pi0389,pi0390
+node [897]:
+binate inputs: pi0367,pi0368,pi0369,pi0370,pi0371,pi0372
+node [765]:
+-unate inputs: pi0373,pi0374,pi0375,pi0376,pi0377,pi0378
+node [859]:
+-unate inputs: pi0943,pi0944,pi0945,pi0946,pi0947,pi0948
+node [860]:
+-unate inputs: pi0949,pi0950,pi0951,pi0952,pi0953,pi0954
+node [843]:
+-unate inputs: pi0151,pi0152,pi0153,pi0154,pi0155,pi0156
+node [488]:
+binate inputs: pi0157,pi0158,pi0159,pi0160,pi0161,pi0162
+node [844]:
+binate inputs: pi0157,pi0158,pi0159,pi0160,pi0161,pi0162
+node [876]:
+binate inputs: pi0943,pi0944,pi0945,pi0946,pi0947,pi0948
+node [1007]:
+binate inputs: pi0439,pi0440,pi0441,pi0442,pi0443,pi0444
+node [1020]:
+-unate inputs: pi0055,pi0056,pi0057,pi0058,pi0059,pi0060
+node [1021]:
+-unate inputs: pi0061,pi0062,pi0063,pi0064,pi0065,pi0066
+node [1026]:
+-unate inputs: pi0877,pi0878,pi0879,pi0880,pi0881,pi0882
+node [1027]:
+-unate inputs: pi0871,pi0872,pi0873,pi0874,pi0875,pi0876
+node [373]:
+-unate inputs: pi0703,pi0704,pi0705,pi0706,pi0707,pi0708
+node [645]:
+binate inputs: pi0685,pi0686,pi0687,pi0688,pi0689,pi0690
+node [1012]:
+binate inputs: pi0415,pi0416,pi0417,pi0418,pi0419,pi0420
+node [1013]:
+binate inputs: pi0433,pi0434,pi0435,pi0436,pi0437,pi0438
+node [1014]:
+binate inputs: pi0427,pi0428,pi0429,pi0430,pi0431,pi0432
+node [717]:
+binate inputs: pi0721,pi0722,pi0723,pi0724,pi0725,pi0726
+node [718]:
+binate inputs: pi0709,pi0710,pi0711,pi0712,pi0713,pi0714
+node [1030]:
+-unate inputs: pi0715,pi0716,pi0717,pi0718,pi0719,pi0720
+node [1029]:
+binate inputs: pi0715,pi0716,pi0717,pi0718,pi0719,pi0720
+node [458]:
+binate inputs: pi0613,pi0614,pi0615,pi0616,pi0617,pi0618
+node [1043]:
+binate inputs: pi0697,pi0698,pi0699,pi0700,pi0701,pi0702
+node [1044]:
+binate inputs: pi0691,pi0692,pi0693,pi0694,pi0695,pi0696
+node [1068]:
+binate inputs: pi0427,pi0428,pi0429,pi0430,pi0431,pi0432
+node [1065]:
+binate inputs: pi0613,pi0614,pi0615,pi0616,pi0617,pi0618
+node [899]:
+binate inputs: pi0073,pi0074,pi0075,pi0076,pi0077,pi0078
+node [1022]:
+binate inputs: pi0073,pi0074,pi0075,pi0076,pi0077,pi0078
+node [1126]:
+binate inputs: pi0331,pi0332,pi0333,pi0334,pi0335
+node [1048]:
+binate inputs: pi0319,pi0320,pi0321,pi0322,pi0323,pi0324
+node [1143]:
+binate inputs: pi0523,pi0524,pi0525,pi0526,pi0527,pi0528
+node [1150]:
+binate inputs: pi0511,pi0512,pi0513,pi0514,pi0515,pi0516
+node [1144]:
+binate inputs: pi0487,pi0488,pi0489,pi0490,pi0491,pi0492
+node [1147]:
+binate inputs: pi0469,pi0470,pi0471,pi0472,pi0473,pi0474
+node [1157]:
+binate inputs: pi0469,pi0470,pi0471,pi0472,pi0473,pi0474
+node [956]:
+-unate inputs: pi0457,pi0458,pi0459,pi0460,pi0461,pi0462
+node [1161]:
+binate inputs: pi0451,pi0452,pi0453,pi0454,pi0455,pi0456
+node [678]:
+-unate inputs: pi0103,pi0104,pi0105,pi0106,pi0107,pi0108
+node [1165]:
+binate inputs: pi0109,pi0110,pi0111,pi0112,pi0113,pi0114
+node [977]:
+binate inputs: pi0385,pi0386,pi0387,pi0388,pi0389,pi0390
+node [1172]:
+binate inputs: pi0919,pi0920,pi0921,pi0922,pi0923,pi0924
+node [1180]:
+-unate inputs: pi0925,pi0926,pi0927,pi0928,pi0929,pi0930
+node [1112]:
+-unate inputs: pi0907,pi0908,pi0909,pi0910,pi0911,pi0912
+node [1114]:
+-unate inputs: pi0913,pi0914,pi0915,pi0916,pi0917,pi0918
+node [789]:
+-unate inputs: pi0589,pi0590,pi0591,pi0592,pi0593,pi0594
+node [1066]:
+-unate inputs: pi0619,pi0620,pi0621,pi0622,pi0623,pi0624
+node [1067]:
+-unate inputs: pi0625,pi0626,pi0627,pi0628,pi0629,pi0630
+node [620]:
+binate inputs: pi0817,pi0818,pi0819,pi0820,pi0821,pi0822
+node [618]:
+binate inputs: pi0811,pi0812,pi0813,pi0814,pi0815,pi0816
+node [1130]:
+binate inputs: pi0049,pi0050,pi0051,pi0052,pi0053,pi0054
+node [1129]:
+binate inputs: pi0043,pi0044,pi0045,pi0046,pi0047,pi0048
+node [1131]:
+binate inputs: pi0037,pi0038,pi0039,pi0040,pi0041,pi0042
+node [1200]:
+-unate inputs: pi0817,pi0818,pi0819,pi0820,pi0821,pi0822
+node [1201]:
+binate inputs: pi0283,pi0284,pi0285,pi0286,pi0287,pi0288
+node [1202]:
+-unate inputs: pi0283,pi0284,pi0285,pi0286,pi0287,pi0288
+node [1037]:
+binate inputs: pi0289,pi0290,pi0291,pi0292,pi0293,pi0294
+node [1203]:
+binate inputs: pi0289,pi0290,pi0291,pi0292,pi0293,pi0294
+node [1198]:
+binate inputs: pi0859,pi0860,pi0861,pi0862,pi0863,pi0864
+node [1204]:
+binate inputs: pi0859,pi0860,pi0861,pi0862,pi0863,pi0864
+node [1205]:
+binate inputs: pi0865,pi0866,pi0867,pi0868,pi0869,pi0870
+node [1206]:
+-unate inputs: pi0865,pi0866,pi0867,pi0868,pi0869,pi0870
+node [1207]:
+-unate inputs: pi0859,pi0860,pi0861,pi0862,pi0863,pi0864
+node [1098]:
+-unate inputs: pi0853,pi0854,pi0855,pi0856,pi0857,pi0858
+node [1214]:
+binate inputs: pi0235,pi0236,pi0237,pi0238,pi0239,pi0240
+node [560]:
+-unate inputs: pi0547,pi0548,pi0549,pi0550,pi0551,pi0552
+node [541]:
+-unate inputs: pi0751,pi0752,pi0753,pi0754,pi0755,pi0756
+node [542]:
+-unate inputs: pi0757,pi0758,pi0759,pi0760,pi0761,pi0762
+node [1227]:
+binate inputs: pi0199,pi0200,pi0201,pi0202,pi0203,pi0204
+node [1226]:
+binate inputs: pi0217,pi0218,pi0219,pi0220,pi0221,pi0222
+node [1225]:
+binate inputs: pi0211,pi0212,pi0213,pi0214,pi0215,pi0216
+node [1228]:
+binate inputs: pi0205,pi0206,pi0207,pi0208,pi0209,pi0210
+node [623]:
+binate inputs: pi0799,pi0800,pi0801,pi0802,pi0803,pi0804
+node [1240]:
+-unate inputs: pi0643,pi0644,pi0645,pi0646,pi0647,pi0648
+node [1241]:
+-unate inputs: pi0649,pi0650,pi0651,pi0652,pi0653,pi0654
+node [1102]:
+-unate inputs: pi0049,pi0050,pi0051,pi0052,pi0053,pi0054
+node [1103]:
+-unate inputs: pi0043,pi0044,pi0045,pi0046,pi0047,pi0048
+node [1189]:
+binate inputs: pi0049,pi0050,pi0051,pi0052,pi0053,pi0054
+node [1038]:
+binate inputs: pi0277,pi0278,pi0279,pi0280,pi0281,pi0282
+node [1039]:
+binate inputs: pi0271,pi0272,pi0273,pi0274,pi0275,pi0276
+node [1193]:
+binate inputs: pi0229,pi0230,pi0231,pi0232,pi0233,pi0234
+node [915]:
+-unate inputs: pi0631,pi0632,pi0633,pi0634,pi0635,pi0636
+node [916]:
+-unate inputs: pi0637,pi0638,pi0639,pi0640,pi0641,pi0642
+node [1216]:
+binate inputs: pi0493,pi0494,pi0495,pi0496,pi0497,pi0498
+node [575]:
+binate inputs: pi0763,pi0764,pi0765,pi0766,pi0767,pi0768
+node [574]:
+binate inputs: pi0769,pi0770,pi0771,pi0772,pi0773,pi0774
+node [1237]:
+binate inputs: pi0769,pi0770,pi0771,pi0772,pi0773,pi0774
+node [1238]:
+binate inputs: pi0763,pi0764,pi0765,pi0766,pi0767,pi0768
+node [1239]:
+-unate inputs: pi0763,pi0764,pi0765,pi0766,pi0767,pi0768
+node [1050]:
+-unate inputs: pi0343,pi0344,pi0345,pi0346,pi0347,pi0348
+node [744]:
+-unate inputs: pi0265,pi0266,pi0267,pi0268,pi0269,pi0270
+node [745]:
+-unate inputs: pi0259,pi0260,pi0261,pi0262,pi0263,pi0264
+node [1256]:
+binate inputs: pi0199,pi0200,pi0201,pi0202,pi0203,pi0204
+node [1088]:
+-unate inputs: pi0313,pi0314,pi0315,pi0316,pi0317,pi0318
+node [1091]:
+-unate inputs: pi0307,pi0308,pi0309,pi0310,pi0311,pi0312
+node [1040]:
+binate inputs: pi0301,pi0302,pi0303,pi0304,pi0305,pi0306
+node [1041]:
+binate inputs: pi0295,pi0296,pi0297,pi0298,pi0299,pi0300
+node [1266]:
+binate inputs: pi0301,pi0302,pi0303,pi0304,pi0305,pi0306
+node [670]:
+-unate inputs: pi0829,pi0830,pi0831,pi0832,pi0833,pi0834
+node [621]:
+binate inputs: pi0835,pi0836,pi0837,pi0838,pi0839,pi0840
+node [1209]:
+binate inputs: pi0841,pi0842,pi0843,pi0844,pi0845,pi0846
+node [1162]:
+binate inputs: pi0445,pi0446,pi0447,pi0448,pi0449,pi0450
+node [1163]:
+binate inputs: pi0439,pi0440,pi0441,pi0442,pi0443,pi0444
+node [1190]:
+binate inputs: pi0265,pi0266,pi0267,pi0268,pi0269,pi0270
+node [1191]:
+binate inputs: pi0259,pi0260,pi0261,pi0262,pi0263,pi0264
+node [1192]:
+binate inputs: pi0253,pi0254,pi0255,pi0256,pi0257,pi0258
+node [1249]:
+-unate inputs: pi0175,pi0176,pi0177,pi0178,pi0179,pi0180
+node [1252]:
+-unate inputs: pi0181,pi0182,pi0183,pi0184,pi0185,pi0186
+node [1231]:
+binate inputs: pi0187,pi0188,pi0189,pi0190,pi0191,pi0192
+node [1268]:
+binate inputs: pi0187,pi0188,pi0189,pi0190,pi0191,pi0192
+node [1271]:
+binate inputs: pi0259,pi0260,pi0261,pi0262,pi0263,pi0264
+node [1272]:
+binate inputs: pi0265,pi0266,pi0267,pi0268,pi0269,pi0270
+node [1120]:
+binate inputs: pi0913,pi0914,pi0915,pi0916,pi0917,pi0918
+node [1121]:
+binate inputs: pi0901,pi0902,pi0903,pi0904,pi0905,pi0906
+node [1183]:
+binate inputs: pi0913,pi0914,pi0915,pi0916,pi0917,pi0918
+node [879]:
+binate inputs: pi0985,pi0986,pi0987,pi0988,pi0989,pi0990
+node [878]:
+binate inputs: pi0979,pi0980,pi0981,pi0982,pi0983,pi0984
+node [534]:
+-unate inputs: pi0775,pi0776,pi0777,pi0778,pi0779,pi0780
+node [1257]:
+binate inputs: pi0211,pi0212,pi0213,pi0214,pi0215,pi0216
+node [1258]:
+-unate inputs: pi0217,pi0218,pi0219,pi0220,pi0221,pi0222
+node [1259]:
+-unate inputs: pi0211,pi0212,pi0213,pi0214,pi0215,pi0216
+node [1260]:
+binate inputs: pi0637,pi0638,pi0639,pi0640,pi0641,pi0642
+node [1261]:
+binate inputs: pi0631,pi0632,pi0633,pi0634,pi0635,pi0636
+node [980]:
+binate inputs: pi0949,pi0950,pi0951,pi0952,pi0953,pi0954
+node [1134]:
+binate inputs: pi0967,pi0968,pi0969,pi0970,pi0971,pi0972
+node [1166]:
+binate inputs: pi0115,pi0116,pi0117,pi0118,pi0119,pi0120
+node [1167]:
+-unate inputs: pi0121,pi0122,pi0123,pi0124,pi0125,pi0126
+node [496]:
+binate inputs: pi0667,pi0668,pi0669,pi0670,pi0671,pi0672
+node [969]:
+-unate inputs: pi0991,pi0992,pi0993,pi0994,pi0995,pi0996
+node [1284]:
+binate inputs: pi0991,pi0992,pi0993,pi0994,pi0995,pi0996
+node [1285]:
+binate inputs: pi0997,pi0998,pi0999
+node [1287]:
+binate inputs: pi0000,pi0001,pi0002
+node [1286]:
++unate inputs: pi0997,pi0998,pi0999
+node [1273]:
+binate inputs: pi0775,pi0776,pi0777,pi0778,pi0779,pi0780
+node [554]:
+binate inputs: pi0541,pi0542,pi0543,pi0544,pi0545,pi0546
+node [555]:
+binate inputs: pi0535,pi0536,pi0537,pi0538,pi0539,pi0540
+node [1141]:
+binate inputs: pi0355,pi0356,pi0357,pi0358,pi0359,pi0360
+node [1212]:
+binate inputs: pi0847,pi0848,pi0849,pi0850,pi0851,pi0852
+node [1211]:
+binate inputs: pi0853,pi0854,pi0855,pi0856,pi0857,pi0858
+node [1032]:
+binate inputs: pi0883,pi0884,pi0885,pi0886,pi0887,pi0888
+node [1075]:
+binate inputs: pi0871,pi0872,pi0873,pi0874,pi0875,pi0876
+node [1282]:
+binate inputs: pi0013,pi0014,pi0015,pi0016,pi0017,pi0018
+node [905]:
+binate inputs: pi0007,pi0008,pi0009,pi0010,pi0011,pi0012
+node [904]:
+binate inputs: pi0013,pi0014,pi0015,pi0016,pi0017,pi0018
+node [1184]:
+binate inputs: pi0895,pi0896,pi0897,pi0898,pi0899,pi0900
+node [1235]:
+-unate inputs: pi0223,pi0224,pi0225,pi0226,pi0227,pi0228
+node [1015]:
+binate inputs: pi0061,pi0062,pi0063,pi0064,pi0065,pi0066
+node [1069]:
+binate inputs: pi0421,pi0422,pi0423,pi0424,pi0425,pi0426
+node [497]:
+binate inputs: pi0667,pi0668,pi0669,pi0670,pi0671,pi0672
+node [455]:
+binate inputs: pi0595,pi0596,pi0597,pi0598,pi0599,pi0600
+node [1151]:
+binate inputs: pi0523,pi0524,pi0525,pi0526,pi0527,pi0528
+node [1152]:
+binate inputs: pi0529,pi0530,pi0531,pi0532,pi0533,pi0534
+node [1289]:
+-unate inputs: pi0133,pi0134,pi0135,pi0136,pi0137,pi0138
+node [1290]:
+-unate inputs: pi0127,pi0128,pi0129,pi0130,pi0131,pi0132
+node [845]:
+binate inputs: pi0163,pi0164,pi0165,pi0166,pi0167,pi0168
+node [1269]:
+binate inputs: pi0181,pi0182,pi0183,pi0184,pi0185,pi0186
+node [1270]:
+binate inputs: pi0175,pi0176,pi0177,pi0178,pi0179,pi0180
+node [1265]:
+binate inputs: pi0253,pi0254,pi0255,pi0256,pi0257,pi0258
+node [1264]:
+binate inputs: pi0247,pi0248,pi0249,pi0250,pi0251,pi0252
+node [1291]:
+binate inputs: pi0139,pi0140,pi0141,pi0142,pi0143,pi0144
+node [1267]:
+-unate inputs: pi0391,pi0392,pi0393,pi0394,pi0395,pi0396
+node [1168]:
+binate inputs: pi0391,pi0392,pi0393,pi0394,pi0395,pi0396
+node [1170]:
+binate inputs: pi0409,pi0410,pi0411,pi0412,pi0413,pi0414
+node [1169]:
+binate inputs: pi0403,pi0404,pi0405,pi0406,pi0407,pi0408
+node [1031]:
+binate inputs: pi0883,pi0884,pi0885,pi0886,pi0887,pi0888
+node [1033]:
+binate inputs: pi0889,pi0890,pi0891,pi0892,pi0893,pi0894
+node [887]:
+binate inputs: pi0559,pi0560,pi0561,pi0562,pi0563,pi0564
+node [886]:
+binate inputs: pi0565,pi0566,pi0567,pi0568,pi0569,pi0570
+node [1135]:
+binate inputs: pi0985,pi0986,pi0987,pi0988,pi0989,pi0990
+node [1136]:
+binate inputs: pi0979,pi0980,pi0981,pi0982,pi0983,pi0984
+node [1137]:
+-unate inputs: pi0985,pi0986,pi0987,pi0988,pi0989,pi0990
+node [1292]:
+binate inputs: pi0679,pi0680,pi0681,pi0682,pi0683,pi0684
+node [884]:
+binate inputs: pi0565,pi0566,pi0567,pi0568,pi0569,pi0570
+node [1185]:
+binate inputs: pi0601,pi0602,pi0603,pi0604,pi0605,pi0606
+node [1186]:
+-unate inputs: pi0595,pi0596,pi0597,pi0598,pi0599,pi0600
+node [1274]:
+binate inputs: pi0793,pi0794,pi0795,pi0796,pi0797,pi0798
+node [1275]:
+binate inputs: pi0787,pi0788,pi0789,pi0790,pi0791,pi0792
+node [1276]:
+-unate inputs: pi0793,pi0794,pi0795,pi0796,pi0797,pi0798
+node [1158]:
+binate inputs: pi0481,pi0482,pi0483,pi0484,pi0485,pi0486
+node [1159]:
+binate inputs: pi0475,pi0476,pi0477,pi0478,pi0479,pi0480
+node [1160]:
+-unate inputs: pi0481,pi0482,pi0483,pi0484,pi0485,pi0486
+node [1236]:
+binate inputs: pi0757,pi0758,pi0759,pi0760,pi0761,pi0762
+node [1074]:
+binate inputs: pi0877,pi0878,pi0879,pi0880,pi0881,pi0882
+node [1073]:
+binate inputs: pi0871,pi0872,pi0873,pi0874,pi0875,pi0876
+node [888]:
+binate inputs: pi0577,pi0578,pi0579,pi0580,pi0581,pi0582
+node [889]:
+binate inputs: pi0571,pi0572,pi0573,pi0574,pi0575,pi0576
+node [503]:
+binate inputs: pi0661,pi0662,pi0663,pi0664,pi0665,pi0666
+node [890]:
+-unate inputs: pi0571,pi0572,pi0573,pi0574,pi0575,pi0576
+node [1255]:
+binate inputs: pi0829,pi0830,pi0831,pi0832,pi0833,pi0834
+node [1293]:
+-unate inputs: pi0697,pi0698,pi0699,pi0700,pi0701,pi0702
+node [19]:
+binate inputs: [17],[18]
+node [35]:
+binate inputs: [33],[34]
+node [50]:
+binate inputs: [48],[49]
+node [73]:
+binate inputs: [71],[72]
+node [79]:
+-unate inputs: [77],[78],[75],[76]
+node [90]:
+binate inputs: [88],[89]
+node [157]:
+binate inputs: [61],[156]
+node [172]:
+binate inputs: [171],[104]
+node [184]:
+binate inputs: [180],[182],[181],[183]
+node [190]:
+binate inputs: [189],[87]
+node [195]:
++unate inputs: [104],[67],[193]
+-unate inputs: [192],[194],[171]
+node [206]:
+binate inputs: [204],[205]
+node [231]:
+binate inputs: [229],[230]
+node [265]:
++unate inputs: [264],[243]
+-unate inputs: pi0000,pi0001,pi0002,pi0006
+node [288]:
+binate inputs: [77],[78],[75],[76]
+node [292]:
+binate inputs: [291],[40],[25],[283]
+node [324]:
++unate inputs: [323],[164]
+node [328]:
+binate inputs: [196],[160]
+node [330]:
+binate inputs: [131],[273]
+node [357]:
+binate inputs: [30],[60],[259],[333]
+node [358]:
+binate inputs: [11],[239]
+node [361]:
+binate inputs: [99],[282]
+node [459]:
+binate inputs: [221],[352],[458],[165]
+node [448]:
+binate inputs: [494],[327]
+node [495]:
+binate inputs: [23],[365]
+node [498]:
+binate inputs: [497],[6],[496],[354],[162],[185]
+node [504]:
++unate inputs: [199]
+-unate inputs: [503],[296],[41]
+node [505]:
++unate inputs: [497],[6]
+-unate inputs: [496],[354],[162],[185]
+node [515]:
+binate inputs: [233],[295],[38],[86],[218],[96]
+node [520]:
++unate inputs: [253]
+-unate inputs: [493],[269],[299]
+node [521]:
++unate inputs: [233],[295],[218],[96]
+-unate inputs: [38],[86]
+node [556]:
++unate inputs: [68]
+-unate inputs: [554],[555],[301]
+node [561]:
+binate inputs: [208],[300],[61],[156],[560],[319]
+node [562]:
++unate inputs: [208],[560],[319]
+-unate inputs: [300],[61],[156]
+node [447]:
+binate inputs: [574],[575],[336],[203]
+node [376]:
++unate inputs: [207]
+-unate inputs: [63],[23],[365]
+node [378]:
+binate inputs: [234],[643],[11],[239],[240],[313]
+node [380]:
++unate inputs: [643],[240],[313]
+-unate inputs: [234],[11],[239]
+node [418]:
+binate inputs: [496],[354],[41],[199]
+node [517]:
+binate inputs: [38],[86]
+node [516]:
+binate inputs: [269],[299]
+node [482]:
+binate inputs: [233],[295],[493],[253]
+node [611]:
++unate inputs: [216],[488],[843],[842]
+-unate inputs: [45],[844]
+node [612]:
++unate inputs: [93],[845],[306],[840]
+-unate inputs: [202],[108]
+node [872]:
+binate inputs: [871],[200]
+node [796]:
+binate inputs: [888],[889],[335],[161],[890],[52]
+node [891]:
++unate inputs: [335],[890],[52]
+-unate inputs: [888],[889],[161]
+node [839]:
+binate inputs: [45],[844],[216],[488],[843]
+node [841]:
+binate inputs: [202],[93],[845],[108],[306]
+node [976]:
+binate inputs: [20],[267]
+node [978]:
+binate inputs: [977],[43]
+node [764]:
++unate inputs: [897]
+-unate inputs: [305],[20],[267]
+node [766]:
+binate inputs: [363],[896],[977],[43],[228],[297]
+node [767]:
++unate inputs: [228],[297]
+-unate inputs: [363],[896],[977],[43]
+node [861]:
+binate inputs: [871],[200],[22],[303],[37],[175]
+node [858]:
++unate inputs: [81]
+-unate inputs: [980],[268],[876]
+node [862]:
++unate inputs: [37],[175]
+-unate inputs: [871],[200],[22],[303]
+node [877]:
+binate inputs: [980],[268]
+node [1006]:
+binate inputs: [1012],[315],[1013],[1014]
+node [1016]:
++unate inputs: [100],[256]
+-unate inputs: [1015],[237]
+node [1023]:
+binate inputs: [1022],[322],[899],[215],[345],[276]
+node [370]:
+binate inputs: [717],[187],[1029],[289],[1030],[257]
+node [372]:
+-unate inputs: [718],[278],[131],[273]
+node [1024]:
++unate inputs: [1032]
+-unate inputs: [1031],[1033],[332]
+node [946]:
+binate inputs: [1037],[334],[1038],[1039]
+node [947]:
+binate inputs: [1040],[1041],[159],[344]
+node [644]:
+binate inputs: [717],[187],[718],[278]
+node [1042]:
++unate inputs: [215],[345],[276]
+-unate inputs: [1022],[322],[899]
+node [1049]:
++unate inputs: [350],[349],[213],[28]
+-unate inputs: [1048],[302]
+node [922]:
++unate inputs: [458]
+-unate inputs: [80],[1065],[165]
+node [924]:
+binate inputs: [71],[72],[221],[352],[1066],[1067]
+node [925]:
++unate inputs: [221],[352],[1066],[1067]
+-unate inputs: [71],[72]
+node [951]:
++unate inputs: [1014]
+-unate inputs: [1068],[235],[1013]
+node [950]:
+binate inputs: [1069],[211],[1012],[315],[158],[109]
+node [952]:
++unate inputs: [1012],[158],[109]
+-unate inputs: [1069],[211],[315]
+node [1070]:
++unate inputs: [279]
+-unate inputs: [1073],[1074],[1075]
+node [719]:
+binate inputs: [1029],[289]
+node [1063]:
+binate inputs: [1069],[211]
+node [1064]:
+binate inputs: [1068],[235]
+node [374]:
++unate inputs: [717],[1030],[257]
+-unate inputs: [187],[1029],[289]
+node [1011]:
+binate inputs: [80],[1065]
+node [1046]:
+-unate inputs: [102],[242],[238]
+binate inputs: pi0336,[1126]
+node [864]:
++unate inputs: [46],[318]
+-unate inputs: [275],[1134]
+node [866]:
+binate inputs: [1135],[1136],[878],[879],[1137],[10]
+node [867]:
++unate inputs: [879],[1137],[10]
+-unate inputs: [1135],[1136],[878]
+node [1081]:
+binate inputs: pi0336,[213],[28],[1126],[238]
+node [1035]:
+binate inputs: pi0336,[213],[28],[1126],[238]
+node [1036]:
+binate inputs: [77],[78]
+node [1140]:
+binate inputs: pi0336,[102],[242],[1126],[238]
+node [1054]:
+binate inputs: [1048],[350],[349],[213],[28],[302]
+node [452]:
+binate inputs: [91],[277],[1147],[338]
+node [1148]:
+binate inputs: [1150],[105]
+node [1153]:
+binate inputs: [1157],[364]
+node [593]:
++unate inputs: [241]
+-unate inputs: [85],[1150],[105]
+node [594]:
+binate inputs: [1151],[1152],[284],[1143],[95],[31]
+node [407]:
++unate inputs: [1147],[338]
+-unate inputs: [1157],[364]
+node [406]:
+binate inputs: [1158],[1159],[91],[277],[1160],[294]
+node [408]:
++unate inputs: [91],[1160],[294]
+-unate inputs: [1158],[1159],[277]
+node [595]:
++unate inputs: [284],[95],[31]
+-unate inputs: [1151],[1152],[1143]
+node [953]:
++unate inputs: [281],[355]
+-unate inputs: [1161],[101]
+node [954]:
+binate inputs: [1162],[1163],[1007],[285],[97],[262]
+node [957]:
++unate inputs: [1007],[97],[262]
+-unate inputs: [1162],[1163],[285]
+node [677]:
++unate inputs: [168],[484]
+-unate inputs: [1165],[286]
+node [679]:
+binate inputs: [483],[13],[1166],[290],[1167],[29]
+node [549]:
+binate inputs: [1165],[286]
+node [550]:
+binate inputs: [1166],[290]
+node [1164]:
++unate inputs: [483],[13],[1167],[29]
+-unate inputs: [1166],[290]
+node [895]:
+binate inputs: [1168],[287],[1169],[1170]
+node [898]:
+binate inputs: [363],[305]
+node [1173]:
+binate inputs: [1172],[26]
+node [1174]:
++unate inputs: [204],[224]
+-unate inputs: [1172],[26]
+node [1182]:
+binate inputs: [21],[66]
+node [1181]:
++unate inputs: [205]
+-unate inputs: [94],[21],[66]
+node [1113]:
++unate inputs: [1120],[225]
+-unate inputs: [1183],[248]
+node [1115]:
++unate inputs: [1121],[222]
+-unate inputs: [1184],[329]
+node [790]:
+binate inputs: [1185],[103],[455],[312],[1186],[353]
+node [791]:
++unate inputs: [255]
+-unate inputs: [44],[65],[263]
+node [981]:
++unate inputs: [312],[1186],[353]
+-unate inputs: [1185],[103],[455]
+node [1132]:
+binate inputs: [214],[341]
+node [1133]:
+binate inputs: [1189],[42]
+node [730]:
+binate inputs: [293],[1192],[1190],[1191]
+node [731]:
+binate inputs: [1193],[320]
+node [983]:
+binate inputs: [1032],[332],[279],[1075]
+node [1087]:
++unate inputs: [1201],[1203],[334]
+-unate inputs: [1037],[362],[1202]
+node [1095]:
+binate inputs: [1198],[176],[1204],[1205],[1206],[1207]
+node [619]:
+binate inputs: [323],[164],[623],[198],[331],[54]
+node [1096]:
++unate inputs: [56]
+-unate inputs: [1211],[311],[1212]
+node [1111]:
++unate inputs: [1206],[1207]
+-unate inputs: [1198],[176],[1204],[1205]
+node [1215]:
+-unate inputs: [1214],[351],[196],[160]
+node [401]:
+binate inputs: [192],[194],[171],[104],[67],[193]
+node [402]:
++unate inputs: [246]
+-unate inputs: [1216],[360],[1144]
+node [1062]:
+binate inputs: [1161],[101]
+node [727]:
+binate inputs: [1231],[170]
+node [1223]:
+binate inputs: [99],[282],[1193],[320],[1235],[36]
+node [539]:
++unate inputs: [336],[203]
+-unate inputs: [1236],[8]
+node [540]:
+binate inputs: [1237],[1238],[574],[575],[325],[1239]
+node [1224]:
++unate inputs: [1193],[320],[1235],[36]
+-unate inputs: [99],[282]
+node [1155]:
+binate inputs: [1216],[360]
+node [1156]:
+binate inputs: [192],[194]
+node [543]:
++unate inputs: [574],[575],[325],[1239]
+-unate inputs: [1237],[1238]
+node [917]:
++unate inputs: [181],[1240],[1241]
+-unate inputs: [261],[249],[183]
+node [913]:
+binate inputs: [261],[249],[181],[183],[1240],[1241]
+node [1234]:
+binate inputs: [1214],[351]
+node [1100]:
++unate inputs: [1131]
+-unate inputs: [179],[214],[341]
+node [1101]:
++unate inputs: [1129]
+-unate inputs: [1130],[1189],[42]
+node [1084]:
++unate inputs: [1038],[1039]
+-unate inputs: [48],[49]
+node [1086]:
+binate inputs: [1201],[1203],[1037],[334],[362],[1202]
+node [1105]:
+binate inputs: [1102],[1103]
+node [675]:
++unate inputs: [167],[1200]
+-unate inputs: [323],[164],[618],[620]
+node [585]:
+binate inputs: [670],[236]
+node [586]:
+-unate inputs: [1255],[254],[359],[69]
+node [587]:
+binate inputs: [621],[244],[83],[1209],[47],[304]
+node [1138]:
+binate inputs: [1201],[1203]
+node [740]:
++unate inputs: [1228]
+-unate inputs: [1227],[1256],[177]
+node [741]:
+binate inputs: [1225],[1226],[1257],[307],[1258],[1259]
+node [1248]:
++unate inputs: [1225],[1226],[1258],[1259]
+-unate inputs: [1257],[307]
+node [914]:
+-unate inputs: [1260],[1261],[180],[182]
+node [1229]:
+binate inputs: [1256],[177]
+node [1230]:
+binate inputs: [1257],[307]
+node [900]:
+binate inputs: [1129],[1130],[1131],[179]
+node [1051]:
++unate inputs: [59],[258]
+-unate inputs: [1141],[252]
+node [743]:
+binate inputs: [1264],[1265],[293],[1192],[343],[280]
+node [1092]:
+binate inputs: [1040],[1041],[1266],[106],[53],[340]
+node [1090]:
++unate inputs: [159]
+-unate inputs: [17],[18],[344]
+node [1139]:
+binate inputs: [1266],[106]
+node [671]:
++unate inputs: [621],[244],[47],[304]
+-unate inputs: [83],[1209]
+node [1210]:
+binate inputs: [1255],[254],[359],[69]
+node [1208]:
+binate inputs: [1255],[254]
+node [771]:
+binate inputs: [33],[34],[1168],[287],[1267],[316]
+node [770]:
++unate inputs: [1169]
+-unate inputs: [229],[230],[1170]
+node [1253]:
+binate inputs: [1231],[170],[1268],[32],[98],[245]
+node [1251]:
++unate inputs: [298]
+-unate inputs: [1269],[1270],[92]
+node [1232]:
+binate inputs: [1268],[32]
+node [1220]:
++unate inputs: [1190]
+-unate inputs: [1271],[1272],[1191]
+node [1118]:
+binate inputs: [1120],[225],[1121],[222]
+node [1122]:
+binate inputs: [1183],[248]
+node [1119]:
+binate inputs: [1184],[329]
+node [882]:
+binate inputs: [46],[878],[879],[318]
+node [535]:
++unate inputs: [201]
+-unate inputs: [1273],[260],[64]
+node [533]:
+binate inputs: [1274],[1275],[494],[327],[1276],[166]
+node [536]:
++unate inputs: [494],[327],[1276],[166]
+-unate inputs: [1274],[1275]
+node [1093]:
++unate inputs: [1040],[53],[340]
+-unate inputs: [1041],[1266],[106]
+node [1009]:
+binate inputs: [1260],[1261]
+node [1010]:
+binate inputs: [261],[249]
+node [1254]:
++unate inputs: [1231],[170],[98],[245]
+-unate inputs: [1268],[32]
+node [880]:
+binate inputs: [275],[1134]
+node [1221]:
++unate inputs: [293],[343],[280]
+-unate inputs: [1264],[1265],[1192]
+node [499]:
+binate inputs: [497],[6]
+node [500]:
+binate inputs: [503],[296]
+node [487]:
+binate inputs: [93],[845]
+node [1000]:
++unate inputs: [904],[1282],[212]
+-unate inputs: [905],[70],[270]
+node [903]:
+binate inputs: pi0006,[243],[1285],[1287]
+node [1288]:
+binate inputs: pi0000,pi0001,pi0002,[264]
+node [579]:
+binate inputs: [1273],[260]
+node [1199]:
+binate inputs: [56],[1212]
+node [1213]:
+binate inputs: [1211],[56],[311],[1212]
+node [1242]:
+binate inputs: [291],[40],[904],[905]
+node [1281]:
+binate inputs: [904],[905],[70],[1282],[270],[212]
+node [1279]:
++unate inputs: [291]
+-unate inputs: [40],[25],[283]
+node [1018]:
+binate inputs: [1015],[237]
+node [1017]:
+binate inputs: [1022],[322]
+node [456]:
+binate inputs: [886],[887],[335],[161]
+node [1142]:
+binate inputs: [68],[301],[208],[300]
+node [846]:
+binate inputs: [227],[14],[30],[60],[1289],[1290]
+node [848]:
++unate inputs: [333]
+-unate inputs: [1291],[74],[259]
+node [849]:
++unate inputs: [1289],[1290]
+-unate inputs: [227],[14],[30],[60]
+node [1277]:
+binate inputs: [1291],[74]
+node [1278]:
+binate inputs: [227],[14]
+node [772]:
++unate inputs: [1168],[287],[1267],[316]
+-unate inputs: [33],[34]
+node [705]:
++unate inputs: [326]
+-unate inputs: [9],[1292],[645]
+node [706]:
+binate inputs: [1043],[1044],[189],[87],[1293],[310]
+node [707]:
++unate inputs: [1043],[1293],[310]
+-unate inputs: [1044],[189],[87]
+node [1045]:
+binate inputs: [9],[1292]
+node [787]:
+binate inputs: [1185],[103]
+node [1187]:
+binate inputs: [44],[65]
+node [1295]:
+binate inputs: [884],[55]
+node [933]:
+binate inputs: [202],[93],[845],[108]
+node [577]:
+binate inputs: [1236],[8]
+node [576]:
+binate inputs: [1237],[1238]
+node [646]:
+binate inputs: [1043],[1044]
+node [1149]:
+binate inputs: [1151],[1152]
+node [1154]:
+binate inputs: [1158],[1159]
+node [1061]:
+binate inputs: [1162],[1163]
+node [728]:
+binate inputs: [1225],[1226],[1227],[1228]
+node [1233]:
+binate inputs: [1269],[1270]
+node [1262]:
+binate inputs: [1264],[1265]
+node [1263]:
+binate inputs: [1271],[1272]
+node [988]:
+binate inputs: [1031],[1033]
+node [881]:
+binate inputs: [1135],[1136]
+node [557]:
+binate inputs: [554],[555]
+node [580]:
+binate inputs: [1274],[1275]
+node [1076]:
+binate inputs: [1073],[1074]
+node [1294]:
+binate inputs: [888],[889]
+node [558]:
+binate inputs: [68],[301],[208],[300],[157],[557]
+node [377]:
+binate inputs: [207],[63],[234],[643],[358],[495]
+node [423]:
+binate inputs: [207],[63],[234],[643],[358],[495]
+node [421]:
+binate inputs: [717],[187],[718],[278],[719],[330]
+node [732]:
+binate inputs: [730],[731],[328]
+node [852]:
+binate inputs: [22],[303],[81],[876],[877],[872]
+node [763]:
+binate inputs: [363],[305],[896],[897],[976],[978]
+node [857]:
+binate inputs: [22],[303],[81],[876],[877],[872]
+node [778]:
+binate inputs: [221],[352],[458],[165],[1011],[73]
+node [826]:
+-unate inputs: [1006]
+binate inputs: [1007],[285],[281],[355]
+node [1028]:
+binate inputs: [1024],[271],[223],[1026],[1027]
+node [371]:
+binate inputs: [717],[187],[718],[278],[719],[330]
+node [1034]:
+binate inputs: [1024],[271],[223],[1026],[1027]
+node [648]:
+binate inputs: [1043],[1044],[190],[1045]
+node [1052]:
++unate inputs: [88],[89],[1050],[1051],[79],[337]
+node [923]:
+binate inputs: [221],[352],[458],[165],[1011],[73]
+node [1056]:
+-unate inputs: [88],[89],[1050],[1051],[79],[337]
+node [1071]:
+-unate inputs: [1070]
+binate inputs: [1024],[271],[223],[1026],[1027]
+node [1004]:
+binate inputs: [1037],[334],[1038],[1039],[50],[1138]
+node [1005]:
+binate inputs: [1040],[1041],[159],[344],[1139],[19]
+node [1079]:
+binate inputs: [59],[258],[1141],[252],[1036],[288]
+node [1053]:
+-unate inputs: [1140],[1081]
+binate inputs: [1048],[213],[28],[302]
+node [453]:
+binate inputs: [1144],[246],[172]
+node [591]:
+binate inputs: [68],[301],[208],[300],[157],[557]
+node [592]:
+binate inputs: [284],[1143],[241],[85],[1148],[1149]
+node [405]:
+binate inputs: [91],[277],[1147],[338],[1153],[1154]
+node [893]:
+binate inputs: [363],[305],[896],[897],[976],[978]
+node [894]:
+binate inputs: [1168],[287],[1169],[1170],[35],[231]
+node [1177]:
+-unate inputs: [1174]
+binate inputs: [1180],[1181],[209],[39],[5]
+node [1176]:
+binate inputs: [204],[205],[224],[94],[1173],[1182]
+node [1178]:
+binate inputs: [1112],[1113],[1114],[356],[232]
+node [1179]:
+binate inputs: [1112],[1113],[1114],[356],[232]
+node [1188]:
++unate inputs: [331],[54]
+binate inputs: [618],[620],[324]
+node [1104]:
+binate inputs: [1129],[1130],[1131],[179],[1132],[1133]
+node [674]:
+binate inputs: [618],[620],[167],[1200],[324]
+node [1222]:
+binate inputs: [1193],[320],[196],[160],[1234],[361]
+node [1085]:
+binate inputs: [1037],[334],[1038],[1039],[50],[1138]
+node [673]:
+-unate inputs: [331],[54]
+binate inputs: [618],[620],[619],[324]
+node [1197]:
+binate inputs: [1193],[320],[196],[160],[1234],[361]
+node [1083]:
++unate inputs: [1036],[288]
+binate inputs: [59],[258],[1141],[252]
+node [1089]:
+binate inputs: [1040],[1041],[159],[344],[1139],[19]
+node [769]:
+binate inputs: [1168],[287],[1169],[1170],[35],[231]
+node [622]:
+binate inputs: [244],[1208]
+node [1117]:
+binate inputs: [204],[205],[224],[94],[1173],[1182]
+node [1243]:
+binate inputs: [291],[40],[904],[905],[903],[16]
+node [1245]:
+binate inputs: [1282],[212],[292]
+node [1280]:
+-unate inputs: [1242],[292]
+binate inputs: [904],[905],[1282],[212]
+node [704]:
+binate inputs: [1043],[1044],[326],[645],[190],[1045]
+node [786]:
+binate inputs: [455],[312],[263],[255],[1187],[456]
+node [784]:
+-unate inputs: [456]
+binate inputs: [455],[312],[263],[255]
+node [885]:
+binate inputs: [886],[887],[335],[161],[1294],[1295]
+node [457]:
+binate inputs: [455],[312],[263],[255],[456]
+node [485]:
+-unate inputs: [482]
+binate inputs: [483],[13],[168],[484]
+node [486]:
++unate inputs: [482]
+binate inputs: [483],[13],[168],[484]
+node [489]:
+binate inputs: [216],[488],[487]
+node [501]:
+binate inputs: [496],[354],[499],[41],[199],[500]
+node [518]:
+binate inputs: [233],[295],[493],[253],[516],[517]
+node [551]:
+binate inputs: [483],[13],[168],[484],[549],[550]
+node [552]:
+binate inputs: [233],[295],[493],[253],[516],[517]
+node [578]:
+binate inputs: [574],[575],[336],[203],[576],[577]
+node [581]:
+binate inputs: [494],[327],[579],[580]
+node [416]:
+binate inputs: [207],[63],[234],[643],[644]
+node [417]:
+binate inputs: [326],[645],[646]
+node [422]:
++unate inputs: [644]
+binate inputs: [207],[63],[234],[643]
+node [729]:
+binate inputs: [92],[298],[727],[728]
+node [853]:
+binate inputs: [46],[878],[879],[318],[880],[881]
+node [854]:
++unate inputs: [882]
+binate inputs: [22],[303],[81],[876]
+node [901]:
+binate inputs: [100],[256],[899],[215],[900]
+node [902]:
+binate inputs: [22],[303],[81],[876],[882]
+node [906]:
+binate inputs: [291],[40],[904],[905],[903],[16]
+node [838]:
++unate inputs: [933]
+-unate inputs: [487]
+binate inputs: [45],[844],[216],[488]
+node [777]:
+binate inputs: [180],[182],[181],[183],[1009],[1010]
+node [1019]:
+binate inputs: [100],[256],[899],[215],[1017],[1018]
+node [1008]:
+binate inputs: [895],[896],[897],[898]
+node [945]:
+binate inputs: [59],[258],[1035],[1036]
+node [647]:
+binate inputs: [496],[354],[499],[41],[199],[500]
+node [1047]:
+-unate inputs: [347],[346],[1046]
+node [828]:
+binate inputs: [1007],[285],[281],[355],[1061],[1062]
+node [827]:
+binate inputs: [1012],[315],[1013],[1014],[1063],[1064]
+node [949]:
+binate inputs: [1012],[315],[1013],[1014],[1063],[1064]
+node [1072]:
+binate inputs: [1032],[332],[279],[1075],[988],[1076]
+node [965]:
+-unate inputs: [1102],[1103],[1100],[1101],[155],[308]
+node [964]:
++unate inputs: [1102],[1103],[1100],[1101],[155],[308]
+node [991]:
+binate inputs: [1112],[1113],[1114],[356],[232],[1115]
+node [993]:
+binate inputs: [1119],[1120],[225],[1121],[222],[1122]
+node [907]:
+binate inputs: [100],[256],[899],[215],[1017],[1018]
+node [908]:
+-unate inputs: [900]
+binate inputs: [100],[256],[899],[215]
+node [910]:
+binate inputs: [1129],[1130],[1131],[179],[1132],[1133]
+node [865]:
+binate inputs: [46],[878],[879],[318],[880],[881]
+node [1078]:
+-unate inputs: [1035]
+binate inputs: [59],[258],[1036]
+node [1082]:
+binate inputs: [1048],[213],[28],[302],[1140]
+node [451]:
+-unate inputs: [1142]
+binate inputs: [284],[1143],[241],[85]
+node [450]:
++unate inputs: [1142]
+binate inputs: [284],[1143],[241],[85]
+node [589]:
+binate inputs: [284],[1143],[241],[85],[1148],[1149]
+node [1145]:
+binate inputs: [91],[277],[1147],[338],[1153],[1154]
+node [1146]:
+binate inputs: [171],[104],[1155],[1156]
+node [955]:
+binate inputs: [1007],[285],[281],[355],[1061],[1062]
+node [676]:
+binate inputs: [483],[13],[168],[484],[549],[550]
+node [1175]:
+binate inputs: [1180],[1181],[209],[39],[5]
+node [792]:
+binate inputs: [455],[312],[263],[255],[787],[1187]
+node [982]:
+binate inputs: [1198],[1199],[176]
+node [984]:
+binate inputs: [204],[205],[224],[94],[1118]
+node [617]:
+binate inputs: [621],[244],[83],[1209],[1208],[1210]
+node [1097]:
++unate inputs: [1213]
+-unate inputs: [1199]
+binate inputs: [1198],[176],[1204],[1205]
+node [403]:
+binate inputs: [171],[104],[1144],[246],[1155],[1156]
+node [1194]:
+binate inputs: [1225],[1226],[1227],[1228],[1229],[1230]
+node [1195]:
+binate inputs: [1231],[170],[92],[298],[1232],[1233]
+node [538]:
+binate inputs: [574],[575],[336],[203],[576],[577]
+node [584]:
++unate inputs: [1208],[1210]
+binate inputs: [621],[244],[83],[1209]
+node [739]:
+binate inputs: [1225],[1226],[1227],[1228],[1229],[1230]
+node [912]:
+binate inputs: [180],[182],[181],[183],[1009],[1010]
+node [1196]:
+binate inputs: [293],[1192],[1190],[1191],[1262],[1263]
+node [1250]:
+binate inputs: [1231],[170],[92],[298],[1232],[1233]
+node [1219]:
+binate inputs: [293],[1192],[1190],[1191],[1262],[1263]
+node [987]:
+binate inputs: [1198],[1199],[176],[1204],[1205],[1213]
+node [1116]:
+binate inputs: [1119],[1120],[225],[1121],[222],[1122]
+node [532]:
+binate inputs: [494],[327],[64],[201],[579],[580]
+node [757]:
+binate inputs: [45],[844],[933]
+node [758]:
+binate inputs: [30],[60],[259],[333],[1277],[1278]
+node [1001]:
++unate inputs: [1279],[274],[12]
+node [971]:
++unate inputs: [1285],[1286]
+binate inputs: pi0006,[243],[1287],[1288]
+node [1283]:
+binate inputs: pi0006,[243],[1285],[1287],[1286],[1288]
+node [847]:
+binate inputs: [30],[60],[259],[333],[1277],[1278]
+node [785]:
+binate inputs: [886],[887],[335],[161],[1294],[1295]
+node [392]:
++unate inputs: [556],[514],[559],[561],[562]
+-unate inputs: [558]
+node [388]:
+binate inputs: [556],[558],[514],[559],[561],[562]
+node [590]:
+binate inputs: [556],[558],[514],[559],[561]
+node [883]:
+binate inputs: [852],[853],[854]
+node [851]:
+binate inputs: [857],[858],[859],[860],[861]
+node [144]:
++unate inputs: [1028]
+-unate inputs: [1034]
+binate inputs: [1070],[1072],[1071]
+node [780]:
+binate inputs: [922],[923],[924],[24],[163]
+node [396]:
+binate inputs: [405],[406],[407],[84],[266],[408]
+node [1125]:
+binate inputs: [1181],[209],[39],[1174],[1176]
+node [1077]:
+binate inputs: [347],[346],[1046],[1053],[1054]
+node [747]:
+binate inputs: [1222],[1215],[1223],[58],[57]
+node [672]:
++unate inputs: [623],[198],[1188]
+binate inputs: [323],[164]
+node [1247]:
++unate inputs: [1215],[1223],[58],[57],[1224]
+-unate inputs: [1222]
+node [746]:
++unate inputs: [1196],[730]
+binate inputs: [1197],[731],[328]
+node [375]:
++unate inputs: [370],[372],[15],[373],[374]
+-unate inputs: [371]
+node [381]:
++unate inputs: [376],[379],[348],[380]
+-unate inputs: [377],[378]
+node [382]:
+binate inputs: [370],[371],[372],[15],[373],[374]
+node [383]:
+binate inputs: [376],[377],[378],[379],[348],[380]
+node [404]:
++unate inputs: [403]
+-unate inputs: [401],[173],[217],[402],[195]
+node [409]:
++unate inputs: [407],[84],[266],[408]
+-unate inputs: [405],[406]
+node [366]:
+binate inputs: [370],[371],[372],[15],[373]
+node [367]:
+binate inputs: [376],[377],[378],[379],[348]
+node [368]:
++unate inputs: [421],[423]
+-unate inputs: [422]
+node [454]:
+binate inputs: [452],[450],[451],[453]
+node [490]:
+binate inputs: [357],[485],[486],[489]
+node [506]:
++unate inputs: [498],[501],[505]
+-unate inputs: [502],[504],[309]
+node [522]:
++unate inputs: [518]
+-unate inputs: [515],[174],[519],[520],[521]
+node [553]:
+binate inputs: [551],[552]
+node [479]:
++unate inputs: [447]
+-unate inputs: [578]
+binate inputs: [64],[201],[448],[581]
+node [389]:
+binate inputs: [592],[593],[51],[82],[594],[595]
+node [473]:
+binate inputs: [64],[201],[447],[448],[578],[581]
+node [446]:
+binate inputs: [621],[323],[164],[623],[198],[622]
+node [415]:
+binate inputs: [421],[422],[423]
+node [419]:
+binate inputs: [326],[645],[646],[647],[648]
+node [393]:
++unate inputs: [592]
+-unate inputs: [593],[51],[82],[594],[595]
+node [597]:
+binate inputs: [515],[518],[174],[519],[520]
+node [511]:
++unate inputs: [704],[706]
+-unate inputs: [705],[226],[27],[707]
+node [607]:
+binate inputs: [515],[518],[174],[519],[520],[521]
+node [768]:
+binate inputs: [763],[764],[765],[766],[107],[767]
+node [773]:
+binate inputs: [769],[770],[191],[251],[771],[772]
+node [774]:
++unate inputs: [763]
+-unate inputs: [764],[765],[766],[107],[767]
+node [775]:
++unate inputs: [770],[191],[251],[772]
+-unate inputs: [769],[771]
+node [788]:
+-unate inputs: [785],[784]
+binate inputs: [787],[786]
+node [760]:
+binate inputs: [769],[770],[191],[251],[771]
+node [863]:
+binate inputs: [857],[858],[859],[860],[861],[862]
+node [869]:
++unate inputs: [857]
+-unate inputs: [858],[859],[860],[861],[862]
+node [794]:
++unate inputs: [884],[55],[885]
+node [795]:
++unate inputs: [886],[887]
+-unate inputs: [884],[55],[885]
+node [759]:
++unate inputs: [895],[894]
+-unate inputs: [893]
+binate inputs: [896],[897],[898]
+node [636]:
++unate inputs: [922],[24],[163],[925]
+-unate inputs: [923],[924]
+node [601]:
++unate inputs: [758],[357]
+binate inputs: [216],[488],[487],[757]
+node [602]:
+binate inputs: [840],[842],[838],[839],[841]
+node [626]:
+binate inputs: [922],[923],[924],[24],[163],[925]
+node [139]:
+binate inputs: [982],[983],[984],[901],[902],[906]
+node [564]:
+binate inputs: [982],[983],[984],[901],[902],[906]
+node [782]:
+binate inputs: [787],[785],[786]
+node [972]:
+binate inputs: [1016],[1019],[1020],[1021],[1023]
+node [948]:
+binate inputs: [1007],[285],[1006],[1008]
+node [411]:
+binate inputs: [498],[501],[502],[504],[309]
+node [412]:
+-unate inputs: [418],[647]
+binate inputs: [326],[645],[646],[648]
+node [413]:
+binate inputs: [704],[705],[226],[27],[706]
+node [649]:
+binate inputs: [498],[501],[502],[504],[309],[505]
+node [650]:
+binate inputs: [704],[705],[226],[27],[706],[707]
+node [967]:
+binate inputs: [1016],[1019],[1020],[1021],[1023],[1042]
+node [1055]:
++unate inputs: [1053]
+-unate inputs: [1054]
+binate inputs: [347],[346],[1046]
+node [825]:
+binate inputs: [895],[896],[897],[898],[893],[894]
+node [1058]:
++unate inputs: [1083]
+binate inputs: [1050],[1051],[79],[337],[90]
+node [809]:
++unate inputs: [1084],[62],[220],[1086]
+-unate inputs: [1085],[1087]
+node [810]:
++unate inputs: [1088],[1090],[1091],[1092],[1093]
+-unate inputs: [1089]
+node [968]:
+-unate inputs: [1104]
+binate inputs: [1100],[1101],[155],[308],[1105]
+node [1002]:
++unate inputs: [1019],[1023]
+-unate inputs: [1016],[1020],[1021],[1042]
+node [943]:
+binate inputs: [1084],[1085],[62],[220],[1086],[1087]
+node [944]:
+binate inputs: [1088],[1089],[1090],[1091],[1092],[1093]
+node [992]:
++unate inputs: [1117]
+-unate inputs: [1118],[1116]
+binate inputs: [224],[94],[206]
+node [973]:
+binate inputs: [1100],[1101],[155],[308],[1104],[1105]
+node [1003]:
+binate inputs: [1081],[1078],[1079],[1082]
+node [995]:
+binate inputs: [1144],[246],[172],[1145],[1146]
+node [996]:
+binate inputs: [589],[591]
+node [588]:
+binate inputs: [592],[593],[51],[82],[594]
+node [395]:
++unate inputs: [1145]
+-unate inputs: [452]
+binate inputs: [1144],[246],[172],[1146]
+node [398]:
+binate inputs: [405],[406],[407],[84],[266]
+node [397]:
+binate inputs: [401],[173],[217],[402],[403],[195]
+node [1080]:
+binate inputs: [1050],[1051],[79],[337],[1083],[90]
+node [1110]:
+binate inputs: [1115],[991],[993],[1178],[1179]
+node [1106]:
+binate inputs: [1088],[1089],[1090],[1091],[1092]
+node [1107]:
+binate inputs: [1084],[1085],[62],[220],[1086]
+node [734]:
+binate inputs: [1196],[1197]
+node [616]:
+binate inputs: [621],[323],[164],[623],[198],[622]
+node [690]:
+binate inputs: [1222],[1215],[1223],[58],[57],[1224]
+node [738]:
++unate inputs: [1194]
+-unate inputs: [728]
+binate inputs: [92],[298],[727],[1195]
+node [1218]:
+binate inputs: [739],[740],[314],[197],[741],[1248]
+node [545]:
++unate inputs: [670],[236],[586],[587],[671]
+-unate inputs: [584]
+node [985]:
+binate inputs: [224],[94],[1118],[1116],[1117],[206]
+node [986]:
+binate inputs: [1032],[332],[279],[1075],[1076],[982]
+node [1217]:
+binate inputs: [1249],[1250],[1251],[1252],[1253],[1254]
+node [999]:
++unate inputs: [1281]
+-unate inputs: [1280]
+binate inputs: [1279],[274],[12]
+node [975]:
+binate inputs: [1279],[274],[12],[1280],[1281]
+node [1244]:
+binate inputs: [903],[16],[1283],[1284]
+node [445]:
+binate inputs: [416],[417],[418]
+node [537]:
++unate inputs: [532]
+-unate inputs: [533],[534],[535],[178],[536]
+node [544]:
++unate inputs: [538]
+-unate inputs: [539],[540],[541],[542],[543]
+node [475]:
+binate inputs: [532],[533],[534],[535],[178]
+node [478]:
+binate inputs: [538],[539],[540],[541],[542]
+node [526]:
+binate inputs: [670],[236],[584],[586],[587],[671]
+node [596]:
+binate inputs: [676],[677],[678],[247],[679]
+node [529]:
+binate inputs: [532],[533],[534],[535],[178],[536]
+node [530]:
+binate inputs: [538],[539],[540],[541],[542],[543]
+node [695]:
+binate inputs: [739],[740],[314],[197],[741]
+node [599]:
+binate inputs: [216],[488],[487],[757],[758]
+node [793]:
+binate inputs: [789],[790],[791],[792],[317]
+node [610]:
+-unate inputs: [838]
+binate inputs: [840],[842],[839],[841]
+node [850]:
++unate inputs: [846],[847]
+-unate inputs: [848],[210],[250],[849]
+node [613]:
+binate inputs: [846],[847],[848],[210],[250],[849]
+node [868]:
+binate inputs: [864],[865],[342],[186],[866],[867]
+node [870]:
++unate inputs: [864],[342],[186],[866],[867]
+-unate inputs: [865]
+node [633]:
++unate inputs: [912]
+-unate inputs: [913],[914],[915],[916],[917]
+node [937]:
+binate inputs: [949],[950],[951],[169],[219],[952]
+node [938]:
+binate inputs: [953],[954],[955],[956],[272],[957]
+node [603]:
+binate inputs: [846],[847],[848],[210],[250]
+node [625]:
+binate inputs: [912],[913],[914],[915],[916],[917]
+node [919]:
+binate inputs: [789],[790],[791],[792],[317],[981]
+node [921]:
++unate inputs: [789],[791],[317],[981]
+-unate inputs: [790],[792]
+node [815]:
++unate inputs: [955]
+-unate inputs: [953],[954],[956],[272],[957]
+node [816]:
++unate inputs: [950],[951],[169],[219],[952]
+-unate inputs: [949]
+node [136]:
++unate inputs: [984]
+binate inputs: [982],[983]
+node [855]:
+binate inputs: [864],[865],[342],[186],[866]
+node [821]:
++unate inputs: [1008]
+binate inputs: [1007],[285],[281],[355],[1006]
+node [830]:
+binate inputs: [953],[954],[955],[956],[272]
+node [831]:
+binate inputs: [949],[950],[951],[169],[219]
+node [1099]:
+binate inputs: [1095],[1096],[1097],[321],[1098]
+node [146]:
+binate inputs: [1095],[1096],[1097],[321],[1098],[1111]
+node [779]:
+binate inputs: [912],[913],[914],[915],[916]
+node [117]:
++unate inputs: [1096],[321],[1098],[1111]
+-unate inputs: [1095],[1097]
+node [399]:
+binate inputs: [401],[173],[217],[402],[403]
+node [606]:
+binate inputs: [676],[677],[678],[247],[679],[1164]
+node [874]:
++unate inputs: [676]
+-unate inputs: [677],[678],[247],[679],[1164]
+node [733]:
+binate inputs: [92],[298],[727],[728],[1194],[1195]
+node [688]:
+binate inputs: [1219],[1220],[743],[744],[745],[1221]
+node [1246]:
++unate inputs: [1219]
+-unate inputs: [1220],[743],[744],[745],[1221]
+node [682]:
++unate inputs: [739],[741]
+-unate inputs: [740],[314],[197],[1248]
+node [683]:
++unate inputs: [1249],[1251],[1252],[1253],[1254]
+-unate inputs: [1250]
+node [742]:
+binate inputs: [1219],[1220]
+node [737]:
+binate inputs: [1249],[1250],[1251],[1252],[1253]
+node [970]:
++unate inputs: [1284]
+-unate inputs: [903],[16],[1283]
+node [463]:
+binate inputs: [589],[591],[450],[588],[590]
+node [120]:
+binate inputs: [1026],[1027],[1070],[1028],[1072],[144]
+node [582]:
+binate inputs: [672],[673],[7],[339],[674]
+node [546]:
++unate inputs: [672]
+-unate inputs: [673],[7],[674],[675]
+binate inputs: [339]
+node [400]:
++unate inputs: [399],[396]
+-unate inputs: [395],[398],[397]
+node [572]:
+binate inputs: [457],[459],[184],[454],[445]
+node [387]:
++unate inputs: [591],[450],[588]
+-unate inputs: [589],[590]
+node [600]:
++unate inputs: [486]
+binate inputs: [357],[485],[489],[599],[553]
+node [386]:
+binate inputs: [395],[398],[399],[396],[397]
+node [524]:
+binate inputs: [475],[478],[479],[529],[530]
+node [527]:
+binate inputs: [672],[673],[7],[339],[674],[675]
+node [736]:
+binate inputs: [357],[485],[486],[489],[599],[553]
+node [696]:
+binate inputs: [743],[744],[745],[742],[746],[747]
+node [781]:
+binate inputs: [459],[184],[777],[778],[779],[780]
+node [856]:
+-unate inputs: [851],[852],[853],[854],[855]
+node [892]:
+binate inputs: [794],[795],[796],[797],[188],[891]
+node [565]:
+binate inputs: [729],[490],[732]
+node [959]:
+binate inputs: [851],[852],[853],[854],[855]
+node [624]:
++unate inputs: [459],[184],[777],[780]
+-unate inputs: [778],[779]
+node [920]:
++unate inputs: [794],[796]
+-unate inputs: [795],[797],[188],[891]
+node [491]:
+binate inputs: [777],[778],[782]
+node [1059]:
+binate inputs: [1049],[1055],[1047]
+node [1057]:
++unate inputs: [1078],[1079],[1080],[1077]
+binate inputs: [1081],[1082]
+node [1060]:
++unate inputs: [1049],[1055]
+-unate inputs: [1047]
+node [966]:
++unate inputs: [907],[973]
+-unate inputs: [908],[910],[972]
+node [994]:
+binate inputs: [1180],[5],[1125]
+node [605]:
++unate inputs: [551],[596],[597]
+-unate inputs: [485],[552]
+node [834]:
++unate inputs: [945]
+-unate inputs: [1003]
+binate inputs: [946],[947],[1004],[1005]
+node [835]:
+binate inputs: [946],[947],[1004],[1005],[1106],[1107]
+node [1171]:
+binate inputs: [1081],[1078],[1079],[1082],[1053],[1080]
+node [1128]:
++unate inputs: [993],[1110]
+-unate inputs: [1112],[1113],[1114],[1115]
+node [687]:
++unate inputs: [746]
+-unate inputs: [747]
+binate inputs: [743],[744],[745],[742]
+node [684]:
++unate inputs: [737],[1217],[1218]
+-unate inputs: [695],[738]
+node [583]:
++unate inputs: [616],[617]
+binate inputs: [618],[620],[619]
+node [369]:
++unate inputs: [366],[367],[368]
+node [414]:
+binate inputs: [411],[412],[413]
+node [420]:
+-unate inputs: [416],[415]
+binate inputs: [417],[418],[419]
+node [449]:
+binate inputs: [64],[201],[447],[448],[446]
+node [469]:
+-unate inputs: [446]
+binate inputs: [64],[201],[447],[448]
+node [531]:
++unate inputs: [475],[478],[479],[529],[530]
+node [598]:
+binate inputs: [485],[551],[552],[596],[597]
+node [604]:
+binate inputs: [601],[602],[603]
+node [471]:
+binate inputs: [416],[417],[418],[415],[419]
+node [472]:
+binate inputs: [618],[620],[619],[616],[617]
+node [507]:
+binate inputs: [411],[412],[413],[649],[650]
+node [510]:
++unate inputs: [412],[413],[649],[650]
+-unate inputs: [411]
+node [735]:
+binate inputs: [730],[731],[328],[733],[734]
+node [697]:
+binate inputs: [737],[738]
+node [694]:
++unate inputs: [733],[729]
+binate inputs: [730],[731],[328],[734]
+node [783]:
++unate inputs: [457],[782]
+binate inputs: [459],[184],[777],[778]
+node [798]:
+binate inputs: [794],[795],[796],[797],[188]
+node [829]:
+-unate inputs: [825],[821]
+binate inputs: [826],[827],[828]
+node [761]:
+binate inputs: [759],[763],[764],[765],[766],[107]
+node [832]:
+binate inputs: [826],[827],[828],[830],[831]
+node [609]:
++unate inputs: [602],[603]
+-unate inputs: [601]
+node [566]:
+binate inputs: [281],[355],[946],[947],[945],[948]
+node [936]:
++unate inputs: [826],[827],[830]
+-unate inputs: [828],[831]
+node [150]:
+binate inputs: [969],[265],[970],[971]
+node [961]:
+binate inputs: [907],[908],[910],[972],[973]
+node [140]:
+binate inputs: [988],[985],[986],[987]
+node [465]:
+binate inputs: [395],[398],[399]
+node [464]:
++unate inputs: [451]
+binate inputs: [452],[450],[453],[995],[996]
+node [820]:
+binate inputs: [946],[947],[1004],[1005],[945],[1003]
+node [822]:
+binate inputs: [281],[355],[946],[947],[945],[948]
+node [823]:
+binate inputs: [825],[826],[827],[828]
+node [492]:
+binate inputs: [452],[450],[451],[453],[995],[996]
+node [1094]:
+-unate inputs: [982],[983],[987]
+binate inputs: [988],[986]
+node [942]:
++unate inputs: [947],[1106]
+-unate inputs: [946],[1004],[1005],[1107]
+node [990]:
++unate inputs: [136],[985]
+binate inputs: [988],[986],[987]
+node [686]:
+binate inputs: [695],[737],[738],[1217],[1218]
+node [909]:
+binate inputs: [904],[905],[1242],[1243],[1244],[1245]
+node [998]:
++unate inputs: [970],[971]
+-unate inputs: [969],[265]
+node [974]:
++unate inputs: [1244]
+-unate inputs: [1243]
+binate inputs: [904],[905],[1242],[1245]
+node [477]:
+binate inputs: [584],[586],[587],[582],[583],[585]
+node [391]:
++unate inputs: [387]
+-unate inputs: [388],[389]
+node [385]:
++unate inputs: [463],[465]
+-unate inputs: [464]
+node [525]:
++unate inputs: [582]
+-unate inputs: [583]
+binate inputs: [584],[586],[587],[585]
+node [692]:
+binate inputs: [598],[600],[604]
+node [569]:
+binate inputs: [729],[490],[732],[735],[736]
+node [693]:
++unate inputs: [736]
+-unate inputs: [490]
+binate inputs: [729],[732],[735]
+node [461]:
+binate inputs: [788],[793],[798],[781],[783]
+node [133]:
+binate inputs: [856],[863],[868],[869],[870]
+node [114]:
++unate inputs: [863],[869]
+-unate inputs: [856],[868],[870]
+node [628]:
++unate inputs: [783]
+-unate inputs: [781]
+binate inputs: [788],[793],[798]
+node [152]:
+binate inputs: [856],[863],[868]
+node [941]:
+binate inputs: [1056],[1052],[1057],[1058],[1059]
+node [1108]:
++unate inputs: [1174],[1175]
+binate inputs: [1176],[994],[1177]
+node [1109]:
+-unate inputs: [992],[994]
+binate inputs: [991],[993]
+node [689]:
+-unate inputs: [694],[696]
+binate inputs: [695],[697]
+node [681]:
+binate inputs: [687],[688],[690],[1246],[1247]
+node [934]:
++unate inputs: [1246]
+-unate inputs: [687],[688],[690],[1247]
+node [384]:
+-unate inputs: [369],[381],[382],[383],[375]
+node [424]:
+binate inputs: [366],[367],[368],[414],[420]
+node [460]:
++unate inputs: [445]
+-unate inputs: [449]
+binate inputs: [457],[459],[184],[454]
+node [474]:
++unate inputs: [449]
+-unate inputs: [471],[445]
+binate inputs: [472],[473],[469]
+node [467]:
+binate inputs: [457],[459],[184],[454],[491],[492]
+node [512]:
+binate inputs: [510],[506],[511]
+node [513]:
+binate inputs: [369],[381],[382],[383]
+node [508]:
++unate inputs: [414],[420]
+binate inputs: [366],[367],[368]
+node [571]:
+binate inputs: [564],[565],[566]
+node [476]:
++unate inputs: [473],[469]
+-unate inputs: [472]
+node [608]:
+binate inputs: [605],[606],[607]
+node [701]:
+binate inputs: [609],[610],[611],[612],[613],[850]
+node [700]:
+binate inputs: [605],[606],[607],[874],[522]
+node [632]:
++unate inputs: [624],[625]
+-unate inputs: [626]
+node [918]:
++unate inputs: [788]
+-unate inputs: [793],[798]
+node [929]:
++unate inputs: [874],[522]
+-unate inputs: [605],[606],[607]
+node [931]:
++unate inputs: [610],[613],[850]
+-unate inputs: [609],[611],[612]
+node [935]:
++unate inputs: [829]
+-unate inputs: [832]
+binate inputs: [760],[761]
+node [148]:
+binate inputs: [964],[965],[966],[967],[968]
+node [814]:
++unate inputs: [936],[937],[938]
+node [462]:
+-unate inputs: [454],[492]
+binate inputs: [457],[459],[184],[491]
+node [128]:
+binate inputs: [964],[965],[966],[967],[968],[1002]
+node [807]:
+binate inputs: [1056],[1052],[1057],[1058],[1059],[1060]
+node [125]:
++unate inputs: [965],[967],[1002]
+-unate inputs: [964],[966],[968]
+node [989]:
+binate inputs: [1070],[1028],[1072],[1094],[1099]
+node [143]:
++unate inputs: [1094],[1099]
+binate inputs: [1070],[1028],[1072]
+node [833]:
+binate inputs: [1046],[1054],[1171]
+node [468]:
+binate inputs: [471],[472],[473]
+node [614]:
+binate inputs: [609],[610],[611],[612],[613]
+node [762]:
++unate inputs: [759],[760]
+binate inputs: [761]
+node [824]:
+-unate inputs: [820],[822]
+binate inputs: [821],[823]
+node [911]:
+binate inputs: [907],[908],[910],[909]
+node [568]:
+binate inputs: [820],[821],[822],[823]
+node [960]:
++unate inputs: [901],[906],[909]
+binate inputs: [907],[908],[910]
+node [962]:
+binate inputs: [969],[265],[970],[971],[974],[975]
+node [808]:
++unate inputs: [942],[944]
+-unate inputs: [943]
+node [997]:
++unate inputs: [974],[975]
+binate inputs: [969],[265],[970],[971]
+node [523]:
++unate inputs: [476]
+-unate inputs: [477]
+binate inputs: [475],[478],[479]
+node [433]:
++unate inputs: [392],[400],[409]
+-unate inputs: [391],[393],[404]
+node [432]:
++unate inputs: [391],[393],[404]
+-unate inputs: [392],[400],[409]
+node [748]:
+binate inputs: [695],[694],[696],[697],[692],[693]
+node [1127]:
+-unate inputs: [1180],[1181],[209],[39],[1174],[1108]
+node [680]:
++unate inputs: [686],[689]
+binate inputs: [687],[688],[690]
+node [390]:
++unate inputs: [386]
+-unate inputs: [385]
+binate inputs: [387],[388],[389]
+node [394]:
+binate inputs: [391],[392],[393]
+node [466]:
+binate inputs: [463],[464],[465],[461],[462]
+node [470]:
++unate inputs: [460]
+-unate inputs: [467]
+binate inputs: [469],[445],[449],[468]
+node [480]:
+binate inputs: [475],[478],[479],[476],[477]
+node [547]:
+binate inputs: [525],[526],[527],[545],[546]
+node [548]:
++unate inputs: [526],[546]
+-unate inputs: [525],[527],[545]
+node [563]:
+binate inputs: [469],[445],[449],[467],[460],[468]
+node [615]:
+binate inputs: [598],[600],[604],[608],[614]
+node [630]:
+binate inputs: [385],[386],[387],[388],[389]
+node [631]:
++unate inputs: [462]
+-unate inputs: [461]
+binate inputs: [463],[464],[465]
+node [691]:
+binate inputs: [687],[688],[690],[686],[689]
+node [698]:
++unate inputs: [692]
+-unate inputs: [693]
+binate inputs: [695],[694],[696],[697]
+node [439]:
++unate inputs: [506],[511],[384]
+-unate inputs: [510]
+node [708]:
+binate inputs: [369],[383],[507],[508]
+node [699]:
++unate inputs: [598],[604],[608],[614]
+-unate inputs: [600]
+node [441]:
++unate inputs: [510]
+-unate inputs: [506],[511],[384]
+node [135]:
+binate inputs: [901],[902],[906],[911],[883]
+node [635]:
+binate inputs: [892],[918],[919],[920],[921]
+node [651]:
++unate inputs: [892],[918],[921]
+-unate inputs: [919],[920]
+node [958]:
++unate inputs: [883]
+-unate inputs: [902]
+binate inputs: [901],[906],[911]
+node [627]:
+binate inputs: [892],[918],[919]
+node [811]:
++unate inputs: [1049],[1055],[1052]
+-unate inputs: [1047],[807]
+node [142]:
++unate inputs: [989]
+-unate inputs: [990]
+binate inputs: [991],[993],[992],[994]
+node [145]:
+binate inputs: [1110],[1108],[1109]
+node [119]:
++unate inputs: [146]
+-unate inputs: [143],[144]
+node [509]:
++unate inputs: [507]
+-unate inputs: [508]
+binate inputs: [369],[382],[383]
+node [776]:
+binate inputs: [762],[768],[773],[774],[775]
+node [805]:
++unate inputs: [762],[768],[775]
+-unate inputs: [773],[774]
+node [818]:
++unate inputs: [814],[815]
+-unate inputs: [816]
+node [836]:
+binate inputs: [347],[346],[833],[834],[835]
+node [939]:
+binate inputs: [762],[768],[773]
+node [137]:
+binate inputs: [991],[993],[989],[990],[992],[994]
+node [127]:
+binate inputs: [997],[999],[1000],[1001],[150],[998]
+node [126]:
++unate inputs: [999],[1000],[150],[998]
+-unate inputs: [997],[1001]
+node [940]:
++unate inputs: [834]
+-unate inputs: [835]
+binate inputs: [347],[346],[833]
+node [963]:
+binate inputs: [997],[999],[1000],[1001]
+node [641]:
+binate inputs: [525],[526],[527],[523],[524]
+node [410]:
++unate inputs: [390]
+-unate inputs: [394]
+binate inputs: [400],[404],[409]
+node [481]:
++unate inputs: [470]
+-unate inputs: [466]
+binate inputs: [424],[474],[480]
+node [528]:
++unate inputs: [523],[524]
+binate inputs: [525],[526],[527]
+node [638]:
+binate inputs: [400],[404],[409],[390],[394]
+node [639]:
+binate inputs: [466],[470],[424],[474],[480]
+node [685]:
+binate inputs: [680],[681],[682],[683],[684]
+node [875]:
++unate inputs: [699]
+-unate inputs: [700],[701]
+node [930]:
+binate inputs: [680],[681],[682],[683],[684],[934]
+node [752]:
+binate inputs: [691],[698],[615]
+node [138]:
+binate inputs: [960],[961],[962],[958],[959]
+node [714]:
++unate inputs: [680],[681],[683],[684]
+-unate inputs: [682],[934]
+node [567]:
+binate inputs: [136],[135],[139],[140]
+node [806]:
++unate inputs: [940],[941]
+binate inputs: [942],[943],[944]
+node [116]:
++unate inputs: [145]
+-unate inputs: [142]
+binate inputs: [143],[144],[146]
+node [118]:
+binate inputs: [1110],[1108],[1109],[1127],[1128]
+node [121]:
++unate inputs: [1108],[1109],[1127],[1128]
+-unate inputs: [1110]
+node [147]:
+binate inputs: [143],[144],[146],[142],[145]
+node [440]:
++unate inputs: [512]
+-unate inputs: [509]
+binate inputs: [375],[513]
+node [629]:
+binate inputs: [624],[625],[626],[627],[628]
+node [702]:
+binate inputs: [699],[700],[701]
+node [837]:
+binate inputs: [760],[761],[829],[832],[824],[836]
+node [873]:
+binate inputs: [805],[818]
+node [634]:
+-unate inputs: [627],[628]
+binate inputs: [624],[625],[626]
+node [801]:
++unate inputs: [824],[836]
+binate inputs: [760],[761],[829],[832]
+node [802]:
+binate inputs: [942],[943],[944],[940],[941]
+node [151]:
++unate inputs: [958],[959]
+binate inputs: [960],[961],[962]
+node [813]:
++unate inputs: [939]
+-unate inputs: [935]
+binate inputs: [936],[937],[938]
+node [124]:
++unate inputs: [962]
+-unate inputs: [960],[961],[148]
+binate inputs: [963],[150]
+node [800]:
+binate inputs: [936],[937],[938],[935],[939]
+node [149]:
+binate inputs: [960],[961],[962],[963]
+node [642]:
+binate inputs: [382],[424],[474],[480],[641]
+node [709]:
++unate inputs: [424],[474],[480]
+-unate inputs: [641]
+binate inputs: [382],[708]
+node [438]:
+binate inputs: [528],[531],[537],[544],[547],[548]
+node [703]:
++unate inputs: [691],[698],[615],[685],[702]
+node [710]:
+binate inputs: [528],[531],[537],[544],[547]
+node [442]:
+-unate inputs: [528],[531],[537],[544],[547],[548]
+node [753]:
++unate inputs: [565],[568],[569],[837]
+-unate inputs: [566],[748]
+node [927]:
+binate inputs: [691],[698],[615],[685]
+node [751]:
+binate inputs: [565],[566],[568],[569],[748],[837]
+node [750]:
+binate inputs: [136],[135],[139],[140],[137],[138]
+node [715]:
++unate inputs: [875],[929],[931]
+node [122]:
++unate inputs: [116],[119],[120],[121]
+-unate inputs: [117],[118]
+node [141]:
++unate inputs: [135],[137]
+-unate inputs: [139],[138]
+binate inputs: [136],[140]
+node [154]:
+binate inputs: [116],[117],[118],[119],[120]
+node [570]:
+binate inputs: [564],[565],[566],[567],[568],[569]
+node [812]:
+binate inputs: [807],[806],[808],[809],[810],[811]
+node [819]:
++unate inputs: [807],[808],[809],[810],[811]
+-unate inputs: [806]
+node [803]:
+binate inputs: [807],[806],[808],[809],[810]
+node [755]:
+binate inputs: [800],[801],[802]
+node [132]:
++unate inputs: [151]
+-unate inputs: [152]
+binate inputs: [150],[148],[149]
+node [749]:
++unate inputs: [564]
+-unate inputs: [567]
+binate inputs: [565],[566],[568],[569]
+node [111]:
+binate inputs: [116],[117],[118],[119],[120],[121]
+node [129]:
++unate inputs: [128]
+-unate inputs: [124],[125],[126],[127]
+node [153]:
+binate inputs: [150],[148],[149],[151],[152]
+node [637]:
+binate inputs: [632],[633],[634],[635],[636]
+node [434]:
+binate inputs: [632],[633],[634],[635],[636],[651]
+node [435]:
++unate inputs: [632],[636],[651]
+-unate inputs: [633],[634],[635]
+node [817]:
++unate inputs: [813]
+-unate inputs: [776]
+binate inputs: [814],[815],[816]
+node [113]:
+binate inputs: [124],[125],[126],[127],[128]
+node [799]:
+binate inputs: [814],[815],[816],[813],[776]
+node [428]:
+binate inputs: [375],[509],[512],[513],[709],[710]
+node [716]:
+binate inputs: [629],[630],[631],[708],[481],[642]
+node [437]:
+-unate inputs: [709],[710]
+binate inputs: [375],[509],[512],[513]
+node [426]:
+-unate inputs: [481]
+binate inputs: [629],[630],[631],[708],[642]
+node [932]:
+binate inputs: [875],[929],[931],[930],[703]
+node [713]:
++unate inputs: [930],[703]
+binate inputs: [875],[929],[931]
+node [573]:
++unate inputs: [570],[563],[571]
+binate inputs: [449],[572]
+node [427]:
+binate inputs: [629],[630],[631],[637],[638]
+node [640]:
+-unate inputs: pi1000
+binate inputs: [449],[570],[563],[571],[572]
+node [431]:
++unate inputs: [629],[631],[637],[638]
+-unate inputs: [630]
+node [723]:
+binate inputs: [749],[750],[751]
+node [926]:
+binate inputs: [800],[801],[802],[799],[803]
+node [754]:
+-unate inputs: [749],[750],[751]
+node [756]:
+binate inputs: [141],[147],[153]
+node [134]:
+binate inputs: [124],[127],[128],[132],[133]
+node [804]:
++unate inputs: [800]
+-unate inputs: [801],[802],[799],[803]
+node [112]:
++unate inputs: [132],[133]
+binate inputs: [124],[127],[128]
+node [429]:
+binate inputs: [437],[438],[439],[440],[441]
+node [654]:
+binate inputs: [426],[427],[428]
+node [443]:
+binate inputs: [437],[438],[439],[440],[441],[442]
+node [662]:
++unate inputs: [437],[439]
+-unate inputs: [438],[440],[441],[442]
+node [652]:
++unate inputs: [433],[410],[435]
+-unate inputs: [431],[432],[434]
+node [425]:
+binate inputs: [431],[432],[433],[434],[410]
+node [110]:
++unate inputs: [153],[154]
+-unate inputs: [141],[147],[134]
+node [436]:
+binate inputs: [431],[432],[433],[434],[410],[435]
+node [724]:
+binate inputs: [752],[753],[754],[755],[756]
+node [712]:
+binate inputs: [805],[818],[804],[812],[817],[819]
+node [928]:
++unate inputs: [752],[753]
+-unate inputs: [755],[926]
+binate inputs: [702],[927]
+node [720]:
+binate inputs: [141],[147],[153],[134],[154]
+node [721]:
+binate inputs: [752],[753],[755],[702],[926],[927]
+node [722]:
+-unate inputs: [754],[756]
+binate inputs: [752],[753],[755]
+node [665]:
++unate inputs: [805],[812],[819]
+-unate inputs: [818],[804],[817]
+node [123]:
+-unate inputs: [112],[113],[114]
+node [653]:
+binate inputs: [426],[427],[428],[425],[429]
+node [430]:
++unate inputs: [427],[428],[425],[429]
+-unate inputs: [426]
+node [656]:
++unate inputs: [724],[573],[639]
+-unate inputs: [723],[716]
+node [668]:
++unate inputs: [640]
+binate inputs: [723],[716],[724],[573],[639]
+node [711]:
+-unate inputs: [928],[932]
+binate inputs: [804],[812],[817],[873]
+node [726]:
+binate inputs: [804],[812],[817],[928],[932],[873]
+node [725]:
+binate inputs: [112],[113],[114],[110],[111]
+node [115]:
++unate inputs: [111]
+-unate inputs: [110]
+binate inputs: [112],[113],[114]
+node [655]:
+binate inputs: [720],[721],[722]
+node [444]:
+binate inputs: [430],[436],[443]
+node [663]:
+binate inputs: [430],[436],[443],[652],[662]
+node [4]:
++unate inputs: [436],[652]
+-unate inputs: [430],[443],[662]
+node [659]:
++unate inputs: [721],[725]
+-unate inputs: [720],[722],[726]
+node [660]:
+binate inputs: [711],[712],[713],[714],[715]
+node [666]:
+binate inputs: [930],[711],[712],[713],[714],[715]
+node [1]:
++unate inputs: [711],[715]
+-unate inputs: [665],[712],[713],[714]
+node [657]:
+binate inputs: [720],[721],[722],[725],[726]
+node [130]:
++unate inputs: [122]
+-unate inputs: [115],[123],[129]
+node [658]:
++unate inputs: [653],[654],[656],[657]
+-unate inputs: [655]
+node [669]:
+-unate inputs: [668]
+binate inputs: [653],[654],[655],[656],[657]
+node [664]:
+-unate inputs: [659],[660]
+binate inputs: [115],[122],[123],[129]
+node [661]:
+binate inputs: [115],[122],[123],[129],[659],[660]
+node [667]:
+binate inputs: [665],[664],[130],[666]
+node [2]:
++unate inputs: [664],[130]
+binate inputs: [665],[666]
+node [0]:
++unate inputs: [669]
+binate inputs: [444],[658],[661],[663],[667]
+node [3]:
++unate inputs: [658],[667]
+-unate inputs: [444],[661],[663]
+node po0:
++unate inputs: [0],[1],[2]
+-unate inputs: [3],[4]

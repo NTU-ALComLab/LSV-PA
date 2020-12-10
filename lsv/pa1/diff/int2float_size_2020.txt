@@ -1,0 +1,11 @@
+--- lsv/pa1/ref/int2float_size_2020.txt	2020-10-29 18:40:10.399747136 +0800
++++ lsv/pa1/out/int2float_size_2020.txt	2020-10-29 18:40:10.427746798 +0800
+@@ -35,7 +35,7 @@
+ +unate inputs: [1]
+ binate inputs: pi02,pi03,pi04,pi06,pi07
+ node po4:
+-+unate inputs: pi08,pi10,[16],[15],[14]
+++unate inputs: pi08,pi10,[15],[14],[16]
+ -unate inputs: pi07
+ node [12]:
+ +unate inputs: [11]

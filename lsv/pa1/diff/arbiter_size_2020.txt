@@ -1,0 +1,146 @@
+--- lsv/pa1/ref/arbiter_size_2020.txt	2020-10-29 18:40:10.207749460 +0800
++++ lsv/pa1/out/arbiter_size_2020.txt	2020-10-29 18:40:10.239749073 +0800
+@@ -172,10 +172,10 @@
+ +unate inputs: [41],[86]
+ -unate inputs: pi139,pi143,pi184
+ node [103]:
+-+unate inputs: [25],[102],[101]
+++unate inputs: [25],[101],[102]
+ -unate inputs: pi212,pi221,pi222
+ node [197]:
+-+unate inputs: [10],[193],[79],[105],[194],[196]
+++unate inputs: [10],[79],[105],[194],[196],[193]
+ node [7]:
+ +unate inputs: [3]
+ -unate inputs: [6]
+@@ -194,7 +194,7 @@
+ +unate inputs: [78]
+ -unate inputs: pi003
+ node [90]:
+-+unate inputs: [48],[50],[57],[88],[89],[87]
+++unate inputs: [50],[57],[48],[87],[88],[89]
+ node [116]:
+ +unate inputs: pi009,pi137,[79]
+ -unate inputs: pi136,[78]
+@@ -220,22 +220,22 @@
+ +unate inputs: pi241,[8]
+ -unate inputs: pi114,pi115
+ node [58]:
+-+unate inputs: [49],[56]
+--unate inputs: pi025,pi026,[48],[57]
+++unate inputs: [56],[49]
++-unate inputs: pi025,pi026,[57],[48]
+ node [91]:
+-+unate inputs: [40],[45],[82],[90]
+++unate inputs: [45],[40],[90],[82]
+ -unate inputs: [84]
+ node [32]:
+ +unate inputs: pi088,pi089
+ -unate inputs: pi215,pi216,pi217,[31]
+ node [17]:
+-+unate inputs: [1],[8],[9]
+++unate inputs: [8],[9],[1]
+ -unate inputs: [2],[16],[15]
+ node [59]:
+ +unate inputs: pi153,pi154,[58]
+ -unate inputs: pi026,pi027
+ node [92]:
+-+unate inputs: [47],[81],[91]
+++unate inputs: [47],[91],[81]
+ -unate inputs: pi146,pi147,[56]
+ node [19]:
+ -unate inputs: pi248
+@@ -244,7 +244,7 @@
+ +unate inputs: pi090,pi091,[32]
+ -unate inputs: pi218,pi219,pi220
+ node [61]:
+-+unate inputs: pi155,pi156,[60],[59]
+++unate inputs: pi155,pi156,[59],[60]
+ node [93]:
+ +unate inputs: pi060,[39],[92]
+ -unate inputs: pi187,pi188,pi189
+@@ -255,7 +255,7 @@
+ +unate inputs: pi220
+ -unate inputs: pi092,pi093,[33]
+ node [109]:
+-+unate inputs: [108],[19]
+++unate inputs: [19],[108]
+ -unate inputs: pi249
+ node [62]:
+ +unate inputs: pi166,[61]
+@@ -270,7 +270,7 @@
+ +unate inputs: pi094,pi095
+ -unate inputs: pi221,pi222,pi223,[34]
+ node [198]:
+-+unate inputs: [103],[197],[15],[109],[94]
+++unate inputs: [15],[94],[103],[109],[197]
+ node [63]:
+ +unate inputs: pi167,[62]
+ -unate inputs: pi040,pi041,pi043,[41]
+@@ -282,7 +282,7 @@
+ -unate inputs: pi252,pi253
+ node [37]:
+ +unate inputs: pi224,pi225
+--unate inputs: pi096,[36],[35]
++-unate inputs: pi096,[35],[36]
+ node [65]:
+ -unate inputs: pi044
+ binate inputs: pi042,pi170,pi171,[63]
+@@ -296,7 +296,7 @@
+ +unate inputs: pi047,pi048,[40]
+ -unate inputs: pi174,pi175,[66]
+ node [69]:
+-+unate inputs: pi051,pi052,[68],[67]
+++unate inputs: pi051,pi052,[67],[68]
+ -unate inputs: pi179,pi180
+ node [70]:
+ +unate inputs: pi181
+@@ -329,7 +329,7 @@
+ +unate inputs: [11],[9],[37]
+ -unate inputs: [103],[106]
+ node [110]:
+-+unate inputs: pi252,pi253,[23],[107]
+++unate inputs: pi252,pi253,[107],[23]
+ -unate inputs: [109]
+ node po000:
+ +unate inputs: pi128
+@@ -349,10 +349,10 @@
+ binate inputs: [83],[81],[113]
+ node po010:
+ +unate inputs: pi138
+-binate inputs: pi010,[80],[83],[113]
++binate inputs: pi010,[83],[80],[113]
+ node [118]:
+ -unate inputs: pi011
+-binate inputs: pi010,pi138,[80],[83],[113]
++binate inputs: pi010,pi138,[83],[80],[113]
+ node po002:
+ +unate inputs: pi130
+ -unate inputs: [113]
+@@ -526,7 +526,7 @@
+ -unate inputs: pi168,pi169,[137]
+ node [139]:
+ +unate inputs: [63]
+-binate inputs: pi041,pi042,pi170,[138],[137]
++binate inputs: pi041,pi042,pi170,[137],[138]
+ node po044:
+ +unate inputs: pi172
+ binate inputs: pi044,pi171,[139]
+@@ -632,7 +632,7 @@
+ +unate inputs: pi065,pi193
+ -unate inputs: pi192,[154]
+ node [156]:
+-+unate inputs: pi190,pi191,pi192,[155],[154]
+++unate inputs: pi190,pi191,pi192,[154],[155]
+ -unate inputs: pi063
+ node po066:
+ +unate inputs: pi066,pi194
+@@ -853,7 +853,7 @@
+ +unate inputs: pi241,[9]
+ -unate inputs: [185]
+ node po128:
+--unate inputs: [198],[97],[112],[138],[185]
++-unate inputs: [97],[112],[138],[185],[198]
+ node po115:
+ +unate inputs: pi115,pi243
+ -unate inputs: pi242,[186]
