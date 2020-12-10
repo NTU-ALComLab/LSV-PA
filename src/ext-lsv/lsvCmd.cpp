@@ -1,242 +1,294 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "sat/cnf/cnf.h"
+// #include "base/abc/abcDar.h"
 #include <iostream>
-#include <fstream> 
+#include <fstream>
 #include <map>
-using namespace std; 
+#include <set>
+#include <vector>
+#include <ctime>
+using namespace std;
 
-static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
+extern "C" Aig_Man_t *Abc_NtkToDar(Abc_Ntk_t *pNtk, int fExors, int fRegisters);
+extern "C" Cnf_Dat_t *Cnf_Derive(Aig_Man_t *pAig, int nOutputs);
 
-void init(Abc_Frame_t* pAbc) {
-  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintNodes, 0);
+static int Lsv_CommandPrintNodes(Abc_Frame_t *pAbc, int argc, char **argv);
+
+void init(Abc_Frame_t *pAbc)
+{
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_pounate", Lsv_CommandPrintNodes, 0);
 }
 
-void destroy(Abc_Frame_t* pAbc) {}
+void destroy(Abc_Frame_t *pAbc) {}
 
 Abc_FrameInitializer_t frame_initializer = {init, destroy};
 
-struct PackageRegistrationManager {
+struct PackageRegistrationManager
+{
   PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer); }
 } lsvPackageRegistrationManager;
 
-void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk, int argc, char** argv) {
-    Abc_Obj_t* pObj;
-    int i;
-    if(argc > 1){
-        ofstream fout(argv[1]);
-        fout << "a" << endl;
-        fout.close(); 
-    }
-    ofstream fout("res.out");
-    /*
-    for(int i=0; i<argc; i++){
-        std::cout << "  argv[" << i << "]: " << argv[i] << std::endl;
-    }*/
+void Lsv_NtkPrintNodes(Abc_Ntk_t *pNtk, int argc, char **argv)
+{
+  const clock_t begin_time = clock();
+  // cout << "PI #: " << Abc_NtkPiNum(pNtk) << endl;
+  // cout << "PO #: " << Abc_NtkPoNum(pNtk) << endl;
+  map<string, size_t> globalNameToId;
+  map<size_t, string> globalIdToName;
+  Abc_Obj_t *pObj;
+  int i;
+  size_t cntVar = 0;
+  Abc_NtkForEachPi(pNtk, pObj, i)
+  {
+    globalNameToId[Abc_ObjName(pObj)] = pObj->Id;
+    globalIdToName[pObj->Id] = Abc_ObjName(pObj);
+  }
 
-    Abc_NtkForEachNode(pNtk, pObj, i) {
-        // printf(".names ");
-        Abc_Obj_t* pFanin;
-        int j;
-        /*
-        Abc_ObjForEachFanin(pObj, pFanin, j) {
-            printf("%s ", Abc_ObjName(pFanin));
-        }
-        */
-        // printf("%s\n", Abc_ObjName(pObj));
-        if (Abc_NtkHasSop(pNtk)) {
-            size_t cntFanIn = 0;
-            Abc_ObjForEachFanin(pObj, pFanin, j){
-                cntFanIn++;
-            }
-            if(cntFanIn == 0)
-                continue;
-            // printf("%s", (char*)pObj->pData);
-            char delim[] = "\n";
-            char* copyData = (char*) calloc(strlen((char*)pObj->pData)+1, sizeof(char));
-            strcpy(copyData, (char*)pObj->pData);
-            char *ptr = strtok(copyData, delim);
-            // a. allocate 2d space
-            unsigned int numCol = 0, numRow = 0;
-            bool isSOP = true;
-            if(ptr != NULL){
-                numCol = (unsigned)strlen(ptr)-2;
-                // printf("# of col: %u\n", (unsigned)strlen(ptr)-2);
-                isSOP = (ptr[numCol+1] == '1') ? true : false;
-                // printf("is%sSOP\n", (isSOP ? " " : " not "));
-            }
-            while(ptr != NULL){
-                numRow++;
-                ptr = strtok(NULL, delim);
-            }
-            // printf("# of row: %u\n", numRow);
-            char *arr = (char *)malloc(numRow * numCol * sizeof(char)); 
-            // b. store data to 2d array
-            strcpy(copyData, (char*)pObj->pData);
-            ptr = strtok(copyData, delim);
-            for(unsigned int iterI = 0; iterI < numRow; iterI++){
-                for(unsigned int iterJ = 0; iterJ < numCol; iterJ++){
-                    *(arr + iterI*numCol + iterJ) = ptr[iterJ];
-                }
-                ptr = strtok(NULL, delim);
-            }
-            // d. Determine is unate or not
-            // row 0: has 0
-            // row 1: has 1
-            // row 2: has -
-            bool *arrHas01 = (bool *)malloc(3 * numCol * sizeof(bool)); 
-            for(size_t iterI = 0; iterI < 3; iterI++){
-                for(size_t iterJ = 0; iterJ < numCol; iterJ++){
-                    *(arrHas01 + iterI*numCol + iterJ) = false;
-                }
-            }
-            for(size_t iterI = 0; iterI < numRow; iterI++){
-                for(size_t iterJ = 0; iterJ < numCol; iterJ++){
-                    if(*(arr + iterI*numCol + iterJ) == '0')
-                        *(arrHas01 + 0*numCol + iterJ) = true;
-                    else if(*(arr + iterI*numCol + iterJ) == '1')
-                        *(arrHas01 + 1*numCol + iterJ) = true;
-                    else
-                        *(arrHas01 + 2*numCol + iterJ) = true;
-                }
-            }
-            int *arrIsUnate = (int *)malloc(numCol * sizeof(int)); 
-            int *arrHas012 = (int *)malloc(4 * sizeof(int)); 
-            for(size_t iterI = 0; iterI < 4; iterI++)
-                *(arrHas012 + iterI) = 0;
-            // 0: negative unate
-            // 1: positive unate
-            // 2: binate
-            // 3: both
-            for(size_t iterJ = 0; iterJ < numCol; iterJ++){
-                // deal with SOP
-                // 2*2*2
-                if(isSOP){
-                    if((*(arrHas01 + 0*numCol + iterJ) == false) && (*(arrHas01 + 1*numCol + iterJ) == false)){
-                        *(arrIsUnate + iterJ) = 3;
-                        (*(arrHas012 + 3))++;
-                    }
-                    else if((*(arrHas01 + 0*numCol + iterJ) == false) && (*(arrHas01 + 1*numCol + iterJ) == true)){
-                        *(arrIsUnate + iterJ) = 1;
-                        (*(arrHas012 + 1))++;
-                    }
-                    else if((*(arrHas01 + 0*numCol + iterJ) == true) && (*(arrHas01 + 1*numCol + iterJ) == false)){
-                        *(arrIsUnate + iterJ) = 0;
-                        (*(arrHas012 + 0))++;
-                    }
-                    else{
-                        *(arrIsUnate + iterJ) = 2;
-                        (*(arrHas012 + 2))++;
-                    }
-                }
-                else{
-                    // ???
-                    if((*(arrHas01 + 0*numCol + iterJ) == false) && (*(arrHas01 + 1*numCol + iterJ) == false)){
-                        *(arrIsUnate + iterJ) = 3;
-                        (*(arrHas012 + 3))++;
-                    }
-                    else if((*(arrHas01 + 0*numCol + iterJ) == false) && (*(arrHas01 + 1*numCol + iterJ) == true)){
-                        *(arrIsUnate + iterJ) = 0;
-                        (*(arrHas012 + 0))++;
-                    }
-                    else if((*(arrHas01 + 0*numCol + iterJ) == true) && (*(arrHas01 + 1*numCol + iterJ) == false)){
-                        *(arrIsUnate + iterJ) = 1;
-                        (*(arrHas012 + 1))++;
-                    }
-                    else{
-                        *(arrIsUnate + iterJ) = 2;
-                        (*(arrHas012 + 2))++;
-                    }
-                }
-            }
-            // e. Print unate or binate
-            printf("node %s:\n", Abc_ObjName(pObj));
-            fout << "node " << Abc_ObjName(pObj) << ":" << endl;
-            size_t cnt = 0;
-            if((*(arrHas012 + 1)+*(arrHas012 + 3)) != 0){
-                printf("+unate inputs: ");
-                fout << "+unate inputs: ";
-                map<size_t, string> idToName;
-                Abc_ObjForEachFanin(pObj, pFanin, j) {
-                    // printf("id: %d\n", Abc_ObjId(pFanin));
-                    if((*(arrIsUnate + j) == 1)||(*(arrIsUnate + j) == 3))
-                        idToName[Abc_ObjId(pFanin)] = Abc_ObjName(pFanin);
-                }
-                cnt = 0;
-                for(auto it = idToName.begin(); it != idToName.end(); ++it){
-                    cout << it->second;
-                    cnt++;
-                    if(cnt != (*(arrHas012 + 1)+*(arrHas012 + 3))){
-                        cout << ",";
-                        // fout << ",";
-                    }
-                }
-                printf("\n");
-                fout << endl;
-            }
-            cnt = 0;
-            if((*(arrHas012 + 0)+*(arrHas012 + 3)) != 0){
-                printf("-unate inputs: ");
-                fout << "-unate inputs: ";
-                map<size_t, string> idToName;
-                Abc_ObjForEachFanin(pObj, pFanin, j) {
-                    if((*(arrIsUnate + j) == 0)||(*(arrIsUnate + j) == 3))
-                        idToName[Abc_ObjId(pFanin)] = Abc_ObjName(pFanin);
-                }
-                cnt = 0;
-                for(auto it = idToName.begin(); it != idToName.end(); ++it){
-                    cout << it->second;
-                    cnt++;
-                    if(cnt != (*(arrHas012 + 0)+*(arrHas012 + 3))){
-                        cout << ",";
-                        // fout << ",";
-                    }
-                }
-                printf("\n");
-                fout << endl;
-            }
-            cnt = 0;
-            if(*(arrHas012 + 2) != 0){
-                printf("binate inputs: ");
-                fout << "binate inputs: ";
-                map<size_t, string> idToName;
-                Abc_ObjForEachFanin(pObj, pFanin, j) {
-                    if(*(arrIsUnate + j) == 2)
-                        idToName[Abc_ObjId(pFanin)] = Abc_ObjName(pFanin);
-                }
-                cnt = 0;
-                for(auto it = idToName.begin(); it != idToName.end(); ++it){
-                    cout << it->second;
-                    cnt++;
-                    if(cnt != *(arrHas012 + 2)){
-                        cout << ",";
-                        // fout << ",";
-                    }
-                }
-                printf("\n");
-                fout << endl;
-            }
-        }
-        //printf("\n");
-        // fout << endl;
+  // 2. For each PO
+  Abc_NtkForEachPo(pNtk, pObj, i)
+  {
+    // 2-1: Extract cone for each PO
+    Abc_Ntk_t *pNtkOn1 = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pObj), Abc_ObjName(pObj), 0);
+    // record name of used pi
+    size_t j;
+    Abc_Obj_t *pObjOut;
+    map<string, size_t> localNameToId;
+    map<size_t, string> localIdToName;
+    Abc_NtkForEachPi(pNtkOn1, pObjOut, j)
+    {
+      localNameToId[Abc_ObjName(pObjOut)] = pObjOut->Id;
+      localIdToName[pObjOut->Id] = Abc_ObjName(pObjOut);
     }
-    
-    fout.close(); 
-}
 
-int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
-  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
-  int c;
-  Extra_UtilGetoptReset();
-  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
-    switch (c) {
-      case 'h':
-        goto usage;
-      default:
-        goto usage;
+    // 2-2: Convert each ckt to aig
+    Aig_Man_t *pMan = Abc_NtkToDar(pNtkOn1, 0, 0);
+    // Complement each PO if need
+
+    bool isComplment = Abc_ObjFaninC0(pObj);
+    if (isComplment)
+    {
+      Aig_ManFlipFirstPo(pMan);
+    }
+    //////////////////////////////////////////////////////////////
+    cout << "node " << Abc_ObjName(pObj) << ":" << endl;
+
+    // 2-3: Convert each aig to CNF
+    Cnf_Dat_t *pCnfOn = Cnf_Derive(pMan, Aig_ManCoNum(pMan));
+    Cnf_Dat_t *pCnfOff = Cnf_DataDup(pCnfOn);
+    Cnf_DataLift(pCnfOff, pCnfOn->nVars);
+
+    // 2-4: initialize SAT solver
+    // initialize the solver
+    sat_solver *pSat = sat_solver_new();
+    sat_solver_setnvars(pSat, pCnfOn->nVars + pCnfOff->nVars + Aig_ManCiNum(pMan));
+    // add clauses of CnfOn
+    for (size_t j = 0; j < pCnfOn->nClauses; j++)
+    {
+      if (!sat_solver_addclause(pSat, pCnfOn->pClauses[j], pCnfOn->pClauses[j + 1]))
+      {
+        Cnf_DataFree(pCnfOn);
+        sat_solver_delete(pSat);
+        return;
+      }
+    }
+    // add clauses of Cnfoff
+    for (size_t j = 0; j < pCnfOff->nClauses; j++)
+    {
+      if (!sat_solver_addclause(pSat, pCnfOff->pClauses[j], pCnfOff->pClauses[j + 1]))
+      {
+        Cnf_DataFree(pCnfOff);
+        sat_solver_delete(pSat);
+        return;
+      }
+    }
+
+    // 2-5: manipulate SAT solver
+    // Establish equivalence of two variable
+    size_t ciNum = Aig_ManCiNum(pMan);
+    // cout << "ciNum: " << ciNum << endl;
+    for (size_t j = 0; j < ciNum; j++)
+    {
+      Aig_Obj_t *aigObj = Aig_ManCi(pMan, j);
+      int xOnI = pCnfOn->pVarNums[aigObj->Id];
+      int xOffI = pCnfOff->pVarNums[aigObj->Id];
+      // cout << "establish equivalence among (" << xOnI << ", " << xOffI << ") with enable: " << (pCnfOn->nVars+pCnfOff->nVars+j) << endl;
+      sat_solver_add_buffer_enable(pSat, xOnI, xOffI, (pCnfOn->nVars + pCnfOff->nVars + j), 0);
+    }
+    cntVar += pCnfOn->nVars;
+
+    // Perform SAT solver
+    int *vars = new int[ciNum + 4];
+    size_t outId = Aig_ManCo(pMan, 0)->Id;
+    map<size_t, bool> idToIsPosUnate;
+    map<size_t, bool> idToIsNegUnate;
+    for (size_t j = 0; j < ciNum; j++)
+    {
+      for (size_t k = 0; k < ciNum; k++)
+      {
+        int curVar = pCnfOn->nVars + pCnfOff->nVars + k;
+        if (k != j)
+          vars[k] = toLitCond(curVar, 0); // check this clause
+        else
+        {
+          vars[k] = toLitCond(curVar, 1);
+          Aig_Obj_t *aigObj = Aig_ManCi(pMan, k);
+          int xOnI = pCnfOn->pVarNums[aigObj->Id];
+          int xOffI = pCnfOff->pVarNums[aigObj->Id];
+          // cofactor
+          vars[ciNum] = toLitCond(xOnI, 0);
+          vars[ciNum + 1] = toLitCond(xOffI, 1);
+        }
+      }
+
+      // test postive unate
+      // f
+      int outOnI = pCnfOn->pVarNums[outId];
+      int outOffI = pCnfOff->pVarNums[outId];
+      vars[ciNum + 2] = toLitCond(outOnI, 1);
+      vars[ciNum + 3] = toLitCond(outOffI, 0);
+      int statusPos = sat_solver_solve(pSat, vars, vars + (ciNum + 4), 0, 0, 0, 0);
+      Aig_Obj_t *aigObj = Aig_ManCi(pMan, j);
+      if (statusPos == -1)
+      {
+        idToIsPosUnate[aigObj->Id] = (statusPos == -1);
+      }
+
+      // test negative unate
+      // f
+      outOnI = pCnfOn->pVarNums[outId];
+      outOffI = pCnfOff->pVarNums[outId];
+      vars[ciNum + 2] = toLitCond(outOnI, 0);
+      vars[ciNum + 3] = toLitCond(outOffI, 1);
+      int statusNeg = sat_solver_solve(pSat, vars, vars + (ciNum + 4), 0, 0, 0, 0);
+      aigObj = Aig_ManCi(pMan, j);
+      if (statusNeg == -1)
+      {
+        idToIsNegUnate[aigObj->Id] = (statusNeg == -1);
+      }
+    }
+    // 3. Print res
+    // record posunate, negunate, binate
+    set<size_t> posUnateSet;
+    set<size_t> negUnateSet;
+    set<size_t> binateSet;
+    size_t sumBinate = 0;
+    size_t sumPosUnate = 0;
+    size_t sumNegUnate = 0;
+    for (std::map<size_t, string>::iterator it = globalIdToName.begin(); it != globalIdToName.end(); ++it)
+    {
+      string curName = it->second;
+      // If in support
+      if (localNameToId.find(curName) != localNameToId.end())
+      {
+        size_t curId = localNameToId[curName];
+        if (idToIsPosUnate.find(curId) != idToIsPosUnate.end())
+        {
+          posUnateSet.insert(it->first);
+          sumPosUnate++;
+        }
+        if (idToIsNegUnate.find(curId) != idToIsNegUnate.end())
+        {
+          negUnateSet.insert(it->first);
+          sumNegUnate++;
+        }
+        if ((idToIsPosUnate.find(curId) == idToIsPosUnate.end()) && (idToIsNegUnate.find(curId) == idToIsNegUnate.end()))
+        {
+          binateSet.insert(it->first);
+          sumBinate++;
+        }
+      }
+      // Not in support
+      else
+      {
+        posUnateSet.insert(it->first);
+        negUnateSet.insert(it->first);
+        sumPosUnate++;
+        sumNegUnate++;
+      }
+    }
+    // Print positive unate
+    size_t cntPosUnate = 0;
+    for (std::set<size_t>::iterator it = posUnateSet.begin(); it != posUnateSet.end(); ++it)
+    {
+      if (cntPosUnate == 0)
+      {
+        cout << "+unate inputs: ";
+      }
+
+      if (cntPosUnate == sumPosUnate - 1)
+      {
+        cout << globalIdToName[*it] << endl;
+      }
+      else
+      {
+        cout << globalIdToName[*it] << ",";
+      }
+      cntPosUnate++;
+    }
+    // Print negative unate
+    size_t cntNegUnate = 0;
+    for (std::set<size_t>::iterator it = negUnateSet.begin(); it != negUnateSet.end(); ++it)
+    {
+      if (cntNegUnate == 0)
+      {
+        cout << "-unate inputs: ";
+      }
+
+      if (cntNegUnate == sumNegUnate - 1)
+      {
+        cout << globalIdToName[*it] << endl;
+      }
+      else
+      {
+        cout << globalIdToName[*it] << ",";
+      }
+      cntNegUnate++;
+    }
+    // Print binate
+    size_t cntBinate = 0;
+    for (std::set<size_t>::iterator it = binateSet.begin(); it != binateSet.end(); ++it)
+    {
+      if (cntBinate == 0)
+      {
+        cout << "binate inputs: ";
+      }
+
+      if (cntBinate == sumBinate - 1)
+      {
+        cout << globalIdToName[*it] << endl;
+      }
+      else
+      {
+        cout << globalIdToName[*it] << ",";
+      }
+      cntBinate++;
     }
   }
-  if (!pNtk) {
+  // cout << "Avg var: " << cntVar*1.0/Abc_NtkPoNum(pNtk) << endl;
+  // std::cout << "avg time diff: " << float( clock () - begin_time ) /  CLOCKS_PER_SEC*1.0/Abc_NtkPoNum(pNtk) << endl;
+  // std::cout << "total time diff: " << float( clock () - begin_time ) /  CLOCKS_PER_SEC << endl;
+}
+// lsv_print_pounate
+
+int Lsv_CommandPrintNodes(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+  Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
+  int c;
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF)
+  {
+    switch (c)
+    {
+    case 'h':
+      goto usage;
+    default:
+      goto usage;
+    }
+  }
+  if (!pNtk)
+  {
     Abc_Print(-1, "Empty network.\n");
     return 1;
   }
