@@ -2,33 +2,22 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 
+#include "lsvUtils.h"
+
 static int Lsv_CommandPrintSopUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
-void init(Abc_Frame_t* pAbc) {
+void init_PrintSopUnate(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintSopUnate, 0);
 }
 
-void destroy(Abc_Frame_t* pAbc) {}
+void destroy_PrintSopUnate(Abc_Frame_t* pAbc) {}
 
-Abc_FrameInitializer_t frame_initializer = {init, destroy};
+Abc_FrameInitializer_t frame_initializer_PrintSopUnate = {init_PrintSopUnate, destroy_PrintSopUnate};
 
-struct PackageRegistrationManager {
-  PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer); }
-} lsvPackageRegistrationManager;
+struct PackageRegistrationManager_PrintSopUnate {
+  PackageRegistrationManager_PrintSopUnate() { Abc_FrameAddInitializer(&frame_initializer_PrintSopUnate); }
+} lsvPackageRegistrationManager_PrintSopUnate;
 
-void Lsv_printInputs(const char * str, Vec_Ptr_t * vec) {
-  Abc_Obj_t * pEntry;
-  int i, sz = Vec_PtrSize(vec);
-
-  if (sz == 0) return;
-  printf("%s: ", str);
-  Vec_PtrForEachEntry( Abc_Obj_t *, vec, pEntry, i )
-    printf("%s%c", Abc_ObjName(pEntry), i != sz-1? ',':'\n');
-}
-
-int Lsv_sortCompare(Abc_Obj_t ** a, Abc_Obj_t ** b) {
-  return Abc_ObjId(*a) > Abc_ObjId(*b);
-}
 
 void Lsv_NtkPrintSopUnate(Abc_Ntk_t* pNtk) {
   Abc_Obj_t * pObj;
