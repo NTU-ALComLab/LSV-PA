@@ -102,7 +102,7 @@ int Lsv_CommandPrintPounate(Abc_Frame_t* pAbc, int argc, char** argv) {
       return 0;
   }
   Lsv_NtkPrintPounate(pNtkRes);
-  ABC_PRT( "Time", Abc_Clock() - clk );
+  // ABC_PRT( "Time", Abc_Clock() - clk );
   return 0;
 
 usage:
