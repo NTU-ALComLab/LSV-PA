@@ -70,7 +70,7 @@ int Lsv_CommandPrintSOPUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
 
 	int i;
 	Abc_NtkForEachNode(pNtk, pObj, i) {
-	//	cout << "node " << Abc_ObjName(pObj) << ":" << endl;
+		//cout << "node " << Abc_ObjName(pObj) << ":" << endl;
 
 		if (Abc_NtkHasSop(pNtk)) {
 			string str((char*)pObj->pData);

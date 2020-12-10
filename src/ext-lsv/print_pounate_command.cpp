@@ -1,0 +1,509 @@
+#include "base/main/main.h"
+#include "base/main/mainInt.h"
+
+#include <iostream>
+#include <stdlib.h>
+#include <vector>
+#include <algorithm>
+#include "sat/cnf/cnf.h"
+#include "proof/pdr/pdrInt.h"
+using namespace std;
+
+extern "C" Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+extern "C" void * Cnf_DataWriteIntoSolver( Cnf_Dat_t * p, int nFrames, int fInit );
+
+#define POS 0
+#define NEG 1
+#define SAT 1
+#define UNSAT -1
+
+#define UNDEF 0
+#define POS_UNATE 1
+#define NEG_UNATE 2
+#define BINATE 3
+#define UNATE 4
+
+
+namespace
+{
+
+void findPosUnate(Abc_Ntk_t* const abcNtk, 
+                  const Vec_Int_t* const vCiIds, 
+                  const Cnf_Dat_t* const ntkCnf, 
+                  const int & nFvar, 
+                  Abc_Ntk_t* const abcNtk_1Po, 
+                  sat_solver* const satSol, 
+                  const int* const constrainSet, 
+                  vector<int> & usedCiID){
+	////////////////////////////////////////////////////////////////////////
+    //find pos unate, we have ~(F->G) = (F)(~G) in satSol                 //
+	//make x in F = 0, and x in G = 1                                     //
+	//turn on all the other control var to make other pi var be the same  //
+	//if SAT, which means we find a cex, then it is not untate            //
+	//if UNSAT, this pi is pos unate                                      //
+	////////////////////////////////////////////////////////////////////////
+	int nlits = vCiIds->nSize + 2;//n pi control + 2 pi
+    int *pLits = ABC_ALLOC(int, nlits);
+    int idx;
+    int idx_usedCiID = 0;
+	
+	//adding control constrain
+    Abc_Obj_t* nodePi;
+    int j;
+	Abc_NtkForEachPi(abcNtk_1Po, nodePi, j){
+		//set idx_usedCiID
+        for(int n = usedCiID.size(); idx_usedCiID < n; ++idx_usedCiID){
+            if(!strcmp(Abc_ObjName(nodePi), Abc_ObjName(Abc_NtkPi(abcNtk, idx_usedCiID)))){
+				break;
+            }
+        }
+
+        int pi_F = ntkCnf->pVarNums[Abc_ObjId(nodePi)];
+        int pi_G = pi_F + nFvar;
+        idx = 0;
+
+        //set pi_F = 0 and pi_G = 1 
+        pLits[idx++] = toLitCond(pi_F, NEG);
+        pLits[idx++] = toLitCond(pi_G, POS);
+
+        //set all the other pi var be the same in F and F'
+        for(int i = 0; i < vCiIds->nSize; ++i){
+            if(i == j){//this is current considered pi
+                //cout << "trun off constrain" << constrainSet[i] << endl;
+                pLits[idx++] = toLitCond(constrainSet[i], NEG);
+            }
+            else{
+                //cout << "turn on constrain " << constrainSet[i] << endl;
+                pLits[idx++] = toLitCond(constrainSet[i], POS);
+            }
+        }
+
+        assert(idx == nlits);
+
+ 		//solve this sat
+        //note: can we simplify the problem by status = sat_solver_simplify(satSol); ?
+		sat_solver_simplify(satSol);
+		/*
+		if ( status == 0 ){
+            printf( "The problem is UNSATISFIABLE after simplification.\n" );
+		}
+		*/
+
+        int status = sat_solver_solve( satSol, pLits, pLits + nlits, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+		
+		//result
+        if ( status == SAT ){
+            //cout << "sat" << endl;                
+            //cout << "This is not pos unate!" << endl;
+        }
+        else if (status == UNSAT){
+            //cout << "unsat" << endl;
+            //cout << "This is pos unate!" << endl;
+			usedCiID[idx_usedCiID] = POS_UNATE;
+        }
+        else{
+            cout << "error in solveing SAT" << endl;
+        }
+	}
+	ABC_FREE(pLits);
+}
+
+void findNegUnate(Abc_Ntk_t* const abcNtk, 
+				  const Vec_Int_t* const vCiIds, 
+				  const Cnf_Dat_t* const ntkCnf, 
+				  const int & nFvar, 
+				  Abc_Ntk_t* const abcNtk_1Po, 
+				  sat_solver* const satSol, 
+				  const int* const constrainSet, 
+				  vector<int> & usedCiID){
+	////////////////////////////////////////////////////////////////////////
+    //find neg unate, we have ~(F->G) = (F)(~G) in satSol                 //
+	//make x in F = 1, and x in G = 0                                     //
+	//turn on all the other control var to make other pi var be the same  //
+	//if SAT, which means we find a cex, then it is not untate            //
+	//if UNSAT, this pi is neg unate                                      //
+	////////////////////////////////////////////////////////////////////////
+	int nlits = vCiIds->nSize + 2;//n pi control + 2 pi
+    int *pLits = ABC_ALLOC(int, nlits);
+    int idx;
+
+	int idx_usedCiID = 0;
+
+    //adding control constrain
+    Abc_Obj_t* nodePi;
+    int j;
+	Abc_NtkForEachPi(abcNtk_1Po, nodePi, j){
+		//set idx_usedCiID
+		for(int n = usedCiID.size(); idx_usedCiID < n; ++idx_usedCiID){
+			if(!strcmp(Abc_ObjName(nodePi), Abc_ObjName(Abc_NtkPi(abcNtk, idx_usedCiID)))){
+				break;
+			}
+		}
+		
+        int pi_F = ntkCnf->pVarNums[Abc_ObjId(nodePi)];
+        int pi_G = pi_F + nFvar;
+        idx = 0;
+
+        //set pi_F = 1 and pi_G = 0
+        pLits[idx++] = toLitCond(pi_F, POS);
+        pLits[idx++] = toLitCond(pi_G, NEG);
+
+        //set all the other pi var be the same in F and F'
+        for(int i = 0; i < vCiIds->nSize; ++i){
+            if(i == j){//this is current considered pi
+                //cout << "trun off constrain" << constrainSet[i] << endl;
+                pLits[idx++] = toLitCond(constrainSet[i], NEG);
+            }
+            else{
+                //cout << "turn on constrain " << constrainSet[i] << endl;
+                pLits[idx++] = toLitCond(constrainSet[i], POS);
+            }
+        }
+
+        assert(idx == nlits);
+ 
+		sat_solver_simplify(satSol);
+ 		//solve this sat
+        //note: can we simplify the problem by status = sat_solver_simplify(satSol); ?
+        int status = sat_solver_solve( satSol, pLits, pLits + nlits, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+		//result
+        if ( status == SAT ){
+            //cout << "sat" << endl;                
+            //cout << "This is not neg unate!" << endl;
+			if(usedCiID[idx_usedCiID] == UNDEF){
+				usedCiID[idx_usedCiID] = BINATE;
+			}
+        }
+        else if (status == UNSAT){
+            //cout << "unsat" << endl;
+            //cout << "This is neg unate!" << endl;
+			if(usedCiID[idx_usedCiID] == POS_UNATE){
+                usedCiID[idx_usedCiID] = UNATE;
+            }
+            else{
+                usedCiID[idx_usedCiID] = NEG_UNATE;
+            }
+        }
+        else{
+            cout << "error in solveing SAT" << endl;
+        }
+		
+	}
+	ABC_FREE(pLits);
+}
+
+bool myCompare(Abc_Obj_t* n1, Abc_Obj_t* n2){
+    return Abc_ObjId(n1) < Abc_ObjId(n2);
+}
+
+//main function
+int Lsv_CommandPrintPOUnate( Abc_Frame_t * pAbc, int argc, char ** argv )
+{
+	Abc_Ntk_t* abcNtk = Abc_FrameReadNtk(pAbc);
+	Abc_Ntk_t* abcNtk_1Po;
+	Abc_Obj_t* nodeCo;
+
+	vector<int> usedCiID;//0: init, 1: + unate, 2: -unate 3: binate 4: unate 
+	usedCiID.reserve(Abc_NtkPiNum(abcNtk));
+	usedCiID.resize(Abc_NtkPiNum(abcNtk));
+
+	int i;
+	Abc_NtkForEachPo( abcNtk, nodeCo, i ) {
+		//init usedCiID
+		for(int i = 0, n = usedCiID.size(); i < n; ++i){
+			usedCiID[i] = UNDEF;
+		}
+
+		//get single output abc_ntk
+		abcNtk_1Po = Abc_NtkCreateCone( abcNtk, Abc_ObjFanin0(nodeCo), Abc_ObjName(nodeCo), 0 );
+		
+		//check output negative
+		if (Abc_ObjFaninC0(nodeCo) ){
+			Abc_NtkPo(abcNtk_1Po, 0)->fCompl0  ^= 1;
+		}
+
+/*
+		//check po is const
+		if(Abc_NodeIsConst(Abc_NtkPo(abcNtk_1Po, 0))){
+			cout << "it is const!" << endl;
+		}
+*/	
+		//get aig
+		Aig_Man_t* aigMan   = Abc_NtkToDar(abcNtk_1Po, 0, 0);
+
+		//get F cnf
+		Cnf_Dat_t* ntkCnf = Cnf_Derive( aigMan, 1);
+		Vec_Int_t * vCiIds = Cnf_DataCollectPiSatNums( ntkCnf, aigMan );//pi's var eg: 345
+
+		//get G cnf
+		Cnf_Dat_t* cnfG = Cnf_DataDup(ntkCnf);
+		int nFvar  = ntkCnf->nVars - 1;
+		Cnf_DataLift(cnfG, nFvar);
+
+		//init sat solver by adding F CNF 
+		sat_solver* satSol = (sat_solver*)Cnf_DataWriteIntoSolver(ntkCnf, 1, 0);
+		if ( satSol == NULL ){
+			cout << "Error! SAT solver is null" << endl;
+            continue;	
+        }
+
+		//add cnf G into sat solver
+		int *pBeg, *pEnd;
+        int i;
+		Cnf_CnfForClause(cnfG, pBeg, pEnd, i ){
+			if ( !sat_solver_addclause( satSol, pBeg, pEnd ) ){
+                cout << "error in adding G cnf to sat solver" << endl;
+                continue;
+            }
+        }
+
+		/////////////////////////////////////////////////////////////////////
+	    //adding ~(~F + G) = (F)(~G) to satSol, which means ~(F -> G)      //
+		//if it is SAT, we find a conter example                           //
+	    //which means F does not imply G                                   //
+		/////////////////////////////////////////////////////////////////////
+		int *pLits = ABC_ALLOC(int, 1);
+		int F_po = ntkCnf->pVarNums[Aig_ObjId(Aig_ManCo(aigMan, 0) )];
+		pLits[0] = toLitCond(F_po, POS);
+		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
+            //this po is constant 1
+			//need to print all input as both +unate and -unate
+			//cout << "error in adding F_po constrain to sat solver" << endl;
+			Abc_Obj_t* pObj;
+            cout << "node " << Abc_ObjName( Abc_NtkPo( abcNtk_1Po, 0) ) << ":" << endl;
+			cout << "+unate inputs: ";
+
+			int j;
+			Abc_NtkForEachPi( abcNtk, pObj, j ){
+				if(j == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+			}
+			cout << endl;
+			cout << "-unate inputs: ";
+			Abc_NtkForEachPi( abcNtk, pObj, j ){
+                if(j == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+            }
+			cout << endl;
+
+			//free mem
+			ABC_FREE(pLits);
+			sat_solver_delete( satSol ); //cout << "ok to free sat" << endl;
+	        Vec_IntFree( vCiIds ); //cout << "ok to free vCiIds" << endl;
+		    Cnf_DataFree(ntkCnf); //cout << "ok to free CNF" << endl;
+			Cnf_DataFree(cnfG);
+			Aig_ManStop(aigMan); //cout << "ok to free AIG" << endl;
+
+			continue;
+        }
+		pLits[0] = toLitCond(F_po + nFvar, NEG);
+		if ( !sat_solver_addclause( satSol, pLits, pLits + 1 ) ){
+			//this po is constant 0
+			//need to print all input as both +unate and -unate
+            //cout << "error in adding G_po constrain to sat solver" << endl;
+			Abc_Obj_t* pObj;
+            cout << "node " << Abc_ObjName( Abc_NtkPo( abcNtk_1Po, 0) ) << ":" << endl;
+            cout << "+unate inputs: ";
+			int j;
+            Abc_NtkForEachPi( abcNtk, pObj, j ){
+                if(j == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+            }
+			cout << endl;
+            cout << "-unate inputs: ";
+            Abc_NtkForEachPi( abcNtk, pObj, j ){
+                if(j == 0) cout << Abc_ObjName(pObj);
+                else cout << "," << Abc_ObjName(pObj);
+            }
+			cout << endl;
+
+			//free mem
+            ABC_FREE(pLits);
+            sat_solver_delete( satSol ); //cout << "ok to free sat" << endl;
+            Vec_IntFree( vCiIds ); //cout << "ok to free vCiIds" << endl;
+            Cnf_DataFree(ntkCnf); //cout << "ok to free CNF" << endl;
+            Cnf_DataFree(cnfG);
+            Aig_ManStop(aigMan); //cout << "ok to free AIG" << endl;
+
+			continue;
+			
+        }
+		ABC_FREE(pLits);
+
+		//create my constrain
+		//////////////////////////////////////////////////////////////////////////////
+		// create an array to store the constrain control var, where                //
+		// index means the var of idx-th pi, value means it's constrain control var //
+		//////////////////////////////////////////////////////////////////////////////
+		int *constrainSet = ABC_ALLOC(int, vCiIds->nSize);
+
+		///////////////////////////////////////////////////////////////////////////
+		//adding constrain for equality of each pi                               //
+		//say C = A XNOR B                                                       //
+		//if we add C in sat solver, which means we turn on the constrain A=B    //
+		//if we add ~C in sat solver, we turn off the constrain                  //
+		///////////////////////////////////////////////////////////////////////////
+		int newVar;
+		for(int i = 0; i < vCiIds->nSize; ++i){
+			int F_pi = vCiIds->pArray[i];
+			int G_pi = F_pi + nFvar;
+
+			//create C = A XNOR B and add to satSol
+			newVar = sat_solver_addvar(satSol);
+			sat_solver_add_buffer_enable( satSol, F_pi, G_pi, newVar, 0 );
+			
+			//store the control var in array
+			constrainSet[i] = newVar;
+		}
+	
+		//solve problem
+		findPosUnate(abcNtk, vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet, usedCiID);
+		findNegUnate(abcNtk, vCiIds, ntkCnf, nFvar, abcNtk_1Po, satSol, constrainSet, usedCiID);
+
+		//print result
+		vector<Abc_Obj_t*> p_unate;
+        p_unate.reserve(Abc_NtkPiNum(abcNtk));
+        vector<Abc_Obj_t*> n_unate;
+        n_unate.reserve(Abc_NtkPiNum(abcNtk));
+        vector<Abc_Obj_t*> binate;
+        binate.reserve(Abc_NtkPiNum(abcNtk));
+		
+		Abc_Obj_t* pPi;
+		int j;
+		Abc_NtkForEachPi( abcNtk, pPi, j ){
+			if(usedCiID[j] == POS_UNATE){
+                //cout << "pos unate" << endl;
+                p_unate.push_back(pPi);
+            }
+            else if(usedCiID[j] == NEG_UNATE){
+                //cout << "neg unate" << endl;
+                n_unate.push_back(pPi);
+            }
+            else if(usedCiID[j] == UNATE || usedCiID[j] == UNDEF){
+                //cout << "both pos unate and neg unate" << endl;
+                p_unate.push_back(pPi);
+                n_unate.push_back(pPi);
+            }
+            else if(usedCiID[j] == BINATE){
+                //cout << "binate" << endl;
+                binate.push_back(pPi);
+            }
+		}
+		
+		sort(p_unate.begin(), p_unate.end(), myCompare);
+		sort(n_unate.begin(), n_unate.end(), myCompare);
+		sort(binate.begin(), binate.end(), myCompare);
+
+		if(!(p_unate.empty() && n_unate.empty() && binate.empty())){
+			cout << "node " << Abc_ObjName( Abc_NtkPo( abcNtk_1Po, 0) ) << ":" << endl;
+		}
+		if(!p_unate.empty()){
+			cout << "+unate inputs: ";
+            for(vector<Abc_Obj_t*>::iterator idx = p_unate.begin(); idx != p_unate.end(); ++idx){
+                if(idx == p_unate.begin()) cout << Abc_ObjName(*idx);
+                else cout << "," << Abc_ObjName(*idx);
+            }
+            cout << endl;
+		}
+		if(!n_unate.empty()){
+            cout << "-unate inputs: ";
+            for(vector<Abc_Obj_t*>::iterator idx = n_unate.begin(); idx != n_unate.end(); ++idx){
+                if(idx == n_unate.begin())  cout << Abc_ObjName(*idx);
+                else cout << "," << Abc_ObjName(*idx);
+            }
+            cout << endl;
+        }
+		if(!binate.empty()){
+            cout << "binate inputs: ";
+            for(vector<Abc_Obj_t*>::iterator idx = binate.begin(); idx != binate.end(); ++idx){
+                if(idx == binate.begin()) cout << Abc_ObjName(*idx);
+                else cout << "," << Abc_ObjName(*idx);
+            }
+            cout << endl;
+		}
+
+
+/*
+		//
+
+		//simplify the problem
+		int status = sat_solver_simplify(satSol);
+		if ( status == 0 ){
+            printf( "The problem is UNSATISFIABLE after simplification.\n" );
+			sat_solver_delete( satSol );
+	        Vec_IntFree( vCiIds );
+		    Cnf_DataFree(ntkCnf);
+			Aig_ManStop(aigMan);
+			Abc_NtkDelete(abcNtk_1Po);
+            continue;
+        }
+
+		//solve sat 
+		status = sat_solver_solve( satSol, NULL, NULL, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0 );
+		
+		//result
+		if ( status == SAT ){
+            printf( "The problem is SATISFIABLE.\n" );
+
+			//get cex assignment
+			aigMan->pData = Sat_SolverGetModel( satSol, vCiIds->pArray, vCiIds->nSize );
+			abcNtk_1Po->pModel = (int *)aigMan->pData;
+
+			//check
+			int * pSimInfo = Abc_NtkVerifySimulatePattern( abcNtk_1Po, abcNtk_1Po->pModel );
+	        if ( pSimInfo[0] != 1 )
+				Abc_Print( 1, "ERROR in Abc_NtkMiterSat(): Generated counter example is invalid.\n" );
+			ABC_FREE( pSimInfo );
+		   
+			//create cex
+			pAbc->pCex = Abc_CexCreate( 0, Abc_NtkPiNum(abcNtk_1Po), abcNtk_1Po->pModel, 0, 0, 0 );
+			//Abc_CexPrint( pAbc->pCex );
+		
+		}
+        else if ( status == UNSAT ){
+			printf( "The problem is UNSATISFIABLE.\n" );
+        }
+		else{
+			cout << "err in satsol!" << endl;
+		}
+*/
+
+		//free memory
+		ABC_FREE(constrainSet);
+		sat_solver_delete( satSol ); //cout << "ok to free sat" << endl;
+		Vec_IntFree( vCiIds ); //cout << "ok to free vCiIds" << endl;
+		Cnf_DataFree(ntkCnf); //cout << "ok to free CNF" << endl;
+		Cnf_DataFree(cnfG);
+		Aig_ManStop(aigMan); //cout << "ok to free AIG" << endl;
+		//Abc_NtkDelete(abcNtk_1Po); cout << "ok to free ntk" << endl;
+		
+	}
+    return 0;
+}
+
+// called during ABC startup
+void init(Abc_Frame_t* pAbc)
+{
+    Cmd_CommandAdd( pAbc, "LSV", "lsv_print_pounate", Lsv_CommandPrintPOUnate, 0);
+}
+
+// called during ABC termination
+void destroy(Abc_Frame_t* pAbc)
+{
+}
+
+// this object should not be modified after the call to Abc_FrameAddInitializer
+Abc_FrameInitializer_t frame_initializer = { init, destroy };
+
+// register the initializer a constructor of a global object
+// called before main (and ABC startup)
+struct registrar
+{
+    registrar() 
+    {
+        Abc_FrameAddInitializer(&frame_initializer);
+    }
+} myAdd_registrar;
+
+} // unnamed namespace
+
