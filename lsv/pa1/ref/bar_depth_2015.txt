@@ -1,5 +1,6 @@
 ABC command line: "read benchmarks/best_results/depth/bar_depth_2015.blif; 
 lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/depth/bar_depth_2015.blif; lsv_print_sopunate".
 
 node result[0]:
 -unate inputs: n265,n286
