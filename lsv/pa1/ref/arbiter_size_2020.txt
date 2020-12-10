@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results//size/arbiter_size_2020.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/size/arbiter_size_2020.blif; lsv_print_sopunate".
 
 node [0]:
 +unate inputs: pi115,pi116

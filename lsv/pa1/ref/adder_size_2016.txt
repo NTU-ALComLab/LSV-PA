@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-ABC command line: "read benchmarks/best_results//size/adder_size_2016.blif; lsv_print_sopunate".
-=======
-ABC command line: "read benchmarks/best_results/size/adder_size_2016.blif; lsv_print_sopunate".
->>>>>>> upstream/r09943091
+ABC command line: "read benchmarks/best_results/size/adder_size_2016.blif; 
 
 node f[0]:
 binate inputs: a[0],b[0]
