@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results//size/voter_size_2020.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/size/voter_size_2020.blif; lsv_print_sopunate".
 
 node [5]:
 -unate inputs: pi0919,pi0920,pi0921,pi0922,pi0923,pi0924

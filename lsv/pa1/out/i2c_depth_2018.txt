@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results//depth/i2c_depth_2018.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/depth/i2c_depth_2018.blif; lsv_print_sopunate".
 
 node po015:
 +unate inputs: pi000

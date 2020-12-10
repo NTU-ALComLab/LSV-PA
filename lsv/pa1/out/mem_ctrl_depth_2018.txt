@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results//depth/mem_ctrl_depth_2018.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/depth/mem_ctrl_depth_2018.blif; lsv_print_sopunate".
 
 node po0153:
 +unate inputs: pi0332,n2437,n2500,n2576

@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results//size/priority_size_2018.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/size/priority_size_2018.blif; lsv_print_sopunate".
 
 node po0:
 +unate inputs: pi127,n138

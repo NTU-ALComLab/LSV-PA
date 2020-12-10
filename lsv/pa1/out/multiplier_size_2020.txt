@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results//size/multiplier_size_2020.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/size/multiplier_size_2020.blif; lsv_print_sopunate".
 
 node po000:
 +unate inputs: pi000,pi064

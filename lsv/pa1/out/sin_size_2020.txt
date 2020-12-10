@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results//size/sin_size_2020.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/size/sin_size_2020.blif; lsv_print_sopunate".
 
 node [9]:
 binate inputs: pi22,pi23

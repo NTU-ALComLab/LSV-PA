@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results//depth/dec_depth_2018.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/depth/dec_depth_2018.blif; lsv_print_sopunate".
 
 node po000:
 +unate inputs: pi7,n266,n267

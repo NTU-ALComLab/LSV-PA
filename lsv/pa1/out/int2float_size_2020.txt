@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results//size/int2float_size_2020.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/size/int2float_size_2020.blif; lsv_print_sopunate".
 
 node [13]:
 +unate inputs: pi02
