@@ -190,14 +190,14 @@ void setUnateVec( sat_solver *pSat, vector<int>& UnateVec, int posCofPoVar, vect
             //test positive unate
             test_unate( i, pSat, UnateVec, posCofPoVar, VarShift, 0 , assumpList, assumpSize );         
             //test negative unate
-            test_unate( i, pSat, UnateVec, posCofPoVar, VarShift, 1 , assumpList, assumpSize ); 
-            //reset ax
-            assumpList[k++] = toLitCond(ForceEqVars[i], 0); // ax=1 force x<->x'
-        }
-        else
-            UnateVec [i] = BOTH; //both positive and negative unate
-
+        test_unate( i, pSat, UnateVec, posCofPoVar, VarShift, 1 , assumpList, assumpSize ); 
+        //reset ax
+        assumpList[k++] = toLitCond(ForceEqVars[i], 0); // ax=1 force x<->x'
     }
+    else
+        UnateVec [i] = BOTH; //both positive and negative unate
+
+}
 }
 
 void resetVec(vector<int>& Vec, int v){
