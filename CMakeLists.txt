@@ -95,7 +95,7 @@ add_library(libabc EXCLUDE_FROM_ALL ${ABC_SRC})
 abc_properties(libabc PUBLIC)
 set_property(TARGET libabc PROPERTY OUTPUT_NAME abc)
 
-add_executable(abc ${ABC_MAIN_SRC} ${ABC_SRC})
+add_executable(abc ${ABC_MAIN_SRC})
 target_link_libraries(abc PRIVATE libabc)
 abc_properties(abc PRIVATE)
 
