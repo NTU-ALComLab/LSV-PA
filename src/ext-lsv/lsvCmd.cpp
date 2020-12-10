@@ -472,6 +472,11 @@ void Lsv_NtkPrintPOUnate(Abc_Ntk_t* pNtk) {
     //  }
     //  printf("\n");
     //}
+    sat_solver_delete(pSat);
+    //Cnf_DataFree(pCnfPos);
+    //Cnf_DataFree(pCnfNeg);
+    //Aig_ManStop(pMan);
+    //Abc_NtkDelete(pCone);
   }  
 }
 
