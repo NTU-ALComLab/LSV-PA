@@ -19,6 +19,7 @@ static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintPOUnate(Abc_Frame_t* pAbc, int argc, char** argv);
 
+
 bool debug = false;
 
 void init(Abc_Frame_t* pAbc) {
@@ -134,11 +135,11 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
       }
       */
 
-     /// sort Fain
-     int e;
-     std::vector<int> faninId(j, 0);
-     std::vector<std::string> faninName(j);
-     std::vector<int> faninUnate(j, 0);
+      /// sort Fain
+      int e;
+      std::vector<int> faninId(j, 0);
+      std::vector<std::string> faninName(j);
+      std::vector<int> faninUnate(j, 0);
       Abc_ObjForEachFanin(pObj, pFanin, e) {
         faninId[e] = Abc_ObjId(pFanin);
         faninName[e] = Abc_ObjName(pFanin);
