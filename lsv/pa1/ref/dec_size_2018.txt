@@ -1,0 +1,774 @@
+ABC command line: "read benchmarks/best_results/size/dec_size_2018.blif; lsv_print_sopunate".
+
+node po000:
++unate inputs: pi7,n266,n267
+-unate inputs: pi4,pi5,pi6
+node n266:
+-unate inputs: pi0,pi1
+node n267:
+-unate inputs: pi2,pi3
+node po001:
++unate inputs: pi7,n267,n269
+-unate inputs: pi4,pi5,pi6
+node n269:
++unate inputs: pi0
+-unate inputs: pi1
+node po002:
++unate inputs: pi7,n267,n271
+-unate inputs: pi4,pi5,pi6
+node n271:
++unate inputs: pi1
+-unate inputs: pi0
+node po003:
++unate inputs: pi7,n267,n273
+-unate inputs: pi4,pi5,pi6
+node n273:
++unate inputs: pi0,pi1
+node po004:
++unate inputs: pi7,n266,n275
+-unate inputs: pi4,pi5,pi6
+node n275:
++unate inputs: pi2
+-unate inputs: pi3
+node po005:
++unate inputs: pi7,n269,n275
+-unate inputs: pi4,pi5,pi6
+node po006:
++unate inputs: pi7,n271,n275
+-unate inputs: pi4,pi5,pi6
+node po007:
++unate inputs: pi7,n273,n275
+-unate inputs: pi4,pi5,pi6
+node po008:
++unate inputs: pi7,n266,n280
+-unate inputs: pi4,pi5,pi6
+node n280:
++unate inputs: pi3
+-unate inputs: pi2
+node po009:
++unate inputs: pi7,n269,n280
+-unate inputs: pi4,pi5,pi6
+node po010:
++unate inputs: pi7,n271,n280
+-unate inputs: pi4,pi5,pi6
+node po011:
++unate inputs: pi7,n273,n280
+-unate inputs: pi4,pi5,pi6
+node po012:
++unate inputs: pi7,n266,n285
+-unate inputs: pi4,pi5,pi6
+node n285:
++unate inputs: pi2,pi3
+node po013:
++unate inputs: pi7,n269,n285
+-unate inputs: pi4,pi5,pi6
+node po014:
++unate inputs: pi7,n271,n285
+-unate inputs: pi4,pi5,pi6
+node po015:
++unate inputs: pi7,n273,n285
+-unate inputs: pi4,pi5,pi6
+node po016:
++unate inputs: pi4,pi7,n266,n267
+-unate inputs: pi5,pi6
+node po017:
++unate inputs: pi4,pi7,n267,n269
+-unate inputs: pi5,pi6
+node po018:
++unate inputs: pi4,pi7,n267,n271
+-unate inputs: pi5,pi6
+node po019:
++unate inputs: pi4,pi7,n267,n273
+-unate inputs: pi5,pi6
+node po020:
++unate inputs: pi4,pi7,n266,n275
+-unate inputs: pi5,pi6
+node po021:
++unate inputs: pi4,pi7,n269,n275
+-unate inputs: pi5,pi6
+node po022:
++unate inputs: pi4,pi7,n271,n275
+-unate inputs: pi5,pi6
+node po023:
++unate inputs: pi4,pi7,n273,n275
+-unate inputs: pi5,pi6
+node po024:
++unate inputs: pi4,pi7,n266,n280
+-unate inputs: pi5,pi6
+node po025:
++unate inputs: pi4,pi7,n269,n280
+-unate inputs: pi5,pi6
+node po026:
++unate inputs: pi4,pi7,n271,n280
+-unate inputs: pi5,pi6
+node po027:
++unate inputs: pi4,pi7,n273,n280
+-unate inputs: pi5,pi6
+node po028:
++unate inputs: pi4,pi7,n266,n285
+-unate inputs: pi5,pi6
+node po029:
++unate inputs: pi4,pi7,n269,n285
+-unate inputs: pi5,pi6
+node po030:
++unate inputs: pi4,pi7,n271,n285
+-unate inputs: pi5,pi6
+node po031:
++unate inputs: pi4,pi7,n273,n285
+-unate inputs: pi5,pi6
+node po032:
++unate inputs: pi5,pi7,n266,n267
+-unate inputs: pi4,pi6
+node po033:
++unate inputs: pi5,pi7,n267,n269
+-unate inputs: pi4,pi6
+node po034:
++unate inputs: pi5,pi7,n267,n271
+-unate inputs: pi4,pi6
+node po035:
++unate inputs: pi5,pi7,n267,n273
+-unate inputs: pi4,pi6
+node po036:
++unate inputs: pi5,pi7,n266,n275
+-unate inputs: pi4,pi6
+node po037:
++unate inputs: pi5,pi7,n269,n275
+-unate inputs: pi4,pi6
+node po038:
++unate inputs: pi5,pi7,n271,n275
+-unate inputs: pi4,pi6
+node po039:
++unate inputs: pi5,pi7,n273,n275
+-unate inputs: pi4,pi6
+node po040:
++unate inputs: pi5,pi7,n266,n280
+-unate inputs: pi4,pi6
+node po041:
++unate inputs: pi5,pi7,n269,n280
+-unate inputs: pi4,pi6
+node po042:
++unate inputs: pi5,pi7,n271,n280
+-unate inputs: pi4,pi6
+node po043:
++unate inputs: pi5,pi7,n273,n280
+-unate inputs: pi4,pi6
+node po044:
++unate inputs: pi5,pi7,n266,n285
+-unate inputs: pi4,pi6
+node po045:
++unate inputs: pi5,pi7,n269,n285
+-unate inputs: pi4,pi6
+node po046:
++unate inputs: pi5,pi7,n271,n285
+-unate inputs: pi4,pi6
+node po047:
++unate inputs: pi5,pi7,n273,n285
+-unate inputs: pi4,pi6
+node po048:
++unate inputs: pi4,pi5,pi7,n266,n267
+-unate inputs: pi6
+node po049:
++unate inputs: pi4,pi5,pi7,n267,n269
+-unate inputs: pi6
+node po050:
++unate inputs: pi4,pi5,pi7,n267,n271
+-unate inputs: pi6
+node po051:
++unate inputs: pi4,pi5,pi7,n267,n273
+-unate inputs: pi6
+node po052:
++unate inputs: pi4,pi5,pi7,n266,n275
+-unate inputs: pi6
+node po053:
++unate inputs: pi4,pi5,pi7,n269,n275
+-unate inputs: pi6
+node po054:
++unate inputs: pi4,pi5,pi7,n271,n275
+-unate inputs: pi6
+node po055:
++unate inputs: pi4,pi5,pi7,n273,n275
+-unate inputs: pi6
+node po056:
++unate inputs: pi4,pi5,pi7,n266,n280
+-unate inputs: pi6
+node po057:
++unate inputs: pi4,pi5,pi7,n269,n280
+-unate inputs: pi6
+node po058:
++unate inputs: pi4,pi5,pi7,n271,n280
+-unate inputs: pi6
+node po059:
++unate inputs: pi4,pi5,pi7,n273,n280
+-unate inputs: pi6
+node po060:
++unate inputs: pi4,pi5,pi7,n266,n285
+-unate inputs: pi6
+node po061:
++unate inputs: pi4,pi5,pi7,n269,n285
+-unate inputs: pi6
+node po062:
++unate inputs: pi4,pi5,pi7,n271,n285
+-unate inputs: pi6
+node po063:
++unate inputs: pi4,pi5,pi7,n273,n285
+-unate inputs: pi6
+node po064:
++unate inputs: pi6,pi7,n266,n267
+-unate inputs: pi4,pi5
+node po065:
++unate inputs: pi6,pi7,n267,n269
+-unate inputs: pi4,pi5
+node po066:
++unate inputs: pi6,pi7,n267,n271
+-unate inputs: pi4,pi5
+node po067:
++unate inputs: pi6,pi7,n267,n273
+-unate inputs: pi4,pi5
+node po068:
++unate inputs: pi6,pi7,n266,n275
+-unate inputs: pi4,pi5
+node po069:
++unate inputs: pi6,pi7,n269,n275
+-unate inputs: pi4,pi5
+node po070:
++unate inputs: pi6,pi7,n271,n275
+-unate inputs: pi4,pi5
+node po071:
++unate inputs: pi6,pi7,n273,n275
+-unate inputs: pi4,pi5
+node po072:
++unate inputs: pi6,pi7,n266,n280
+-unate inputs: pi4,pi5
+node po073:
++unate inputs: pi6,pi7,n269,n280
+-unate inputs: pi4,pi5
+node po074:
++unate inputs: pi6,pi7,n271,n280
+-unate inputs: pi4,pi5
+node po075:
++unate inputs: pi6,pi7,n273,n280
+-unate inputs: pi4,pi5
+node po076:
++unate inputs: pi6,pi7,n266,n285
+-unate inputs: pi4,pi5
+node po077:
++unate inputs: pi6,pi7,n269,n285
+-unate inputs: pi4,pi5
+node po078:
++unate inputs: pi6,pi7,n271,n285
+-unate inputs: pi4,pi5
+node po079:
++unate inputs: pi6,pi7,n273,n285
+-unate inputs: pi4,pi5
+node po080:
++unate inputs: pi4,pi6,pi7,n266,n267
+-unate inputs: pi5
+node po081:
++unate inputs: pi4,pi6,pi7,n267,n269
+-unate inputs: pi5
+node po082:
++unate inputs: pi4,pi6,pi7,n267,n271
+-unate inputs: pi5
+node po083:
++unate inputs: pi4,pi6,pi7,n267,n273
+-unate inputs: pi5
+node po084:
++unate inputs: pi4,pi6,pi7,n266,n275
+-unate inputs: pi5
+node po085:
++unate inputs: pi4,pi6,pi7,n269,n275
+-unate inputs: pi5
+node po086:
++unate inputs: pi4,pi6,pi7,n271,n275
+-unate inputs: pi5
+node po087:
++unate inputs: pi4,pi6,pi7,n273,n275
+-unate inputs: pi5
+node po088:
++unate inputs: pi4,pi6,pi7,n266,n280
+-unate inputs: pi5
+node po089:
++unate inputs: pi4,pi6,pi7,n269,n280
+-unate inputs: pi5
+node po090:
++unate inputs: pi4,pi6,pi7,n271,n280
+-unate inputs: pi5
+node po091:
++unate inputs: pi4,pi6,pi7,n273,n280
+-unate inputs: pi5
+node po092:
++unate inputs: pi4,pi6,pi7,n266,n285
+-unate inputs: pi5
+node po093:
++unate inputs: pi4,pi6,pi7,n269,n285
+-unate inputs: pi5
+node po094:
++unate inputs: pi4,pi6,pi7,n271,n285
+-unate inputs: pi5
+node po095:
++unate inputs: pi4,pi6,pi7,n273,n285
+-unate inputs: pi5
+node po096:
++unate inputs: pi5,pi6,pi7,n266,n267
+-unate inputs: pi4
+node po097:
++unate inputs: pi5,pi6,pi7,n267,n269
+-unate inputs: pi4
+node po098:
++unate inputs: pi5,pi6,pi7,n267,n271
+-unate inputs: pi4
+node po099:
++unate inputs: pi5,pi6,pi7,n267,n273
+-unate inputs: pi4
+node po100:
++unate inputs: pi5,pi6,pi7,n266,n275
+-unate inputs: pi4
+node po101:
++unate inputs: pi5,pi6,pi7,n269,n275
+-unate inputs: pi4
+node po102:
++unate inputs: pi5,pi6,pi7,n271,n275
+-unate inputs: pi4
+node po103:
++unate inputs: pi5,pi6,pi7,n273,n275
+-unate inputs: pi4
+node po104:
++unate inputs: pi5,pi6,pi7,n266,n280
+-unate inputs: pi4
+node po105:
++unate inputs: pi5,pi6,pi7,n269,n280
+-unate inputs: pi4
+node po106:
++unate inputs: pi5,pi6,pi7,n271,n280
+-unate inputs: pi4
+node po107:
++unate inputs: pi5,pi6,pi7,n273,n280
+-unate inputs: pi4
+node po108:
++unate inputs: pi5,pi6,pi7,n266,n285
+-unate inputs: pi4
+node po109:
++unate inputs: pi5,pi6,pi7,n269,n285
+-unate inputs: pi4
+node po110:
++unate inputs: pi5,pi6,pi7,n271,n285
+-unate inputs: pi4
+node po111:
++unate inputs: pi5,pi6,pi7,n273,n285
+-unate inputs: pi4
+node po112:
++unate inputs: pi4,pi5,pi6,pi7,n266,n267
+node po113:
++unate inputs: pi4,pi5,pi6,pi7,n267,n269
+node po114:
++unate inputs: pi4,pi5,pi6,pi7,n267,n271
+node po115:
++unate inputs: pi4,pi5,pi6,pi7,n267,n273
+node po116:
++unate inputs: pi4,pi5,pi6,pi7,n266,n275
+node po117:
++unate inputs: pi4,pi5,pi6,pi7,n269,n275
+node po118:
++unate inputs: pi4,pi5,pi6,pi7,n271,n275
+node po119:
++unate inputs: pi4,pi5,pi6,pi7,n273,n275
+node po120:
++unate inputs: pi4,pi5,pi6,pi7,n266,n280
+node po121:
++unate inputs: pi4,pi5,pi6,pi7,n269,n280
+node po122:
++unate inputs: pi4,pi5,pi6,pi7,n271,n280
+node po123:
++unate inputs: pi4,pi5,pi6,pi7,n273,n280
+node po124:
++unate inputs: pi4,pi5,pi6,pi7,n266,n285
+node po125:
++unate inputs: pi4,pi5,pi6,pi7,n269,n285
+node po126:
++unate inputs: pi4,pi5,pi6,pi7,n271,n285
+node po127:
++unate inputs: pi4,pi5,pi6,pi7,n273,n285
+node po128:
++unate inputs: n266,n267
+-unate inputs: pi4,pi5,pi6,pi7
+node po129:
++unate inputs: n267,n269
+-unate inputs: pi4,pi5,pi6,pi7
+node po130:
++unate inputs: n267,n271
+-unate inputs: pi4,pi5,pi6,pi7
+node po131:
++unate inputs: n267,n273
+-unate inputs: pi4,pi5,pi6,pi7
+node po132:
++unate inputs: n266,n275
+-unate inputs: pi4,pi5,pi6,pi7
+node po133:
++unate inputs: n269,n275
+-unate inputs: pi4,pi5,pi6,pi7
+node po134:
++unate inputs: n271,n275
+-unate inputs: pi4,pi5,pi6,pi7
+node po135:
++unate inputs: n273,n275
+-unate inputs: pi4,pi5,pi6,pi7
+node po136:
++unate inputs: n266,n280
+-unate inputs: pi4,pi5,pi6,pi7
+node po137:
++unate inputs: n269,n280
+-unate inputs: pi4,pi5,pi6,pi7
+node po138:
++unate inputs: n271,n280
+-unate inputs: pi4,pi5,pi6,pi7
+node po139:
++unate inputs: n273,n280
+-unate inputs: pi4,pi5,pi6,pi7
+node po140:
++unate inputs: n266,n285
+-unate inputs: pi4,pi5,pi6,pi7
+node po141:
++unate inputs: n269,n285
+-unate inputs: pi4,pi5,pi6,pi7
+node po142:
++unate inputs: n271,n285
+-unate inputs: pi4,pi5,pi6,pi7
+node po143:
++unate inputs: n273,n285
+-unate inputs: pi4,pi5,pi6,pi7
+node po144:
++unate inputs: pi4,n266,n267
+-unate inputs: pi5,pi6,pi7
+node po145:
++unate inputs: pi4,n267,n269
+-unate inputs: pi5,pi6,pi7
+node po146:
++unate inputs: pi4,n267,n271
+-unate inputs: pi5,pi6,pi7
+node po147:
++unate inputs: pi4,n267,n273
+-unate inputs: pi5,pi6,pi7
+node po148:
++unate inputs: pi4,n266,n275
+-unate inputs: pi5,pi6,pi7
+node po149:
++unate inputs: pi4,n269,n275
+-unate inputs: pi5,pi6,pi7
+node po150:
++unate inputs: pi4,n271,n275
+-unate inputs: pi5,pi6,pi7
+node po151:
++unate inputs: pi4,n273,n275
+-unate inputs: pi5,pi6,pi7
+node po152:
++unate inputs: pi4,n266,n280
+-unate inputs: pi5,pi6,pi7
+node po153:
++unate inputs: pi4,n269,n280
+-unate inputs: pi5,pi6,pi7
+node po154:
++unate inputs: pi4,n271,n280
+-unate inputs: pi5,pi6,pi7
+node po155:
++unate inputs: pi4,n273,n280
+-unate inputs: pi5,pi6,pi7
+node po156:
++unate inputs: pi4,n266,n285
+-unate inputs: pi5,pi6,pi7
+node po157:
++unate inputs: pi4,n269,n285
+-unate inputs: pi5,pi6,pi7
+node po158:
++unate inputs: pi4,n271,n285
+-unate inputs: pi5,pi6,pi7
+node po159:
++unate inputs: pi4,n273,n285
+-unate inputs: pi5,pi6,pi7
+node po160:
++unate inputs: pi5,n266,n267
+-unate inputs: pi4,pi6,pi7
+node po161:
++unate inputs: pi5,n267,n269
+-unate inputs: pi4,pi6,pi7
+node po162:
++unate inputs: pi5,n267,n271
+-unate inputs: pi4,pi6,pi7
+node po163:
++unate inputs: pi5,n267,n273
+-unate inputs: pi4,pi6,pi7
+node po164:
++unate inputs: pi5,n266,n275
+-unate inputs: pi4,pi6,pi7
+node po165:
++unate inputs: pi5,n269,n275
+-unate inputs: pi4,pi6,pi7
+node po166:
++unate inputs: pi5,n271,n275
+-unate inputs: pi4,pi6,pi7
+node po167:
++unate inputs: pi5,n273,n275
+-unate inputs: pi4,pi6,pi7
+node po168:
++unate inputs: pi5,n266,n280
+-unate inputs: pi4,pi6,pi7
+node po169:
++unate inputs: pi5,n269,n280
+-unate inputs: pi4,pi6,pi7
+node po170:
++unate inputs: pi5,n271,n280
+-unate inputs: pi4,pi6,pi7
+node po171:
++unate inputs: pi5,n273,n280
+-unate inputs: pi4,pi6,pi7
+node po172:
++unate inputs: pi5,n266,n285
+-unate inputs: pi4,pi6,pi7
+node po173:
++unate inputs: pi5,n269,n285
+-unate inputs: pi4,pi6,pi7
+node po174:
++unate inputs: pi5,n271,n285
+-unate inputs: pi4,pi6,pi7
+node po175:
++unate inputs: pi5,n273,n285
+-unate inputs: pi4,pi6,pi7
+node po176:
++unate inputs: pi4,pi5,n266,n267
+-unate inputs: pi6,pi7
+node po177:
++unate inputs: pi4,pi5,n267,n269
+-unate inputs: pi6,pi7
+node po178:
++unate inputs: pi4,pi5,n267,n271
+-unate inputs: pi6,pi7
+node po179:
++unate inputs: pi4,pi5,n267,n273
+-unate inputs: pi6,pi7
+node po180:
++unate inputs: pi4,pi5,n266,n275
+-unate inputs: pi6,pi7
+node po181:
++unate inputs: pi4,pi5,n269,n275
+-unate inputs: pi6,pi7
+node po182:
++unate inputs: pi4,pi5,n271,n275
+-unate inputs: pi6,pi7
+node po183:
++unate inputs: pi4,pi5,n273,n275
+-unate inputs: pi6,pi7
+node po184:
++unate inputs: pi4,pi5,n266,n280
+-unate inputs: pi6,pi7
+node po185:
++unate inputs: pi4,pi5,n269,n280
+-unate inputs: pi6,pi7
+node po186:
++unate inputs: pi4,pi5,n271,n280
+-unate inputs: pi6,pi7
+node po187:
++unate inputs: pi4,pi5,n273,n280
+-unate inputs: pi6,pi7
+node po188:
++unate inputs: pi4,pi5,n266,n285
+-unate inputs: pi6,pi7
+node po189:
++unate inputs: pi4,pi5,n269,n285
+-unate inputs: pi6,pi7
+node po190:
++unate inputs: pi4,pi5,n271,n285
+-unate inputs: pi6,pi7
+node po191:
++unate inputs: pi4,pi5,n273,n285
+-unate inputs: pi6,pi7
+node po192:
++unate inputs: pi6,n266,n267
+-unate inputs: pi4,pi5,pi7
+node po193:
++unate inputs: pi6,n267,n269
+-unate inputs: pi4,pi5,pi7
+node po194:
++unate inputs: pi6,n267,n271
+-unate inputs: pi4,pi5,pi7
+node po195:
++unate inputs: pi6,n267,n273
+-unate inputs: pi4,pi5,pi7
+node po196:
++unate inputs: pi6,n266,n275
+-unate inputs: pi4,pi5,pi7
+node po197:
++unate inputs: pi6,n269,n275
+-unate inputs: pi4,pi5,pi7
+node po198:
++unate inputs: pi6,n271,n275
+-unate inputs: pi4,pi5,pi7
+node po199:
++unate inputs: pi6,n273,n275
+-unate inputs: pi4,pi5,pi7
+node po200:
++unate inputs: pi6,n266,n280
+-unate inputs: pi4,pi5,pi7
+node po201:
++unate inputs: pi6,n269,n280
+-unate inputs: pi4,pi5,pi7
+node po202:
++unate inputs: pi6,n271,n280
+-unate inputs: pi4,pi5,pi7
+node po203:
++unate inputs: pi6,n273,n280
+-unate inputs: pi4,pi5,pi7
+node po204:
++unate inputs: pi6,n266,n285
+-unate inputs: pi4,pi5,pi7
+node po205:
++unate inputs: pi6,n269,n285
+-unate inputs: pi4,pi5,pi7
+node po206:
++unate inputs: pi6,n271,n285
+-unate inputs: pi4,pi5,pi7
+node po207:
++unate inputs: pi6,n273,n285
+-unate inputs: pi4,pi5,pi7
+node po208:
++unate inputs: pi4,pi6,n266,n267
+-unate inputs: pi5,pi7
+node po209:
++unate inputs: pi4,pi6,n267,n269
+-unate inputs: pi5,pi7
+node po210:
++unate inputs: pi4,pi6,n267,n271
+-unate inputs: pi5,pi7
+node po211:
++unate inputs: pi4,pi6,n267,n273
+-unate inputs: pi5,pi7
+node po212:
++unate inputs: pi4,pi6,n266,n275
+-unate inputs: pi5,pi7
+node po213:
++unate inputs: pi4,pi6,n269,n275
+-unate inputs: pi5,pi7
+node po214:
++unate inputs: pi4,pi6,n271,n275
+-unate inputs: pi5,pi7
+node po215:
++unate inputs: pi4,pi6,n273,n275
+-unate inputs: pi5,pi7
+node po216:
++unate inputs: pi4,pi6,n266,n280
+-unate inputs: pi5,pi7
+node po217:
++unate inputs: pi4,pi6,n269,n280
+-unate inputs: pi5,pi7
+node po218:
++unate inputs: pi4,pi6,n271,n280
+-unate inputs: pi5,pi7
+node po219:
++unate inputs: pi4,pi6,n273,n280
+-unate inputs: pi5,pi7
+node po220:
++unate inputs: pi4,pi6,n266,n285
+-unate inputs: pi5,pi7
+node po221:
++unate inputs: pi4,pi6,n269,n285
+-unate inputs: pi5,pi7
+node po222:
++unate inputs: pi4,pi6,n271,n285
+-unate inputs: pi5,pi7
+node po223:
++unate inputs: pi4,pi6,n273,n285
+-unate inputs: pi5,pi7
+node po224:
++unate inputs: pi5,pi6,n266,n267
+-unate inputs: pi4,pi7
+node po225:
++unate inputs: pi5,pi6,n267,n269
+-unate inputs: pi4,pi7
+node po226:
++unate inputs: pi5,pi6,n267,n271
+-unate inputs: pi4,pi7
+node po227:
++unate inputs: pi5,pi6,n267,n273
+-unate inputs: pi4,pi7
+node po228:
++unate inputs: pi5,pi6,n266,n275
+-unate inputs: pi4,pi7
+node po229:
++unate inputs: pi5,pi6,n269,n275
+-unate inputs: pi4,pi7
+node po230:
++unate inputs: pi5,pi6,n271,n275
+-unate inputs: pi4,pi7
+node po231:
++unate inputs: pi5,pi6,n273,n275
+-unate inputs: pi4,pi7
+node po232:
++unate inputs: pi5,pi6,n266,n280
+-unate inputs: pi4,pi7
+node po233:
++unate inputs: pi5,pi6,n269,n280
+-unate inputs: pi4,pi7
+node po234:
++unate inputs: pi5,pi6,n271,n280
+-unate inputs: pi4,pi7
+node po235:
++unate inputs: pi5,pi6,n273,n280
+-unate inputs: pi4,pi7
+node po236:
++unate inputs: pi5,pi6,n266,n285
+-unate inputs: pi4,pi7
+node po237:
++unate inputs: pi5,pi6,n269,n285
+-unate inputs: pi4,pi7
+node po238:
++unate inputs: pi5,pi6,n271,n285
+-unate inputs: pi4,pi7
+node po239:
++unate inputs: pi5,pi6,n273,n285
+-unate inputs: pi4,pi7
+node po240:
++unate inputs: pi4,pi5,pi6,n266,n267
+-unate inputs: pi7
+node po241:
++unate inputs: pi4,pi5,pi6,n267,n269
+-unate inputs: pi7
+node po242:
++unate inputs: pi4,pi5,pi6,n267,n271
+-unate inputs: pi7
+node po243:
++unate inputs: pi4,pi5,pi6,n267,n273
+-unate inputs: pi7
+node po244:
++unate inputs: pi4,pi5,pi6,n266,n275
+-unate inputs: pi7
+node po245:
++unate inputs: pi4,pi5,pi6,n269,n275
+-unate inputs: pi7
+node po246:
++unate inputs: pi4,pi5,pi6,n271,n275
+-unate inputs: pi7
+node po247:
++unate inputs: pi4,pi5,pi6,n273,n275
+-unate inputs: pi7
+node po248:
++unate inputs: pi4,pi5,pi6,n266,n280
+-unate inputs: pi7
+node po249:
++unate inputs: pi4,pi5,pi6,n269,n280
+-unate inputs: pi7
+node po250:
++unate inputs: pi4,pi5,pi6,n271,n280
+-unate inputs: pi7
+node po251:
++unate inputs: pi4,pi5,pi6,n273,n280
+-unate inputs: pi7
+node po252:
++unate inputs: pi4,pi5,pi6,n266,n285
+-unate inputs: pi7
+node po253:
++unate inputs: pi4,pi5,pi6,n269,n285
+-unate inputs: pi7
+node po254:
++unate inputs: pi4,pi5,pi6,n271,n285
+-unate inputs: pi7
+node po255:
++unate inputs: pi4,pi5,pi6,n273,n285
+-unate inputs: pi7
