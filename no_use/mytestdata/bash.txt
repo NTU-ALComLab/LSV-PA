@@ -1,3 +1,0 @@
-read ../benchmarks/arithmetic/adder.blif
-lsv_print_sopunate
-quit
