@@ -7,7 +7,7 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-time_limit="30s"
+time_limit="300s"
 pa_cmd="lsv_print_pounate"
 pa_dir="lsv/pa2"
 ref_dir="${pa_dir}/ref"
