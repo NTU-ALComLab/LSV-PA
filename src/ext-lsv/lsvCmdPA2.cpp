@@ -70,7 +70,7 @@ void Lsv_NtkPrintpounate(Abc_Ntk_t* pNtk) {
     //but cone id may not be true, it will rerange to 1~n-1, n and only one output
     Abc_Ntk_t* cone = Abc_NtkCreateCone(pNtk,POnode,Abc_ObjName(POnode),0);
     //get Pi number
-    int Pinum = Abc_NtkPiNum(cone);
+    int Cinum = Abc_NtkPiNum(cone);
     //init Pinode coneID
     int j;
     for(j=0;j<maxPiID+1;j++){
@@ -125,7 +125,7 @@ void Lsv_NtkPrintpounate(Abc_Ntk_t* pNtk) {
     sat_solver* pSat = sat_solver_new();
     //need more numCI var to use buffer_enable
     int offset = 2*(cnfconeaig->nVars);
-    sat_solver_setnvars(pSat,offset+Aig_ManCiNum(coneaig));
+    sat_solver_setnvars(pSat,offset+Aig_ManCiNum(coneaig)+2);
     //add clause
     for(int k=0;k<cnfconeaig->nClauses;k++){
       sat_solver_addclause(pSat,cnfconeaig->pClauses[k],cnfconeaig->pClauses[k+1]);
@@ -135,12 +135,17 @@ void Lsv_NtkPrintpounate(Abc_Ntk_t* pNtk) {
     for(int j=1;j<=Aig_ManCiNum(coneaig);j++){
       sat_solver_add_buffer_enable(pSat,cnfconeaig->pVarNums[j],negcnfconeaig->pVarNums[j],offset+j-1,0);
     }
+    //add and for positive F(x) = 0 and F(~x) = 1
+    //sat_solver_add_and(pSat,out,in1,in2,cin1,cin2,cout)
+    sat_solver_add_and(pSat,offset+Aig_ManCiNum(coneaig),cnfconeaig->pVarNums[coneaig_CO->Id],negcnfconeaig->pVarNums[coneaig_CO->Id],1,0,0);
+    //add and for negitive F(x) = 1 and F(~x) = 0
+    sat_solver_add_and(pSat,offset+Aig_ManCiNum(coneaig)+1,cnfconeaig->pVarNums[coneaig_CO->Id],negcnfconeaig->pVarNums[coneaig_CO->Id],0,1,0);
     //make assume lit
-    //0~3 use to another, 4~N+3 use to enable
+    //0~2 use to another, 3~N+2 use to enable
     //toLitCond(XXX,0) mean set XXX=1
-    lit assume[Pinum+4];
+    lit assume[Cinum+3];
     for(int j=0;j<Aig_ManCiNum(coneaig);j++){
-      assume[j+4] = toLitCond(offset + j , 0);
+      assume[j+3] = toLitCond(offset + j , 0);
     }
     
     
@@ -160,19 +165,17 @@ void Lsv_NtkPrintpounate(Abc_Ntk_t* pNtk) {
           assume[0] = toLitCond(cnfconeaig->pVarNums[index], 0);
           assume[1] = toLitCond(negcnfconeaig->pVarNums[index], 1);
           // close index enable, (1 mean set to 0)
-          assume[index + 3] = toLitCond(offset + index - 1, 1);
+          assume[index + 2] = toLitCond(offset + index - 1, 1);
           //pos-unate: F(~x)->F(x) so can't (F(~x) and ~F(x)) so set F(~x) = 1 and F(x) = 0
-          assume[2] = toLitCond(cnfconeaig->pVarNums[coneaig_CO->Id], 1);
-          assume[3] = toLitCond(negcnfconeaig->pVarNums[coneaig_CO->Id], 0);
-          status = sat_solver_solve(pSat, assume, assume+Pinum+4, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
+          assume[2] = toLitCond(offset+Aig_ManCiNum(coneaig), 0);
+          status = sat_solver_solve(pSat, assume, assume+Cinum+3, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
           posUnate = (status == l_False) ;
           //neg-unate: F(x)->F(~x) so can't (~F(~x) and F(x)) so set F(~x) = 0 and F(x) = 1
-          assume[2] = toLitCond(cnfconeaig->pVarNums[coneaig_CO->Id], 0);
-          assume[3] = toLitCond(negcnfconeaig->pVarNums[coneaig_CO->Id], 1);
-          status = sat_solver_solve(pSat, assume, assume+Pinum+4, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
+          assume[2] = toLitCond(offset+Aig_ManCiNum(coneaig)+1, 0);
+          status = sat_solver_solve(pSat, assume, assume+Cinum+3, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
           negUnate = (status == l_False) ;
           //reset enable
-          assume[index + 3] = toLitCond(offset + index - 1, 0);
+          assume[index + 2] = toLitCond(offset + index - 1, 0);
           if(isComplment){
             bool trash = posUnate;
             posUnate = negUnate;
