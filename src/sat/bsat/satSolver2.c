@@ -1291,7 +1291,7 @@ int sat_solver2_addclause(sat_solver2* s, lit* begin, lit* end, int Id)
     int maxvar, count, temp;
     assert( solver2_dlevel(s) == 0 );
     assert( begin < end );
-    assert( Id != 0 );
+    //assert( Id != 0 );
 
     // copy clause into storage
     veci_resize( &s->temp_clause, 0 );
@@ -1299,7 +1299,13 @@ int sat_solver2_addclause(sat_solver2* s, lit* begin, lit* end, int Id)
         veci_push( &s->temp_clause, *i );
     begin = veci_begin( &s->temp_clause );
     end = begin + veci_size( &s->temp_clause );
-
+    
+    
+    printf("addclause: ");
+    for( i = begin; i < end; i++  )
+        printf("%d ", (*i));
+    printf("\n");
+    
     // insertion sort
     maxvar = lit_var(*begin);
     for (i = begin + 1; i < end; i++){
@@ -1322,7 +1328,7 @@ int sat_solver2_addclause(sat_solver2* s, lit* begin, lit* end, int Id)
     }
     end = j;
     assert( begin < end );
-
+    
     // coount the number of 0-literals
     count = 0;
     for ( i = begin; i < end; i++ )
