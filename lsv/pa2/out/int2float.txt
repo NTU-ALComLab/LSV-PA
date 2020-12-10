@@ -1,0 +1,22 @@
+ABC command line: "lsv_print_pounate".
+
+node M[0]:
+binate inputs: B[0],B[1],B[2],B[3],B[4],B[5],B[6],B[7],B[8],B[9],B[10]
+node M[1]:
+binate inputs: B[0],B[1],B[2],B[3],B[4],B[5],B[6],B[7],B[8],B[9],B[10]
+node M[2]:
+binate inputs: B[0],B[1],B[2],B[3],B[4],B[5],B[6],B[7],B[8],B[9],B[10]
+node M[3]:
++unate inputs: B[0],B[1],B[2],B[3],B[9],B[10]
+-unate inputs: B[0],B[1]
+binate inputs: B[4],B[5],B[6],B[7],B[8]
+node E[0]:
++unate inputs: B[10]
+-unate inputs: B[0]
+binate inputs: B[1],B[2],B[3],B[4],B[5],B[6],B[7],B[8],B[9]
+node E[1]:
++unate inputs: B[0],B[1],B[9],B[10]
+binate inputs: B[2],B[3],B[4],B[5],B[6],B[7],B[8]
+node E[2]:
++unate inputs: B[0],B[1],B[2],B[3],B[4],B[5],B[6],B[7],B[8],B[9],B[10]
+-unate inputs: B[0],B[1]
