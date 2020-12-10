@@ -1,6 +1,7 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "sat/cnf/cnf.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -8,15 +9,18 @@
 #include <algorithm>
 
 using namespace std;
+extern "C" Aig_Man_t *Abc_NtkToDar(Abc_Ntk_t *pNtk, int fExors, int fRegisters);
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t *pAbc, int argc, char **argv);
 static int Lsv_print_unatness(Abc_Frame_t *pAbc, int argc, char **argv);
+static int printPOUnate(Abc_Frame_t *pAbc, int argc, char **argv);
 void compute(vector<int> &, string &);
 
 void init(Abc_Frame_t *pAbc)
 {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_print_unatness, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_pounate", printPOUnate, 0);
 }
 
 void destroy(Abc_Frame_t *pAbc) {}
@@ -217,4 +221,152 @@ void compute(vector<int> &index, string &sop)
         index[k] = 1;
     }
   }
+}
+
+//PA2 add
+int printPOUnate(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+  Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
+  Aig_Man_t *pMan;
+  Abc_Obj_t *pPo;
+  int i;
+  Cnf_Dat_t *posCnf, *negCnf;
+  sat_solver *solver;
+  int _totalPINum = Abc_NtkPiNum(pNtk);
+  vector<string> _allPINames;
+  Abc_NtkForEachPi(pNtk, pPo, i)
+  {
+    _allPINames.push_back(Abc_ObjName(pPo));
+  }
+
+  Abc_NtkForEachPo(pNtk, pPo, i)
+  {
+    vector<int> _unateness;
+    _unateness.resize(_totalPINum, -1);
+    //aig
+    Abc_Ntk_t *pCone = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 0);
+    Abc_Obj_t *po = Abc_ObjFanin0(Abc_NtkPo(pCone, 0));
+    if (Abc_ObjFaninC0(pPo))
+    {
+      Abc_NtkPo(pCone, 0)->fCompl0 ^= 1;
+    }
+    pMan = Abc_NtkToDar(pCone, 0, 0);
+    //derive cnf
+    posCnf = Cnf_Derive(pMan, Aig_ManCoNum(pMan));
+    negCnf = Cnf_DataDup(posCnf);
+    Cnf_DataLift(posCnf, negCnf->nVars);
+    //sat
+    solver = (sat_solver *)Cnf_DataWriteIntoSolver(posCnf, 1, 0);
+    solver = (sat_solver *)Cnf_DataWriteIntoSolverInt(solver, negCnf, 1, 0);
+    //add controlling value alpha to controll PI equivalence
+    int _currPINum = Aig_ManCiNum(pMan);
+
+    Abc_Obj_t *pi;
+    int j;
+    vector<int> alphaTable;
+    alphaTable.resize(_currPINum);
+    Abc_NtkForEachPi(pCone, pi, j)
+    {
+      int _alpha = sat_solver_addvar(solver);
+      alphaTable[j] = _alpha;
+      sat_solver_add_buffer_enable(solver, posCnf->pVarNums[Abc_ObjId(pi)], negCnf->pVarNums[Abc_ObjId(pi)], _alpha, 0);
+    }
+    vector<string> binate, negunate, posunate;
+    lit *assumptions = new lit[_currPINum + 4];
+    Abc_NtkForEachPi(pCone, pi, j)
+    {
+      vector<string>::iterator it;
+      it = find(_allPINames.begin(), _allPINames.end(), (string)Abc_ObjName(pi));
+      int pos = distance(_allPINames.begin(), it);
+      Abc_Obj_t *piTmp;
+      int l;
+      Abc_NtkForEachPi(pCone, piTmp, l)
+      {
+        if (l == j)
+          assumptions[l] = toLitCond(alphaTable[l], 1);
+        else
+          assumptions[l] = toLitCond(alphaTable[l], 0);
+      }
+      //cofactor
+      assumptions[_currPINum] = toLitCond(negCnf->pVarNums[Abc_ObjId(pi)], 1);
+      assumptions[_currPINum + 1] = toLitCond(posCnf->pVarNums[Abc_ObjId(pi)], 0);
+      //positive unate
+      assumptions[_currPINum + 2] = toLitCond(negCnf->pVarNums[Abc_ObjId(po)], 0);
+      assumptions[_currPINum + 3] = toLitCond(posCnf->pVarNums[Abc_ObjId(po)], 1);
+      sat_solver_simplify(solver);
+      int _posResult = sat_solver_solve(solver, assumptions, assumptions + _currPINum + 4, 0, 0, 0, 0);
+      //negative unate
+      assumptions[_currPINum + 2] = toLitCond(negCnf->pVarNums[Abc_ObjId(po)], 1);
+      assumptions[_currPINum + 3] = toLitCond(posCnf->pVarNums[Abc_ObjId(po)], 0);
+      sat_solver_simplify(solver);
+      int _negResult = sat_solver_solve(solver, assumptions, assumptions + _currPINum + 4, 0, 0, 0, 0);
+      if ((_posResult == _negResult) && _posResult == l_True) //binate
+      {
+        _unateness[pos] = 0;
+      }
+      else if ((_posResult == _negResult) && _posResult == l_False)
+      {
+        _unateness[pos] = -1;
+      }
+      else
+      {
+        if (_posResult == l_False) //positive unate
+          _unateness[pos] = 1;
+        else if (_negResult == l_False) //negative unate
+          _unateness[pos] = 2;
+      }
+    }
+
+    //============print info==============
+    for (unsigned int i = 0; i < _unateness.size(); i++)
+    {
+      if (_unateness[i] == 0)
+        binate.push_back(_allPINames[i]);
+      else if (_unateness[i] == 1)
+        posunate.push_back(_allPINames[i]);
+      else if (_unateness[i] == 2)
+        negunate.push_back(_allPINames[i]);
+      else if (_unateness[i] == -1) //absent
+      {
+        posunate.push_back(_allPINames[i]);
+        negunate.push_back(_allPINames[i]);
+      }
+    }
+    if (!posunate.empty() || !negunate.empty() || !binate.empty())
+      cout << "node " << Abc_ObjName(pPo) << ":" << endl;
+    if (!posunate.empty())
+    {
+      cout << "+unate inputs: ";
+      for (unsigned int i = 0; i < posunate.size(); i++)
+      {
+        cout << posunate[i];
+        if (i != posunate.size() - 1)
+          cout << ",";
+      }
+      cout << endl;
+    }
+    if (!negunate.empty())
+    {
+      cout << "-unate inputs: ";
+      for (unsigned int i = 0; i < negunate.size(); i++)
+      {
+        cout << negunate[i];
+        if (i != negunate.size() - 1)
+          cout << ",";
+      }
+      cout << endl;
+    }
+    if (!binate.empty())
+    {
+      cout << "binate inputs: ";
+      for (unsigned int i = 0; i < binate.size(); i++)
+      {
+        cout << binate[i];
+        if (i != binate.size() - 1)
+          cout << ",";
+      }
+      cout << endl;
+    }
+  }
+  return 1;
 }
