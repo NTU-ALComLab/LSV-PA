@@ -1,0 +1,12 @@
+2. [ABC Boolean Function Representations]
+(a)
+1. aig vs strash
+aig – Converts only local functions of the nodes to AIGs. But the circuit remains to be store in the "logic" network.
+strash – Transforms the current network into an AIG by one-level structural hashing. The resulting network is composed of two-input AND gates and inverters represented as complemented attributes on the edges.
+
+2. bdd vs collapse
+bdd – Converts only local functions of the nodes to BDDs.
+collapse – Recursively composes the fanin nodes into the fanout nodes resulting in a network, in which each CO is produced by a node, whose fanins are CIs. Collapsing is performed by building global functions using BDDs and is, therefore, limited to relatively small circuits. After collapsing, the node functions are represented using BDDs.
+
+(b)
+command "logic"

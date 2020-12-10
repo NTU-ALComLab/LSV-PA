@@ -1,0 +1,59 @@
+ABC command line: "read benchmarks/best_results/size/router_size_2018.blif; lsv_print_sopunate".
+
+node po00:
++unate inputs: pi26,n99
+-unate inputs: n92,n97
+node n92:
++unate inputs: pi11,pi14,pi15,n96
+-unate inputs: n93,n95
+node n93:
++unate inputs: n94
+-unate inputs: pi16,pi18
+node n94:
+-unate inputs: pi12,pi13,pi14,pi15,pi21,pi22
+node n95:
+-unate inputs: pi17,pi18,pi19,pi20,pi21,pi22
+node n96:
++unate inputs: pi23,pi24,pi25,pi27,pi28,pi29
+node n97:
++unate inputs: n93,n98
+-unate inputs: pi05,pi06,pi09,pi10
+node n98:
+-unate inputs: pi01,pi02,pi03,pi04,pi07,pi08
+node n99:
+-unate inputs: pi06,pi07,pi08,pi09,n100
+node n100:
++unate inputs: pi00,pi01,pi02,pi03,pi04,pi05
+node po01:
+-unate inputs: pi26,pi27,pi28,pi29,n102
+node n102:
++unate inputs: n92,n103,n105
+-unate inputs: n97,n104,n111
+node n103:
++unate inputs: pi57,pi58,pi59
+-unate inputs: n99
+node n104:
++unate inputs: n107
+-unate inputs: pi40,pi42,pi43,n105,n109
+node n105:
++unate inputs: pi44,pi45,pi47,pi49,pi50,n106
+node n106:
++unate inputs: pi41,pi42,pi43,pi53,pi54,pi55
+node n107:
++unate inputs: n108
+-unate inputs: pi51,pi53,pi54,pi55,pi56
+node n108:
+-unate inputs: pi46,pi47,pi48,pi49,pi50,pi52
+node n109:
++unate inputs: pi35,pi36,pi37,pi38,pi39
+-unate inputs: n110
+node n110:
+-unate inputs: pi00,pi30,pi31,pi32,pi33,pi34
+node n111:
+-unate inputs: pi30,pi33,pi34,pi39,n112
+binate inputs: pi00
+node n112:
++unate inputs: pi31,pi32,pi35,pi36,pi37,pi38
+node po02:
++unate inputs: n92,n97,n103
+-unate inputs: pi26,n104
