@@ -1,9 +1,0 @@
-.model my_test
-.inputs a b c-in
-.outputs sum
-.names a b c-in sum #sum=XOR(a,b,c-in)
-100 1
-010 1
-001 1
-111 1
-.end
