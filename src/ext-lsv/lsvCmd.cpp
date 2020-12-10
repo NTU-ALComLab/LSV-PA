@@ -1,17 +1,4 @@
-#include "base/abc/abc.h"
-#include "base/main/main.h"
-#include "base/main/mainInt.h"
-#include <vector>
-#include <map>
-#include <iostream>
-
-using namespace std;
-
-enum unate_type {
-  positive = 0,
-  negetive,
-  unates_size
-};
+#include "lsvCmd.h"
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintSopunate(Abc_Frame_t* pAbc, int argc, char** argv);
