@@ -4,6 +4,7 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 #include "lsvCmdPrintSOPUnate.h"
+#include "lsvUtils.h"
 
 using namespace std;
 
@@ -13,19 +14,6 @@ const int LSV_NO_UNATENESS = -1,
           LSV_BINATE = 2;
 const int LSV_UNATENESS_NUM = 3;
 const char *UNATE_NAME[LSV_UNATENESS_NUM] = { "-unate", "+unate", "binate" };
-
-void Lsv_UtilPrintVecs(vector<Abc_Obj_t> &vec) {
-    char *separator = ",";
-    char *sep = "";
-    for(int i = 0; i < vec.size(); i++) {
-        printf("%s%s", sep, Abc_ObjName(&vec[i]));
-        sep = separator;
-    }
-}
-
-bool Lsv_CmpObjId(Abc_Obj_t& a, Abc_Obj_t& b) {
-    return Abc_ObjId(&a) < Abc_ObjId(&b);
-}
 
 void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
     Abc_Obj_t* pNode;
@@ -65,9 +53,9 @@ void Lsv_NtkPrintSOPUnate(Abc_Ntk_t* pNtk) {
                 for(int n = 0; n < LSV_UNATENESS_NUM; n++) {
                     int vn = vec_order[n];
                     if (!unateness_vecs[vn].empty()) {
-                        sort(unateness_vecs[vn].begin(), unateness_vecs[vn].end(), Lsv_CmpObjId);
+                        sort(unateness_vecs[vn].begin(), unateness_vecs[vn].end(), Lsv_CmpAbcObjId);
                         printf("%s inputs: ", UNATE_NAME[vn]);
-                        Lsv_UtilPrintVecs(unateness_vecs[vn]);
+                        Lsv_UtilPrintAbcObjVecs(unateness_vecs[vn]);
                         puts("");
                     }
                 }
