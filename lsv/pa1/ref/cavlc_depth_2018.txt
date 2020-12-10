@@ -1,5 +1,4 @@
-ABC command line: "read benchmarks/best_results/depth/cavlc_depth_2018.blif; \
-lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/depth/cavlc_depth_2018.blif; lsv_print_sopunate".
 
 node po00:
 +unate inputs: n23,n29
