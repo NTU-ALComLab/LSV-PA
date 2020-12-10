@@ -1,5 +1,0 @@
-/home/yen-hsiang/Desktop/LSV-PA/CMakeFiles/edit_cache.dir
-/home/yen-hsiang/Desktop/LSV-PA/CMakeFiles/libabc-pic.dir
-/home/yen-hsiang/Desktop/LSV-PA/CMakeFiles/libabc.dir
-/home/yen-hsiang/Desktop/LSV-PA/CMakeFiles/rebuild_cache.dir
-/home/yen-hsiang/Desktop/LSV-PA/CMakeFiles/abc.dir
