@@ -1,5 +1,5 @@
 --- lsv/pa2/ref/int2float.txt	2020-11-30 16:50:08.398983623 +0800
-+++ lsv/pa2/out/int2float.txt	2020-12-10 16:29:37.274826119 +0800
++++ lsv/pa2/out/int2float.txt	2020-12-10 18:26:23.406941335 +0800
 @@ -1,22 +1,2 @@
  ABC command line: "lsv_print_pounate".
  
