@@ -1,5 +1,5 @@
 --- lsv/pa2/ref/router.txt	2020-11-30 16:50:08.434986508 +0800
-+++ lsv/pa2/out/router.txt	2020-12-10 16:51:12.991376662 +0800
++++ lsv/pa2/out/router.txt	2020-12-10 19:06:27.864224693 +0800
 @@ -1,94 +1,2 @@
  ABC command line: "lsv_print_pounate".
  
