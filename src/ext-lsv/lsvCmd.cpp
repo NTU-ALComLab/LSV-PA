@@ -1,6 +1,7 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "sat/cnf/cnf.h"
 
 // include STL headers
 #include <bits/stdc++.h>
@@ -9,10 +10,18 @@ using namespace std;
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandPrintPoUnate(Abc_Frame_t* pAbc, int argc, char** argv);
+
+extern "C" {
+    Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+    Abc_Ntk_t * Abc_NtkDC2( Abc_Ntk_t * pNtk, int fBalance, int fUpdateLevel, int fFanout, int fPower, int fVerbose );
+    Abc_Ntk_t * Abc_NtkDarFraig( Abc_Ntk_t * pNtk, int nConfLimit, int fDoSparse, int fProve, int fTransfer, int fSpeculate, int fChoicing, int fVerbose );
+}
 
 void init(Abc_Frame_t* pAbc) {
     Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
     Cmd_CommandAdd(pAbc, "LSV", "lsv_print_sopunate", Lsv_CommandPrintSOPUnate, 0);
+    Cmd_CommandAdd(pAbc, "LSV", "lsv_print_pounate", Lsv_CommandPrintPoUnate, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -167,6 +176,204 @@ int Lsv_CommandPrintSOPUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
 usage:
     Abc_Print(-2, "usage: lsv_print_sopunate [-h]\n");
     Abc_Print(-2, "\t        print the unate information for each node in the SOP form.\n");
+    Abc_Print(-2, "\t-h    : print the command usage\n");
+    return 1;
+}
+
+void Lsv_vecPrint(Abc_Ntk_t* pNtk, vector<int>& PosUnate, vector<int>& NegUnate, vector<int>& BiUnate) {
+
+    if (!PosUnate.empty()) {
+        cout << "+unate inputs:";
+        for (int i = 0; i < PosUnate.size(); ++i)
+            cout << ", "[i == 0] << Abc_ObjName(Abc_NtkCi(pNtk, PosUnate[i]));
+        cout << '\n';
+    }
+
+    if (!NegUnate.empty()) {
+        cout << "-unate inputs:";
+        for (int i = 0; i < NegUnate.size(); ++i)
+            cout << ", "[i == 0] << Abc_ObjName(Abc_NtkCi(pNtk, NegUnate[i]));
+        cout << '\n';
+    }
+
+    if (!BiUnate.empty()) {
+        cout << "binate inputs:";
+        for (int i = 0; i < BiUnate.size(); ++i)
+            cout << ", "[i == 0] << Abc_ObjName(Abc_NtkCi(pNtk, BiUnate[i]));
+        cout << '\n';
+    }
+}
+
+Abc_Ntk_t* Lsv_NtkPrintPoUnate(Abc_Ntk_t* pNtk) {
+    Abc_Ntk_t  * pNtkNew;
+    Abc_Obj_t  * pPo, * pPi;
+
+    Aig_Man_t  * pMan;
+    Aig_Obj_t  * pObj, * pObjCo;
+
+    Cnf_Dat_t  * pCnfPos, * pCnfNeg;
+    sat_solver * pSat;
+
+    int * assume = nullptr;
+    int   idx_pPo, offset, status, i, j;
+    bool  isPosUnate, isNegUnate;
+
+    vector<int> PosUnate, NegUnate, BiNate;
+    unordered_map<string, int> nameMapping;
+
+    Abc_NtkForEachPo(pNtk, pPo, idx_pPo) {
+        assert( Abc_ObjFaninNum(pPo) == 1 );
+        cout << "node " << Abc_ObjName(pPo) << ":\n";
+
+        // create a single po cone circuit
+        pNtkNew = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 0);
+
+        // convert single po Abc_Ntk_t into Aig_Man_t
+        pMan = Abc_NtkToDar(pNtkNew, 0, 0);
+
+        // check the complementation of original po
+        // isComplment = Abc_ObjFaninC0(pPo);
+        if (Abc_ObjFaninC0(pPo)) Aig_ManFlipFirstPo(pMan);
+
+        // get co pobj
+        pObjCo = Aig_ManCo(pMan, 0);
+
+        // derive CNF of function F
+        pCnfPos = Cnf_Derive(pMan, Aig_ManCoNum(pMan)); // function F
+        
+        // complment function F
+        // Aig_ManFlipFirstPo(pMan);
+
+        // derive CNF of function ~F
+        // pCnfNeg = Cnf_Derive(pMan, Aig_ManCoNum(pMan)); // function ~F
+        pCnfNeg = Cnf_DataDup(pCnfPos);
+
+        // rename variables of function ~F
+        Cnf_DataLift( pCnfNeg, pCnfPos->nVars );
+
+        // Cnf_DataPrint(pCnfPos, 0);
+        // cout << "\n";
+        // Cnf_DataPrint(pCnfNeg, 0);
+        
+        // star a new sat solver
+        pSat = sat_solver_new();
+        sat_solver_setnvars(pSat, pCnfPos->nVars + pCnfNeg->nVars + Aig_ManCiNum(pMan));
+        offset = pCnfPos->nVars + pCnfNeg->nVars;
+
+        // add clauses of pCnfPos and pCnfNeg to sat solver
+        for (j = 0; j < pCnfPos->nClauses; ++j) {
+            if (!sat_solver_addclause(pSat, pCnfPos->pClauses[j], pCnfPos->pClauses[j+1]))
+                assert(0); // need to check tautology ???
+            if (!sat_solver_addclause(pSat, pCnfNeg->pClauses[j], pCnfNeg->pClauses[j+1]))
+                assert(0); // need to check tautology ???
+        }
+
+        // adds clauses to assert the equivalence between two variables controlled by an enabling variable.
+        assume = new int[Aig_ManCiNum(pMan) + 4]();
+        Aig_ManForEachCi(pMan, pObj, i) {
+            sat_solver_add_buffer_enable(pSat, pCnfPos->pVarNums[pObj->Id], pCnfNeg->pVarNums[pObj->Id], offset + i, 0);
+            assume[i + 4] = toLitCond(offset + i , 0);
+
+            // create a name mapping table
+            nameMapping[Abc_ObjName(Abc_NtkCi(pNtkNew, i))] = i;
+        }
+
+        assume[0] = toLitCond(pCnfPos->pVarNums[pObjCo->Id], 0); // let  F = 1
+        assume[1] = toLitCond(pCnfNeg->pVarNums[pObjCo->Id], 1); // let ~F = 1
+        // Aig_ManForEachCi(pMan, pObj, i) {
+        Abc_NtkForEachPi(pNtk, pPi, i) {
+            isPosUnate = isNegUnate = true;
+
+            // check ci if a dont care
+            auto it = nameMapping.find(Abc_ObjName(Abc_NtkCi(pNtk, i)));
+            if (it != nameMapping.end()) {
+                j    = it->second;
+                pObj = Aig_ManCi(pMan, j);
+
+                // close enable variable
+                assume[j + 4] = toLitCond(offset + j, 1);
+
+                // pos-unate (cofactor)
+                assume[2]     = toLitCond(pCnfPos->pVarNums[pObj->Id], 1);
+                assume[3]     = toLitCond(pCnfNeg->pVarNums[pObj->Id], 0);
+                
+                status = sat_solver_solve(pSat, assume, assume + Aig_ManCiNum(pMan) + 4, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
+                isPosUnate = (status == l_False) ;
+
+                // neg-unate (cofactor)
+                assume[2]     = toLitCond(pCnfPos->pVarNums[pObj->Id], 0);
+                assume[3]     = toLitCond(pCnfNeg->pVarNums[pObj->Id], 1);
+                status = sat_solver_solve(pSat, assume, assume + Aig_ManCiNum(pMan) + 4, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
+                isNegUnate = (status == l_False) ;
+
+                // reset
+                assume[j + 4] = toLitCond(offset + j, 0);
+            }
+
+            if (!isPosUnate && !isNegUnate) {
+                BiNate.push_back(i);
+            }
+            else {
+                if (isPosUnate) PosUnate.push_back(i);
+                if (isNegUnate) NegUnate.push_back(i);
+            }           
+        }
+
+        // print results
+        Lsv_vecPrint(pNtk, PosUnate, NegUnate, BiNate);
+
+        // free or reset data
+        Cnf_DataFree(pCnfPos);
+        Cnf_DataFree(pCnfNeg);
+        sat_solver_delete(pSat);
+        Aig_ManStop(pMan);
+        if (assume) delete[] assume;
+        assume = nullptr;
+
+        BiNate.resize(0);
+        PosUnate.resize(0);
+        NegUnate.resize(0);
+        nameMapping.clear();
+    }
+
+    return nullptr;
+    // return pNtkNew;
+}
+
+int Lsv_CommandPrintPoUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
+    Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+    int c;
+    Extra_UtilGetoptReset();
+    while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+        switch (c) {
+            case 'h':
+                goto usage;
+            default:
+                goto usage;
+        }
+    }
+
+    if (!pNtk) {
+        Abc_Print(-1, "Empty network.\n");
+        return 1;
+    }
+    else if (!Abc_NtkIsStrash(pNtk)) {
+        Abc_Print( -1, "Currently only works for structurally hashed circuits.\n" );
+        return 0;
+    }
+
+    Abc_Ntk_t* pNtkNew;
+    pNtkNew = Abc_NtkDarFraig(pNtk, 100, 1, 0, 0, 0, 0, 0);
+    pNtkNew = Abc_NtkDC2(pNtkNew, 1, 1, 1, 0, 0);
+    Lsv_NtkPrintPoUnate(pNtkNew);
+
+    // replace the current network
+    // Abc_FrameReplaceCurrentNetwork(pAbc, Lsv_NtkPrintPoUnate(pNtk));
+    return 0;
+
+usage:
+    Abc_Print(-2, "usage: lsv_print_pounate [-h]\n");
+    Abc_Print(-2, "\t        print the unate information for each primary output in terms of all primary inputs.\n");
     Abc_Print(-2, "\t-h    : print the command usage\n");
     return 1;
 }
