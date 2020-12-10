@@ -1,5 +1,5 @@
 --- lsv/pa2/ref/dec.txt	2020-11-30 16:50:08.398983623 +0800
-+++ lsv/pa2/out/dec.txt	2020-12-10 17:48:31.887674024 +0800
++++ lsv/pa2/out/dec.txt	2020-12-10 21:08:13.498626524 +0800
 @@ -1,768 +1,2 @@
  ABC command line: "lsv_print_pounate".
  
