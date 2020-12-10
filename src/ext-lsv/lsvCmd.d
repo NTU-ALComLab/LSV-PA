@@ -15,4 +15,5 @@ src/ext-lsv/lsvCmd.d src/ext-lsv/lsvCmd.o: src/ext-lsv/lsvCmd.cpp src/base/abc/a
  src/sat/bsat/satSolver.h src/sat/bsat/satVec.h src/sat/bsat/satClause.h \
  src/misc/util/utilDouble.h src/aig/ioa/ioa.h src/bdd/extrab/extraBdd.h \
  src/bdd/cudd/cuddInt.h src/bdd/cudd/cudd.h src/bdd/mtr/mtr.h \
- src/bdd/epd/epd.h
+ src/bdd/epd/epd.h src/sat/cnf/cnf.h src/opt/dar/darInt.h \
+ src/opt/dar/dar.h
