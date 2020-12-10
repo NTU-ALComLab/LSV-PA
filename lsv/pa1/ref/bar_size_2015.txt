@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+ABC command line: "read benchmarks/best_results//size/bar_size_2015.blif; lsv_print_sopunate".
+=======
 ABC command line: "read benchmarks/best_results/size/bar_size_2015.blif; lsv_print_sopunate".
+>>>>>>> upstream/r09943091
 
 node result[0]:
 -unate inputs: n265,n286

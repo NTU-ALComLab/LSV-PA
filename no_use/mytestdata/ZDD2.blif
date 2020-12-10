@@ -1,9 +1,0 @@
-.model ZDD2
-.inputs n1 n2 n3 n4 n5 n6 n7 n8 n9
-.outputs out
-.names n1 n2 n3 n4 n5 n6 n7 n8 n9 out
-101001110 1
-011100101 1
-011010110 1
-010111010 1
-.end
