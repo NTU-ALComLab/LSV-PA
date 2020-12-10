@@ -1,0 +1,79 @@
+ABC command line: "read benchmarks/best_results/depth/int2float_depth_2018.blif; lsv_print_sopunate".
+
+node n19:
+-unate inputs: pi08,pi09,pi10
+node n20:
++unate inputs: n19
+-unate inputs: pi06
+binate inputs: pi02,pi03,pi04,pi07
+node n21:
+binate inputs: pi00,pi01,pi02,pi04,pi05
+node n22:
+-unate inputs: pi08
+binate inputs: pi04,pi05,pi06,pi09,pi10
+node po0:
++unate inputs: pi10,n20
+-unate inputs: n21,n22
+binate inputs: pi06,pi07
+node n24:
+-unate inputs: pi08
+binate inputs: pi04,pi05,pi06,pi07,pi09
+node n25:
++unate inputs: pi09
+-unate inputs: n24
+binate inputs: pi06,pi07,pi08,pi10
+node n26:
+binate inputs: pi00,pi01,pi02,pi03,pi04,pi05
+node n27:
++unate inputs: pi02,pi03
+node n28:
+-unate inputs: pi06
+binate inputs: pi02,pi03,pi04,pi05,pi07
+node po1:
++unate inputs: n19,n25
+-unate inputs: pi06,pi07,n26,n28
+node n30:
+-unate inputs: pi09,pi10
+binate inputs: pi05,pi06,pi07,pi08
+node n31:
++unate inputs: pi00,pi01,pi02,pi05,pi06
+-unate inputs: pi04
+node n32:
+binate inputs: pi01,pi03,pi04,pi05,pi06,n31
+node n33:
+binate inputs: pi03,pi04,pi05,pi06,pi07,pi08
+node n34:
++unate inputs: n33
+-unate inputs: pi09
+node po2:
++unate inputs: pi07,pi08,n34
+-unate inputs: pi10,n30,n32
+node n36:
++unate inputs: pi02
+binate inputs: pi04,pi05,pi06,pi07,pi08
+node po3:
++unate inputs: pi03,pi09,pi10,n36
+node n38:
++unate inputs: pi00,pi07,n27
+binate inputs: pi01,pi05,pi06
+node n39:
++unate inputs: pi02,pi03,pi04
+-unate inputs: pi05
+binate inputs: pi07,pi08
+node n40:
+-unate inputs: pi05,pi07
+binate inputs: pi06,pi08,pi09
+node po4:
++unate inputs: pi10
+binate inputs: pi09,n38,n39,n40
+node n42:
+binate inputs: pi02,pi03,pi04,pi05,pi06,pi08
+node n43:
+-unate inputs: pi00,pi01,pi05,pi06
+binate inputs: pi07,pi08
+node po5:
++unate inputs: pi09,pi10,n42
+-unate inputs: n43
+node po6:
++unate inputs: pi04,pi05,pi06,pi07,n27
+-unate inputs: n19
