@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-ABC command line: "read benchmarks/best_results//size/mem_ctrl_size_2018.blif; lsv_print_sopunate".
-=======
 ABC command line: "read benchmarks/best_results/size/mem_ctrl_size_2018.blif; lsv_print_sopunate".
->>>>>>> upstream/r09943091
 
 node po0153:
 +unate inputs: pi0332,n2437,n2542

@@ -1,5 +1,3 @@
-ABC command line: "read benchmarks/best_results/size/bar_size_2015.blif; 
-lsv_print_sopunate".
 ABC command line: "read benchmarks/best_results/size/bar_size_2015.blif; lsv_print_sopunate".
 
 node result[0]:

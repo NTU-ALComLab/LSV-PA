@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-ABC command line: "read benchmarks/best_results//depth/priority_depth_2018.blif; lsv_print_sopunate".
-=======
 ABC command line: "read benchmarks/best_results/depth/priority_depth_2018.blif; lsv_print_sopunate".
->>>>>>> upstream/r09943091
 
 node po0:
 +unate inputs: n138,n155,n185

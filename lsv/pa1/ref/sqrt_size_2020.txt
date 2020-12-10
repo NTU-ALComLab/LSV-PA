@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results//size/sqrt_size_2020.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/size/sqrt_size_2020.blif; lsv_print_sopunate".
 
 node [2989]:
 -unate inputs: pi122,pi123

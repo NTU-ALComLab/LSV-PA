@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-ABC command line: "read benchmarks/best_results//size/hyp_size_2018.blif; lsv_print_sopunate".
-=======
 ABC command line: "read benchmarks/best_results/size/hyp_size_2018.blif; lsv_print_sopunate".
->>>>>>> upstream/r09943091
 
 node hypotenuse[0]:
 -unate inputs: n13518,n25370,n25371

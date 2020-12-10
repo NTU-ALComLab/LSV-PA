@@ -1,4 +1,4 @@
-ABC command line: "read benchmarks/best_results//depth/log2_depth_2020.blif; lsv_print_sopunate".
+ABC command line: "read benchmarks/best_results/depth/log2_depth_2020.blif; lsv_print_sopunate".
 
 node [3484]:
 +unate inputs: pi17,pi18,pi19
