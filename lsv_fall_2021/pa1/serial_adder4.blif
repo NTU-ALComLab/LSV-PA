@@ -1,0 +1,39 @@
+#1-bit adder
+#Data bits: 1
+
+.model ADDER
+.inputs a b cin
+.outputs o cout
+
+.names a b k
+10 1
+01 1
+.names k cin o
+10 1
+01 1
+.names a b cin cout
+11- 1
+1-1 1
+-11 1
+.end
+
+
+
+#4-bit adder
+#Data bits: 4
+
+.model serial_adder4
+.inputs a b c d
+.outputs s
+.latch cout1 cin1 0
+.latch cout2 wait 0
+.latch wait cin2 0
+.names j
+
+#C[x] is a temporary variable, used for the carry-out of the addition
+.subckt ADDER a=a b=b cin=cin1 o=temp1 cout=wait1
+.subckt ADDER a=c b=d cin=cin2 o=temp2 cout=wait2
+.subckt ADDER a=temp1 b=temp2 cin=0 o=s cout=wait3
+.subckt ADDER a=wait1 b=wait2 cin=wait3 o=cout1 cout=cout2
+
+.end
