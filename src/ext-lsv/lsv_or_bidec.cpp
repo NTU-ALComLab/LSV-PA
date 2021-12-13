@@ -54,7 +54,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // 1. Store support X as a circuit network 
             // Q1 : Abc_NtkCreateCone() 要吃進 PO ? Abc_ObjFanin0(PO) ?
             // Q2 : Abc_NtkStrash() 必要 ?
-        pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(PO), Abc_ObjName(PO), 0);
+        pNtk_support = Abc_NtkCreateCone(pNtk, PO, Abc_ObjName(PO), 0);
         pNtk_support = Abc_NtkStrash(pNtk_support, 0, 0, 0);
 
         // 2. Derive equivalent "Aig_Man_t" from "Abc_Ntk_t"
@@ -65,11 +65,9 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
         pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
             // Obtain "VarShift" by extracting the max varnum() in CNF
-        cout << sizeof(pCNF->pVarNums) << " ; " << sizeof(pCNF->pVarNums)/sizeof(int) << endl;
         for (int i = 0 ; i < sizeof(pCNF->pVarNums)/sizeof(int) ; ++i)
         {
             cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
-            // 37 nLiterals ; 14 nVars ; 15 nClauses
         }
         
 
