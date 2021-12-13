@@ -54,7 +54,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // 1. Store support X as a circuit network 
             // Q1 : Abc_NtkCreateCone() 要吃進 PO ? Abc_ObjFanin0(PO) ?
             // Q2 : Abc_NtkStrash() 必要 ?
-        pNtk_support = Abc_NtkCreateCone(pNtk, PO, Abc_ObjName(PO), 0);
+        pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(PO), Abc_ObjName(PO), 0);
         pNtk_support = Abc_NtkStrash(pNtk_support, 0, 0, 0);
 
         // 2. Derive equivalent "Aig_Man_t" from "Abc_Ntk_t"
