@@ -65,6 +65,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
         pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
             // Obtain "VarShift" by extracting the max varnum() in CNF
+        cout << sizeof(pCNF->pVarNums) << " ; " << sizeof(pCNF->pVarNums)/sizeof(int) << endl;
         for (int i = 0 ; i < sizeof(pCNF->pVarNums)/sizeof(int) ; ++i)
         {
             cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
