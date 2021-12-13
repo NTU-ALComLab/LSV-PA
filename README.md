@@ -41,10 +41,10 @@ Submission period:
 - Parts 1 and 2: 2021/10/08 11:00-13:00 
 - Part 3: 2021/10/22 11:00-13:00 
 
-### PA2
-Topic: TBD  
+### [PA2](./lsv_fall_2021/pa2/README.md)
+Topic: OR Bi-Decomposition of Functions 
 
-Submission period: TBD 
+Submission period: 2021/12/24 11:00-13:00 
 
 #### Evaluation
 For PA1 and PA2, your submissions will be evaluated over [The EPFL Combinational Benchmark Suite](https://www.epfl.ch/labs/lsi/page-102566-en-html/benchmarks/).
