@@ -70,6 +70,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // xi_list = pCNF->pVarNums;
             // Store varnum(f(X)) & add to CNF: Aig_Obj_t->Id --> Abc_Var2Lit
         cout << "1" << endl;
+        cout << f_X_var << endl;
         int *f_X = (int *) Abc_Var2Lit(f_X_var, 0);
         cout << "2" << endl;
             // sat_solver_addclause (參考 cnfMan.c 的用法)
