@@ -7,6 +7,7 @@
 #include "sat/cnf/cnf.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "misc/util/abc_global.h"
 
 using namespace std;
 
@@ -48,32 +49,160 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     sat_solver* pSat;
     int i;
 
-    // For each PO, extract cone of each PO & support set
-    Abc_NtkForEachPo(pNtk, PO, i)
+    // For each Co, extract cone of each Co & support set (Co: Combinational output)
+    Abc_NtkForEachCo(pNtk, PO, i)
     {
         // 1. Store support X as a circuit network 
-            // Q1 : Abc_NtkCreateCone() 要吃進 PO ? Abc_ObjFanin0(PO) ?
-            // Q2 : Abc_NtkStrash() 必要 ?
         pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(PO), Abc_ObjName(PO), 0);
-        // pNtk_support = Abc_NtkStrash(pNtk_support, 0, 0, 0);
+        pNtk_support = Abc_NtkStrash(pNtk_support, 0, 0, 0);
 
         // 2. Derive equivalent "Aig_Man_t" from "Abc_Ntk_t"
         Aig_Man_t* pAig = Abc_NtkToDar(pNtk_support, 0, 0);
-
         // 3. Construct CNF formula --> f(X)
-            // cnf.h --> struct Cnf_Daat_t_
+            // cnf.h --> struct Cnf_Dat_t_
+            // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
         Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
         pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
             // Obtain "VarShift" by extracting the max varnum() in CNF
+        int VarShift = 0, X_VarNum = pCNF->nVars, f_X_var = pCNF->pVarNums[PO->Id];
+        int *xi_list, *xi_prime_list, *xi_prime2_list;  // 存 var list pointer 就好, 不用存 lit (lit: 涵蓋 phase 資訊)
+        // f(X)
+        xi_list = pCNF->pVarNums;
+            // Store varnum(f(X)) & add to CNF: Aig_Obj_t->Id --> Abc_Var2Lit
+        int *f_X = (int *) Abc_Var2Lit(f_X_var, 0);
+            // sat_solver_addclause (參考 cnfMan.c 的用法)
+        sat_solver_addclause(pSat, f_X, f_X+1);
         for (int i = 0 ; i < sizeof(pCNF->pVarNums)/sizeof(int) ; ++i)
         {
-            cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
+            // if unused, no need to be stored
+            if (pCNF->pVarNums[i] == -1) { continue; }
+            // cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
+            if (pCNF->pVarNums[i] > VarShift) { VarShift = pCNF->pVarNums[i]; }
+        } 
+        // negate f(X')
+        Cnf_DataLift(pCNF, VarShift);
+        xi_prime_list = pCNF->pVarNums;
+            // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
+        int *f_X_prime = (int *) Abc_Var2Lit(f_X_var + VarShift, 1);
+        sat_solver_addclause(pSat, f_X_prime, f_X_prime+1);
+            // add function content f(X')
+        for (int i = 0 ; i < X_VarNum ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
+        // negate f(X'')
+        Cnf_DataLift(pCNF, VarShift);
+        xi_prime2_list = pCNF->pVarNums;
+        int *f_X_prime2 = (int *) Abc_Var2Lit(f_X_var + 2*VarShift, 1);
+        sat_solver_addclause(pSat, f_X_prime2, f_X_prime2+1);
+            // add function content f(X')
+        for (int i = 0 ; i < X_VarNum ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
+        // addVar controlling variable (a_i & b_i) * nVar 個 (= X_VarNum 個)
+            // sat_solver_addvar 會回傳 new variable 的 number, 要記錄下來 (maybe array)
+        vector<int> control_a, control_b; 
+        for (int i = 0 ; i < X_VarNum ; ++i)
+        {
+          control_a.push_back(sat_solver_addvar(pSat));
+          control_b.push_back(sat_solver_addvar(pSat));
         }
-        
-
+            // Add clause of controlling variable 
+            // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
+        for (int i = 0 ; i < X_VarNum ; ++i) 
+        {
+          int a1_clause[3] = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
+          int a2_clause[3] = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
+          int b1_clause[3] = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime2_list[i], 0), Abc_Var2Lit(control_b[i], 0)};
+          int b2_clause[3] = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
+          sat_solver_addclause(pSat, &a1_clause[0], &a1_clause[2]);
+          sat_solver_addclause(pSat, &a2_clause[0], &a2_clause[2]);
+          sat_solver_addclause(pSat, &b1_clause[0], &b1_clause[2]);
+          sat_solver_addclause(pSat, &b2_clause[0], &b2_clause[2]);
+        }
+        // 4. Solve a non-trivial variable partition
+        int solve_ans;
+        for (int i = 0 ; i < X_VarNum-1 ; ++i)
+        {
+          for (int j = i+1 ; j < X_VarNum ; ++j)
+          {
+            int *assumpList = new int(2*X_VarNum);
+            int count = 0;
+            // assumpList
+            for (int k = 0 ; k < X_VarNum ; ++k)
+            {
+              // (x1_a, x1_b) = (1, 0) in xA
+              if (k == i) 
+              { 
+                assumpList[count] = Abc_Var2Lit(control_a[k], 0);
+                assumpList[count+1] = Abc_Var2Lit(control_b[k], 1);
+              }
+              // (x2_a, x2_b) = (0, 1) in xB
+              else if (k == j)
+              {
+                assumpList[count] = Abc_Var2Lit(control_a[k], 1);
+                assumpList[count+1] = Abc_Var2Lit(control_b[k], 0);
+              }
+              // other (0, 0) in xC
+              else 
+              {
+                assumpList[count] = Abc_Var2Lit(control_a[k], 1);
+                assumpList[count+1] = Abc_Var2Lit(control_b[k], 1);
+              }
+              count += 2;
+            }
+            // pass into sat_solver_solve
+                // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
+                // proof/abs/absOldSat.c --> how "sat_solver_final" work
+                // sat/bmc/bmcEco.c --> how "sat_solver_final" work
+            solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[2*X_VarNum], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
+                // if UNSAT, get relevant SAT literals
+            int nCoreLits, * pCoreLits;
+            vector<int> ans_candidate;
+            string ans = "";
+            if (solve_ans == l_False)
+            {
+              nCoreLits = sat_solver_final(pSat, &pCoreLits);
+              // save literals
+                  // (1): if int(lit/2)=var 不在 control_a, control_b 內 --> 丟掉不考慮 (考慮a, b ; 不考慮 x_i)
+                  // (2): if var_a = 0 且 var_b = 0 --> 歸類在 xC
+                  // (3): if 只有 var_a = 0 --> 歸類在 xB (a, b assume to be positive)
+                  // (4): if 只有 var_b = 0 --> 歸類在 xA
+                  // (5): if 都不存在這些歸類, 代表哪邊都可以 --> either xA or xB --> 這邊統一丟在 xA
+              printf("PO %s support partition: 1", Abc_ObjName(PO));
+              for (int k = 0 ; k < nCoreLits ; ++k)
+              {
+                if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
+                    (std::find(control_b.begin(), control_b.end(), int(pCoreLits[k]/2)) != control_b.end()))
+                {
+                  ans_candidate.push_back(int(pCoreLits[k]/2));
+                }
+              }
+              for (int k = 0 ; k < X_VarNum ; ++k)
+              {
+                if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) != ans_candidate.end()) && \
+                    (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
+                {
+                  ans.append("0");
+                }
+                else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) != ans_candidate.end()) && \
+                         (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end()))
+                {
+                  ans.append("1");
+                }
+                else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
+                         (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
+                {
+                  ans.append("2");
+                }
+              }
+              // output : PO <po-name> support partition: 1
+              //          <partition> (2: xA, 1: xB, 0: xC)
+              printf("%s", ans);
+            }
+            else 
+            {
+              // output : PO <po-name> support partition: 0
+              printf("PO %s support partition: 0", Abc_ObjName(PO));
+            }
+          }
+        }
     }
-
-
 }
 
 
