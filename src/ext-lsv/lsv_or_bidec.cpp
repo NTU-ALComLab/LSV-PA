@@ -69,7 +69,9 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // f(X)
         // xi_list = pCNF->pVarNums;
             // Store varnum(f(X)) & add to CNF: Aig_Obj_t->Id --> Abc_Var2Lit
+        cout << "1" << endl;
         int *f_X = (int *) Abc_Var2Lit(f_X_var, 0);
+        cout << "2" << endl;
             // sat_solver_addclause (參考 cnfMan.c 的用法)
         sat_solver_addclause(pSat, f_X, f_X+1);
         int count_used = 0;
@@ -100,14 +102,18 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         Cnf_DataLift(pCNF, VarShift);
         // xi_prime_list = pCNF->pVarNums;
             // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
+        cout << "3" << endl;
         int *f_X_prime = (int *) Abc_Var2Lit(f_X_var + VarShift, 1);
+        cout << "4" << endl;
         sat_solver_addclause(pSat, f_X_prime, f_X_prime+1);
             // add function content f(X')
         for (int i = 0 ; i < X_VarNum ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
         // negate f(X'')
         Cnf_DataLift(pCNF, VarShift);
         // xi_prime2_list = pCNF->pVarNums;
+        cout << "5" << endl;
         int *f_X_prime2 = (int *) Abc_Var2Lit(f_X_var + 2*VarShift, 1);
+        cout << "6" << endl;
         sat_solver_addclause(pSat, f_X_prime2, f_X_prime2+1);
             // add function content f(X')
         for (int i = 0 ; i < X_VarNum ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
@@ -123,9 +129,13 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
         for (int i = 0 ; i < X_VarNum ; ++i) 
         {
+          cout << "7" << endl;
           int a1_clause[3] = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
+          cout << "8" << endl;
           int a2_clause[3] = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
+          cout << "9" << endl;
           int b1_clause[3] = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime2_list[i], 0), Abc_Var2Lit(control_b[i], 0)};
+          cout << "10" << endl;
           int b2_clause[3] = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
           sat_solver_addclause(pSat, &a1_clause[0], &a1_clause[2]);
           sat_solver_addclause(pSat, &a2_clause[0], &a2_clause[2]);
@@ -146,20 +156,26 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
               // (x1_a, x1_b) = (1, 0) in xA
               if (k == i) 
               { 
+                cout << "11" << endl;
                 assumpList[count] = Abc_Var2Lit(control_a[k], 0);
                 assumpList[count+1] = Abc_Var2Lit(control_b[k], 1);
+                cout << "12" << endl;
               }
               // (x2_a, x2_b) = (0, 1) in xB
               else if (k == j)
               {
+                cout << "13" << endl;
                 assumpList[count] = Abc_Var2Lit(control_a[k], 1);
                 assumpList[count+1] = Abc_Var2Lit(control_b[k], 0);
+                cout << "14" << endl;
               }
               // other (0, 0) in xC
               else 
               {
+                cout << "15" << endl;
                 assumpList[count] = Abc_Var2Lit(control_a[k], 1);
                 assumpList[count+1] = Abc_Var2Lit(control_b[k], 1);
+                cout << "16" << endl;
               }
               count += 2;
             }
