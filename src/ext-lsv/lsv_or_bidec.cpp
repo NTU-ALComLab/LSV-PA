@@ -69,17 +69,14 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
             // Obtain "VarShift" by extracting the max varnum() in CNF
         int VarShift = 0, X_VarNum = pCNF->nVars, f_X_var = pCNF->pVarNums[PO_id];
-        for (int i = 0 ; i < sizeof(pCNF->pVarNums)/sizeof(int) ; ++i)
-        {
-            cout << "varnum : " << pCNF->pVarNums[i] << endl;
-        } 
         // int *xi_list, *xi_prime_list, *xi_prime2_list;  // 存 var list pointer 就好, 不用存 lit (lit: 涵蓋 phase 資訊)
         // f(X)
         // xi_list = pCNF->pVarNums;
             // Store varnum(f(X)) & add to CNF: Aig_Obj_t->Id --> Abc_Var2Lit
         cout << "1" << endl;
         cout << "f_X_var : " << f_X_var << endl;
-        int *f_X = (int *) Abc_Var2Lit(f_X_var, 0);
+        int f_X_lit = Abc_Var2Lit(f_X_var, 0);
+        int *f_X = &f_X_lit;
         cout << "2" << endl;
             // sat_solver_addclause (參考 cnfMan.c 的用法)
         sat_solver_addclause(pSat, f_X, f_X+1);
@@ -113,7 +110,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // xi_prime_list = pCNF->pVarNums;
             // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
         cout << "3" << endl;
-        int *f_X_prime = (int *) Abc_Var2Lit(f_X_var + VarShift, 1);
+        int f_X_prime_lit = Abc_Var2Lit(f_X_var + VarShift, 1);
+        int *f_X_prime = &f_X_prime_lit;
         cout << "4" << endl;
         sat_solver_addclause(pSat, f_X_prime, f_X_prime+1);
             // add function content f(X')
@@ -122,7 +120,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         Cnf_DataLift(pCNF, VarShift);
         // xi_prime2_list = pCNF->pVarNums;
         cout << "5" << endl;
-        int *f_X_prime2 = (int *) Abc_Var2Lit(f_X_var + 2*VarShift, 1);
+        int f_X_prime2_lit = Abc_Var2Lit(f_X_var + 2*VarShift, 1);
+        int *f_X_prime2 = &f_X_prime2_lit;
         cout << "6" << endl;
         sat_solver_addclause(pSat, f_X_prime2, f_X_prime2+1);
             // add function content f(X')
