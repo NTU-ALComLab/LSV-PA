@@ -64,6 +64,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         Abc_NtkForEachPo(pNtk_support, pObj, node)
         {
           cout << Abc_ObjType(pObj) << endl;
+          cout << Abc_ObjName(pObj) << endl;
         }
         // 3. Construct CNF formula --> f(X)
             // cnf.h --> struct Cnf_Dat_t_
