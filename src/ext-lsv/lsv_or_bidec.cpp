@@ -250,7 +250,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         else 
         {
           // output : PO <po-name> support partition: 0
-          printf("PO %s support partition: 0", Abc_ObjName(ntk_PO));
+          printf("PO %s support partition: 0\n", Abc_ObjName(ntk_PO));
         }
       }
     }
