@@ -199,7 +199,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                 // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
                 // proof/abs/absOldSat.c --> how "sat_solver_final" work
                 // sat/bmc/bmcEco.c --> how "sat_solver_final" work
-            solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[2*count_used], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
+            solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[2*count_used-1], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
                 // if UNSAT, get relevant SAT literals
             int nCoreLits, * pCoreLits;
             vector<int> ans_candidate;
