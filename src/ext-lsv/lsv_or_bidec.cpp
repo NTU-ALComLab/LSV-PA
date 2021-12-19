@@ -73,11 +73,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // f(X)
         // xi_list = pCNF->pVarNums;
             // Store varnum(f(X)) & add to CNF: Aig_Obj_t->Id --> Abc_Var2Lit
-        cout << "1" << endl;
-        cout << "f_X_var : " << f_X_var << endl;
+        // cout << "1" << endl;
+        // cout << "f_X_var : " << f_X_var << endl;
         int f_X_lit = Abc_Var2Lit(f_X_var, 0);
         int *f_X = &f_X_lit;
-        cout << "2" << endl;
+        // cout << "2" << endl;
             // sat_solver_addclause (參考 cnfMan.c 的用法)
         sat_solver_addclause(pSat, f_X, f_X+1);
         int count_used = 0;
@@ -88,7 +88,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
             if (pCNF->pVarNums[i] > VarShift) { VarShift = pCNF->pVarNums[i]; }
             ++count_used;
-            cout << "varnum : " << pCNF->pVarNums[i] << endl;
+            // cout << "varnum : " << pCNF->pVarNums[i] << endl;
         } 
         vector<int> xi_list, xi_prime_list, xi_prime2_list;
         for (int i = 0 ; i < X_VarNum ; ++i)
@@ -99,31 +99,31 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
               xi_list.push_back(pCNF->pVarNums[i]); 
               xi_prime_list.push_back(pCNF->pVarNums[i] + VarShift);
               xi_prime2_list.push_back(pCNF->pVarNums[i] + 2*VarShift);
-              cout << "in" << endl;
+              // cout << "in" << endl;
             }
-            cout << "global : " << pCNF->pVarNums[i] << endl;
-        } 
-        cout << "size : " << sizeof(pCNF->pVarNums)/sizeof(int) << endl;
-        cout << "nVar : " << pCNF->nVars << endl;
-        cout << "count_used : " << count_used << endl;
+            // cout << "global : " << pCNF->pVarNums[i] << endl;
+        // } 
+        // cout << "size : " << sizeof(pCNF->pVarNums)/sizeof(int) << endl;
+        // cout << "nVar : " << pCNF->nVars << endl;
+        // cout << "count_used : " << count_used << endl;
         // negate f(X')
         Cnf_DataLift(pCNF, VarShift);
         // xi_prime_list = pCNF->pVarNums;
             // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
-        cout << "3" << endl;
+        // cout << "3" << endl;
         int f_X_prime_lit = Abc_Var2Lit(f_X_var + VarShift, 1);
         int *f_X_prime = &f_X_prime_lit;
-        cout << "4" << endl;
+        // cout << "4" << endl;
         sat_solver_addclause(pSat, f_X_prime, f_X_prime+1);
             // add function content f(X')
         for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
         // negate f(X'')
         Cnf_DataLift(pCNF, VarShift);
         // xi_prime2_list = pCNF->pVarNums;
-        cout << "5" << endl;
+        // cout << "5" << endl;
         int f_X_prime2_lit = Abc_Var2Lit(f_X_var + 2*VarShift, 1);
         int *f_X_prime2 = &f_X_prime2_lit;
-        cout << "6" << endl;
+        // cout << "6" << endl;
         sat_solver_addclause(pSat, f_X_prime2, f_X_prime2+1);
             // add function content f(X')
         for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
@@ -139,14 +139,14 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
         for (int i = 0 ; i < count_used ; ++i) 
         {
-          cout << "7" << endl;
-          cout << "xi_list[i] : " << xi_list[i] << " / xi_prime_list[i] : " << xi_prime_list[i] << " / control_a[i] : " << control_a[i] << endl;
+          // cout << "7" << endl;
+          // cout << "xi_list[i] : " << xi_list[i] << " / xi_prime_list[i] : " << xi_prime_list[i] << " / control_a[i] : " << control_a[i] << endl;
           vector<int> a1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
-          cout << "8" << endl;
+          // cout << "8" << endl;
           vector<int> a2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
-          cout << "9" << endl;
+          // cout << "9" << endl;
           vector<int> b1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime2_list[i], 0), Abc_Var2Lit(control_b[i], 0)};
-          cout << "10" << endl;
+          // cout << "10" << endl;
           vector<int> b2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
           sat_solver_addclause(pSat, &a1_clause[0], &a1_clause[a1_clause.size()]);
           sat_solver_addclause(pSat, &a2_clause[0], &a2_clause[a2_clause.size()]);
@@ -167,59 +167,55 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
               // (x1_a, x1_b) = (1, 0) in xA
               if (k == i) 
               { 
-                cout << "11" << endl;
+                // cout << "11" << endl;
                 assumpList.push_back((control_a[k], 0));
                 assumpList.push_back(Abc_Var2Lit(control_b[k], 1));
-                cout << "12" << endl;
-                cout << "count+1 = " << count+1 << endl;
+                // cout << "12" << endl;
                 count += 2;
               }
               // (x2_a, x2_b) = (0, 1) in xB
               else if (k == j)
               {
-                cout << "13" << endl;
+                // cout << "13" << endl;
                 assumpList.push_back(Abc_Var2Lit(control_a[k], 1));
                 assumpList.push_back(Abc_Var2Lit(control_b[k], 0));
-                cout << "14" << endl;
-                cout << "count+1 = " << count+1 << endl;
+                // cout << "14" << endl;
                 count += 2;
               }
               // other (0, 0) in xC
               else 
               {
-                cout << "15" << endl;
+                // cout << "15" << endl;
                 assumpList.push_back(Abc_Var2Lit(control_a[k], 1));
                 assumpList.push_back(Abc_Var2Lit(control_b[k], 1));
-                cout << "16" << endl;
-                cout << "count+1 = " << count+1 << endl;
+                // cout << "16" << endl;
                 count += 2;
               }
             }
-            cout << "count : " << count << endl;
+            // cout << "count : " << count << endl;
             // pass into sat_solver_solve
                 // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
                 // proof/abs/absOldSat.c --> how "sat_solver_final" work
                 // sat/bmc/bmcEco.c --> how "sat_solver_final" work
-            cout << "17" << endl;
+            // cout << "17" << endl;
             solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[assumpList.size()], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
                 // if UNSAT, get relevant SAT literals
             int nCoreLits, * pCoreLits;
             vector<int> ans_candidate;
             string ans = "";
-            cout << "18" << endl;
+            // cout << "18" << endl;
             if (solve_ans == l_False)
             {
-              cout << "19" << endl;
+              // cout << "19" << endl;
               nCoreLits = sat_solver_final(pSat, &pCoreLits);
-              cout << "20" << endl;
+              // cout << "20" << endl;
               // save literals
                   // (1): if int(lit/2)=var 不在 control_a, control_b 內 --> 丟掉不考慮 (考慮a, b ; 不考慮 x_i)
                   // (2): if var_a = 0 且 var_b = 0 --> 歸類在 xC
                   // (3): if 只有 var_a = 0 --> 歸類在 xB (a, b assume to be positive)
                   // (4): if 只有 var_b = 0 --> 歸類在 xA
                   // (5): if 都不存在這些歸類, 代表哪邊都可以 --> either xA or xB --> 這邊統一丟在 xA
-              printf("PO %s support partition: 1", Abc_ObjName(ntk_PO));
-              cout << "21" << endl;
+              printf("PO %s support partition: 1\n", Abc_ObjName(ntk_PO));
               for (int k = 0 ; k < nCoreLits ; ++k)
               {
                 if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
@@ -246,7 +242,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                   ans.append("2");
                 }
               }
-              cout << "22" << endl;
+              // cout << "22" << endl;
               // output : PO <po-name> support partition: 1
               //          <partition> (2: xA, 1: xB, 0: xC)
               printf("%s", ans);
