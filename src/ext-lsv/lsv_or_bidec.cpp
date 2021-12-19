@@ -165,6 +165,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           for (int j = i+1 ; j < count_used ; ++j)
           {
             int *assumpList = new int(2*count_used-1);
+            cout << "2*count_used-1 = " << 2*count_used-1 << endl;
             int count = 0;
             // assumpList
             for (int k = 0 ; k < count_used ; ++k)
@@ -176,6 +177,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                 assumpList[count] = Abc_Var2Lit(control_a[k], 0);
                 assumpList[count+1] = Abc_Var2Lit(control_b[k], 1);
                 cout << "12" << endl;
+                cout << "count+1 = " << count+1 << endl;
               }
               // (x2_a, x2_b) = (0, 1) in xB
               else if (k == j)
@@ -184,6 +186,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                 assumpList[count] = Abc_Var2Lit(control_a[k], 1);
                 assumpList[count+1] = Abc_Var2Lit(control_b[k], 0);
                 cout << "14" << endl;
+                cout << "count+1 = " << count+1 << endl;
               }
               // other (0, 0) in xC
               else 
@@ -192,9 +195,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                 assumpList[count] = Abc_Var2Lit(control_a[k], 1);
                 assumpList[count+1] = Abc_Var2Lit(control_b[k], 1);
                 cout << "16" << endl;
+                cout << "count+1 = " << count+1 << endl;
               }
               count += 2;
             }
+            cout << "count : " << count << endl;
             // pass into sat_solver_solve
                 // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
                 // proof/abs/absOldSat.c --> how "sat_solver_final" work
