@@ -61,7 +61,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // 找 aig 的 PO (看 type 或 foreachaigpo) --> 參考 PA1 line 84
         Abc_Obj_t* pObj;
         int node;
-        Abc_NtkForEachNode(pNtk_support, pObj, node)
+        Abc_NtkForEachPo(pNtk_support, pObj, node)
         {
           cout << Abc_ObjType(pObj) << endl;
         }
