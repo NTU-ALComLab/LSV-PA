@@ -44,39 +44,31 @@ struct PackageRegistrationManager
 void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
 {
     // global variable 
-    Abc_Obj_t* PO;
+    Abc_Obj_t* ntk_PO;
     Abc_Ntk_t* pNtk_support;
     sat_solver* pSat;
     int i;
 
     // For each Co, extract cone of each Co & support set (Co: Combinational output)
-    Abc_NtkForEachCo(pNtk, PO, i)
+    Abc_NtkForEachCo(pNtk, ntk_PO, i)
     {
         // 1. Store support X as a circuit network 
-        pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(PO), Abc_ObjName(PO), 0);
+        pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(ntk_PO), Abc_ObjName(ntk_PO), 0);
         pNtk_support = Abc_NtkStrash(pNtk_support, 0, 0, 0);
 
         // 2. Derive equivalent "Aig_Man_t" from "Abc_Ntk_t"
         Aig_Man_t* pAig = Abc_NtkToDar(pNtk_support, 0, 0);
             // 找 aig 的 PO (看 type 或 foreachaigpo) --> 參考 PA1 line 84
-        Aig_Obj_t* pObj;
-        int node;
-        Aig_ManForEachCo(pAig, pObj, node)
-        {
-          cout << Aig_ObjType(pObj) << endl;
-        }
-        // Abc_NtkForEachPo(pNtk_support, pObj, node)
-        // {
-        //   cout << Abc_ObjType(pObj) << endl;
-        //   cout << Abc_ObjName(pObj) << endl;
-        // }
+        Aig_Obj_t* PO;
+        int node, PO_id;
+        Aig_ManForEachCo(pAig, PO, node) { PO_id = PO->Id; }
         // 3. Construct CNF formula --> f(X)
             // cnf.h --> struct Cnf_Dat_t_
             // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
         Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
         pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
             // Obtain "VarShift" by extracting the max varnum() in CNF
-        int VarShift = 0, X_VarNum = pCNF->nVars, f_X_var = pCNF->pVarNums[PO->Id];
+        int VarShift = 0, X_VarNum = pCNF->nVars, f_X_var = pCNF->pVarNums[PO_id];
         // int *xi_list, *xi_prime_list, *xi_prime2_list;  // 存 var list pointer 就好, 不用存 lit (lit: 涵蓋 phase 資訊)
         // f(X)
         // xi_list = pCNF->pVarNums;
@@ -210,7 +202,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                   // (3): if 只有 var_a = 0 --> 歸類在 xB (a, b assume to be positive)
                   // (4): if 只有 var_b = 0 --> 歸類在 xA
                   // (5): if 都不存在這些歸類, 代表哪邊都可以 --> either xA or xB --> 這邊統一丟在 xA
-              printf("PO %s support partition: 1", Abc_ObjName(PO));
+              printf("PO %s support partition: 1", Abc_ObjName(ntk_PO));
               for (int k = 0 ; k < nCoreLits ; ++k)
               {
                 if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
@@ -244,7 +236,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             else 
             {
               // output : PO <po-name> support partition: 0
-              printf("PO %s support partition: 0", Abc_ObjName(PO));
+              printf("PO %s support partition: 0", Abc_ObjName(ntk_PO));
             }
           }
         }
