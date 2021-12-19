@@ -90,19 +90,15 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             ++count_used;
             cout << "varnum : " << pCNF->pVarNums[i] << endl;
         } 
-        int *xi_list = new int(count_used);
-        int *xi_prime_list = new int(count_used);
-        int *xi_prime2_list = new int(count_used);
-        int count_added = 0;
+        vector<int> xi_list, xi_prime_list, xi_prime2_list;
         for (int i = 0 ; i < X_VarNum ; ++i)
         {
             // if unused, no need to be stored
             if (pCNF->pVarNums[i] != -1) 
             { 
-              xi_list[count_added] = pCNF->pVarNums[i]; 
-              xi_prime_list[count_added] = pCNF->pVarNums[i] + VarShift;
-              xi_prime2_list[count_added] = pCNF->pVarNums[i] + 2*VarShift;
-              ++count_added; 
+              xi_list.push_back(pCNF->pVarNums[i]); 
+              xi_prime_list.push_back(pCNF->pVarNums[i] + VarShift);
+              xi_prime2_list.push_back(pCNF->pVarNums[i] + 2*VarShift);
               cout << "in" << endl;
             }
             cout << "global : " << pCNF->pVarNums[i] << endl;
@@ -110,7 +106,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         cout << "size : " << sizeof(pCNF->pVarNums)/sizeof(int) << endl;
         cout << "nVar : " << pCNF->nVars << endl;
         cout << "count_used : " << count_used << endl;
-        cout << "count_added : " << count_added << endl;
         // negate f(X')
         Cnf_DataLift(pCNF, VarShift);
         // xi_prime_list = pCNF->pVarNums;
@@ -146,17 +141,17 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         {
           cout << "7" << endl;
           cout << "xi_list[i] : " << xi_list[i] << " / xi_prime_list[i] : " << xi_prime_list[i] << " / control_a[i] : " << control_a[i] << endl;
-          int a1_clause[3] = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
+          vector<int> a1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
           cout << "8" << endl;
-          int a2_clause[3] = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
+          vector<int> a2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
           cout << "9" << endl;
-          int b1_clause[3] = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime2_list[i], 0), Abc_Var2Lit(control_b[i], 0)};
+          vector<int> b1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime2_list[i], 0), Abc_Var2Lit(control_b[i], 0)};
           cout << "10" << endl;
-          int b2_clause[3] = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
-          sat_solver_addclause(pSat, &a1_clause[0], &a1_clause[2]);
-          sat_solver_addclause(pSat, &a2_clause[0], &a2_clause[2]);
-          sat_solver_addclause(pSat, &b1_clause[0], &b1_clause[2]);
-          sat_solver_addclause(pSat, &b2_clause[0], &b2_clause[2]);
+          vector<int> b2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
+          sat_solver_addclause(pSat, &a1_clause[0], &a1_clause[a1_clause.size()]);
+          sat_solver_addclause(pSat, &a2_clause[0], &a2_clause[a2_clause.size()]);
+          sat_solver_addclause(pSat, &b1_clause[0], &b1_clause[b1_clause.size()]);
+          sat_solver_addclause(pSat, &b2_clause[0], &b2_clause[b2_clause.size()]);
         }
         // 4. Solve a non-trivial variable partition
         int solve_ans;
@@ -164,8 +159,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         {
           for (int j = i+1 ; j < count_used ; ++j)
           {
-            int *assumpList = new int(2*count_used);
-            cout << "2*count_used = " << 2*count_used << endl;
+            vector<int> assumpList;
             int count = 0;
             // assumpList
             for (int k = 0 ; k < count_used ; ++k)
@@ -174,8 +168,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
               if (k == i) 
               { 
                 cout << "11" << endl;
-                assumpList[count] = Abc_Var2Lit(control_a[k], 0);
-                assumpList[count+1] = Abc_Var2Lit(control_b[k], 1);
+                assumpList.push_back((control_a[k], 0));
+                assumpList.push_back(Abc_Var2Lit(control_b[k], 1));
                 cout << "12" << endl;
                 cout << "count+1 = " << count+1 << endl;
                 count += 2;
@@ -184,8 +178,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
               else if (k == j)
               {
                 cout << "13" << endl;
-                assumpList[count] = Abc_Var2Lit(control_a[k], 1);
-                assumpList[count+1] = Abc_Var2Lit(control_b[k], 0);
+                assumpList.push_back(Abc_Var2Lit(control_a[k], 1));
+                assumpList.push_back(Abc_Var2Lit(control_b[k], 0));
                 cout << "14" << endl;
                 cout << "count+1 = " << count+1 << endl;
                 count += 2;
@@ -194,8 +188,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
               else 
               {
                 cout << "15" << endl;
-                assumpList[count] = Abc_Var2Lit(control_a[k], 1);
-                assumpList[count+1] = Abc_Var2Lit(control_b[k], 1);
+                assumpList.push_back(Abc_Var2Lit(control_a[k], 1));
+                assumpList.push_back(Abc_Var2Lit(control_b[k], 1));
                 cout << "16" << endl;
                 cout << "count+1 = " << count+1 << endl;
                 count += 2;
@@ -207,9 +201,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                 // proof/abs/absOldSat.c --> how "sat_solver_final" work
                 // sat/bmc/bmcEco.c --> how "sat_solver_final" work
             cout << "17" << endl;
-            solve_ans = sat_solver_solve(pSat, assumpList, assumpList+2*count_used, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
-                // free memory
-            delete assumpList;
+            solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[assumpList.size()], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
                 // if UNSAT, get relevant SAT literals
             int nCoreLits, * pCoreLits;
             vector<int> ans_candidate;
