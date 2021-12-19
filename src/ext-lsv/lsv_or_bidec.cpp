@@ -94,7 +94,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         int *xi_prime_list = new int(count_used);
         int *xi_prime2_list = new int(count_used);
         int count_added = 0;
-        for (int i = 0 ; i < sizeof(pCNF->pVarNums)/sizeof(int) ; ++i)
+        for (int i = 0 ; i < pCNF->nVars ; ++i)
         {
             // if unused, no need to be stored
             if (pCNF->pVarNums[i] != -1) 
