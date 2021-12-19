@@ -199,14 +199,18 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                 // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
                 // proof/abs/absOldSat.c --> how "sat_solver_final" work
                 // sat/bmc/bmcEco.c --> how "sat_solver_final" work
-            solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[2*count_used-1], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
+            cout << "17" << endl;
+            solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[2*count_used], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
                 // if UNSAT, get relevant SAT literals
             int nCoreLits, * pCoreLits;
             vector<int> ans_candidate;
             string ans = "";
+            cout << "18" << endl;
             if (solve_ans == l_False)
             {
+              cout << "19" << endl;
               nCoreLits = sat_solver_final(pSat, &pCoreLits);
+              cout << "20" << endl;
               // save literals
                   // (1): if int(lit/2)=var 不在 control_a, control_b 內 --> 丟掉不考慮 (考慮a, b ; 不考慮 x_i)
                   // (2): if var_a = 0 且 var_b = 0 --> 歸類在 xC
@@ -214,6 +218,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                   // (4): if 只有 var_b = 0 --> 歸類在 xA
                   // (5): if 都不存在這些歸類, 代表哪邊都可以 --> either xA or xB --> 這邊統一丟在 xA
               printf("PO %s support partition: 1", Abc_ObjName(ntk_PO));
+              cout << "21" << endl;
               for (int k = 0 ; k < nCoreLits ; ++k)
               {
                 if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
@@ -240,6 +245,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                   ans.append("2");
                 }
               }
+              cout << "22" << endl;
               // output : PO <po-name> support partition: 1
               //          <partition> (2: xA, 1: xB, 0: xC)
               printf("%s", ans);
