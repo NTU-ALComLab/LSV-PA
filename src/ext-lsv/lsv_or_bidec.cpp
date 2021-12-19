@@ -81,7 +81,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // sat_solver_addclause (參考 cnfMan.c 的用法)
         sat_solver_addclause(pSat, f_X, f_X+1);
         int count_used = 0;
-        for (int i = 0 ; i < sizeof(pCNF->pVarNums)/sizeof(int) ; ++i)
+        for (int i = 0 ; i < pCNF->nVars ; ++i)
         {
             // if unused, no need to be stored
             if (pCNF->pVarNums[i] == -1) { continue; }
@@ -107,6 +107,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             }
             cout << "global : " << pCNF->pVarNums[i] << endl;
         } 
+        cout << "size : " << sizeof(pCNF->pVarNums)/sizeof(int) << endl;
+        cout << "nVar : " << pCNF->nVars << endl;
+        cout << "count_used : " << count_used << endl;
+        cout << "count_added : " << count_added << endl;
         // negate f(X')
         Cnf_DataLift(pCNF, VarShift);
         // xi_prime_list = pCNF->pVarNums;
