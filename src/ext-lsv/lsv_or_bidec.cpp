@@ -246,7 +246,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           // output : PO <po-name> support partition: 1
           //          <partition> (2: xA, 1: xB, 0: xC)
           cout << "ans : " << ans << endl;
-          printf("%s", ans);
+          printf("%s\n", ans.c_str());
         }
         else 
         {
