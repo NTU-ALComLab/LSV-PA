@@ -79,6 +79,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         cout << "2" << endl;
             // sat_solver_addclause (參考 cnfMan.c 的用法)
         sat_solver_addclause(pSat, f_X, f_X+1);
+        cout << "2.5" << endl;
         int count_used = 0;
         for (int i = 0 ; i < sizeof(pCNF->pVarNums)/sizeof(int) ; ++i)
         {
