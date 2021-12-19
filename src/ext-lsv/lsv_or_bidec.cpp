@@ -45,7 +45,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
 {
     // global variable 
     Abc_Obj_t* PO;
-    Aig_Obj_t* PO;
     Abc_Ntk_t* pNtk_support;
     sat_solver* pSat;
     int i;
