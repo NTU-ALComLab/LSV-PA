@@ -44,20 +44,28 @@ struct PackageRegistrationManager
 void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
 {
     // global variable 
-    Abc_Obj_t* PO;
+    Abc_Obj_t* ntk_PO, PO;
+    Aig_Obj_t* PO;
     Abc_Ntk_t* pNtk_support;
     sat_solver* pSat;
     int i;
 
     // For each Co, extract cone of each Co & support set (Co: Combinational output)
-    Abc_NtkForEachCo(pNtk, PO, i)
+    Abc_NtkForEachCo(pNtk, ntk_PO, i)
     {
         // 1. Store support X as a circuit network 
-        pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(PO), Abc_ObjName(PO), 0);
+        pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(ntk_PO), Abc_ObjName(ntk_PO), 0);
         pNtk_support = Abc_NtkStrash(pNtk_support, 0, 0, 0);
 
         // 2. Derive equivalent "Aig_Man_t" from "Abc_Ntk_t"
         Aig_Man_t* pAig = Abc_NtkToDar(pNtk_support, 0, 0);
+            // 找 aig 的 PO (看 type 或 foreachaigpo) --> 參考 PA1 line 84
+        Abc_Obj_t* pObj;
+        int node;
+        Abc_NtkForEachNode(pNtk, pObj, node)
+        {
+          cout << Abc_ObjType(pObj) << endl;
+        }
         // 3. Construct CNF formula --> f(X)
             // cnf.h --> struct Cnf_Dat_t_
             // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
