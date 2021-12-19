@@ -164,7 +164,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         {
           for (int j = i+1 ; j < count_used ; ++j)
           {
-            int *assumpList = new int(2*count_used);
+            int *assumpList = new int(2*count_used-1);
             int count = 0;
             // assumpList
             for (int k = 0 ; k < count_used ; ++k)
@@ -200,7 +200,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                 // proof/abs/absOldSat.c --> how "sat_solver_final" work
                 // sat/bmc/bmcEco.c --> how "sat_solver_final" work
             cout << "17" << endl;
-            solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[2*count_used-1], 0, 0, 0, 0);
+            solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[2*count_used-1], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
                 // if UNSAT, get relevant SAT literals
             int nCoreLits, * pCoreLits;
             vector<int> ans_candidate;
