@@ -81,7 +81,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // sat_solver_addclause (參考 cnfMan.c 的用法)
         sat_solver_addclause(pSat, f_X, f_X+1);
         int count_used = 0;
-        for (int i = 0 ; i < pCNF->nVars ; ++i)
+        for (int i = 0 ; i < X_VarNum ; ++i)
         {
             // if unused, no need to be stored
             if (pCNF->pVarNums[i] == -1) { continue; }
@@ -94,7 +94,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         int *xi_prime_list = new int(count_used);
         int *xi_prime2_list = new int(count_used);
         int count_added = 0;
-        for (int i = 0 ; i < pCNF->nVars ; ++i)
+        for (int i = 0 ; i < X_VarNum ; ++i)
         {
             // if unused, no need to be stored
             if (pCNF->pVarNums[i] != -1) 
@@ -121,7 +121,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         cout << "4" << endl;
         sat_solver_addclause(pSat, f_X_prime, f_X_prime+1);
             // add function content f(X')
-        for (int i = 0 ; i < X_VarNum ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
+        for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
         // negate f(X'')
         Cnf_DataLift(pCNF, VarShift);
         // xi_prime2_list = pCNF->pVarNums;
@@ -131,18 +131,18 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         cout << "6" << endl;
         sat_solver_addclause(pSat, f_X_prime2, f_X_prime2+1);
             // add function content f(X')
-        for (int i = 0 ; i < X_VarNum ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
-        // addVar controlling variable (a_i & b_i) * nVar 個 (= X_VarNum 個)
+        for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
+        // addVar controlling variable (a_i & b_i) * nVar 個 (= count_used 個)
             // sat_solver_addvar 會回傳 new variable 的 number, 要記錄下來 (maybe array)
         vector<int> control_a, control_b; 
-        for (int i = 0 ; i < X_VarNum ; ++i)
+        for (int i = 0 ; i < count_used ; ++i)
         {
           control_a.push_back(sat_solver_addvar(pSat));
           control_b.push_back(sat_solver_addvar(pSat));
         }
             // Add clause of controlling variable 
             // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
-        for (int i = 0 ; i < X_VarNum ; ++i) 
+        for (int i = 0 ; i < count_used ; ++i) 
         {
           cout << "7" << endl;
           cout << "xi_list[i] : " << xi_list[i] << " / xi_prime_list[i] : " << xi_prime_list[i] << " / control_a[i] : " << control_a[i] << endl;
@@ -160,14 +160,14 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         }
         // 4. Solve a non-trivial variable partition
         int solve_ans;
-        for (int i = 0 ; i < X_VarNum-1 ; ++i)
+        for (int i = 0 ; i < count_used-1 ; ++i)
         {
-          for (int j = i+1 ; j < X_VarNum ; ++j)
+          for (int j = i+1 ; j < count_used ; ++j)
           {
-            int *assumpList = new int(2*X_VarNum);
+            int *assumpList = new int(2*count_used);
             int count = 0;
             // assumpList
-            for (int k = 0 ; k < X_VarNum ; ++k)
+            for (int k = 0 ; k < count_used ; ++k)
             {
               // (x1_a, x1_b) = (1, 0) in xA
               if (k == i) 
@@ -199,7 +199,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                 // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
                 // proof/abs/absOldSat.c --> how "sat_solver_final" work
                 // sat/bmc/bmcEco.c --> how "sat_solver_final" work
-            solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[2*X_VarNum], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
+            solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[2*count_used], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
                 // if UNSAT, get relevant SAT literals
             int nCoreLits, * pCoreLits;
             vector<int> ans_candidate;
@@ -222,7 +222,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                   ans_candidate.push_back(int(pCoreLits[k]/2));
                 }
               }
-              for (int k = 0 ; k < X_VarNum ; ++k)
+              for (int k = 0 ; k < count_used ; ++k)
               {
                 if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) != ans_candidate.end()) && \
                     (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
