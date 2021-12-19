@@ -139,6 +139,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         for (int i = 0 ; i < X_VarNum ; ++i) 
         {
           cout << "7" << endl;
+          cout << "xi_list[i] : " << xi_list[i] << " / xi_prime_list[i] : " << xi_prime_list[i] << " / control_a[i] : " << control_a[i] << endl;
           int a1_clause[3] = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
           cout << "8" << endl;
           int a2_clause[3] = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
