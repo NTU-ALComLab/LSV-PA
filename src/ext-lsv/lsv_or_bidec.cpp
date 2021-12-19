@@ -103,7 +103,9 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
               xi_prime_list[count_added] = pCNF->pVarNums[i] + VarShift;
               xi_prime2_list[count_added] = pCNF->pVarNums[i] + 2*VarShift;
               ++count_added; 
+              cout << "in" << endl;
             }
+            cout << "global : " << pCNF->pVarNums[i] << endl;
         } 
         // negate f(X')
         Cnf_DataLift(pCNF, VarShift);
