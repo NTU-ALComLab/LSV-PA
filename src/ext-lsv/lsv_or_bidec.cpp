@@ -94,7 +94,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     pSat->fPrintClause = true;
 
         // Obtain "VarShift" by extracting the max varnum() in CNF
-    int VarShift = 0, X_VarNum = pCNF->nVars, f_X_var = pCNF->pVarNums[PO_id];
+    int VarShift = 0, X_VarNum = pCNF->nVars, f_X_var = PO_id;
     cout << "pCNF->pVarNums[PO_id] : " << f_X_var << endl;
     // int *xi_list, *xi_prime_list, *xi_prime2_list;  // 存 var list pointer 就好, 不用存 lit (lit: 涵蓋 phase 資訊)
     // f(X)
@@ -103,7 +103,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // cout << "1" << endl;
     // cout << "f_X_var : " << f_X_var << endl;
     int f_X_lit = Abc_Var2Lit(f_X_var, 0);
-    cout << "f(X) var : " << f_X_var << endl;
+    // cout << "f(X) var : " << f_X_var << endl;
     int *f_X = &f_X_lit;
     // cout << "2" << endl;
         // sat_solver_addclause (參考 cnfMan.c 的用法)
@@ -122,11 +122,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     int count_used = 0;
     for (int i = 0 ; i < PI_var_list.size() ; ++i)
     {
-        xi_list.push_back(pCNF->pVarNums[PI_var_list[i]]); 
-        xi_prime_list.push_back(pCNF->pVarNums[PI_var_list[i]] + VarShift);
-        xi_prime2_list.push_back(pCNF->pVarNums[PI_var_list[i]] + 2*VarShift);
+        xi_list.push_back(PI_var_list[i]); 
+        xi_prime_list.push_back(PI_var_list[i] + VarShift);
+        xi_prime2_list.push_back(PI_var_list[i] + 2*VarShift);
         ++count_used;
-        cout << "pCNF->pVarNums[PI->Id] : " << pCNF->pVarNums[PI_var_list[i]] << endl;
+        cout << "pCNF->pVarNums[PI->Id] : " << PI_var_list[i] << endl;
         // // if unused, no need to be stored
         // if ((pCNF->pVarNums[i] != -1) && \
         //     (std::find(PI_var_list.begin(), PI_var_list.end(), pCNF->pVarNums[i]) != PI_var_list.end())) 
