@@ -213,8 +213,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     for (int i = 0 ; i < count_used ; ++i)
     {
       // ?????? sat_solver_addvar return "s->size-1"
-      control_a.push_back(sat_solver_addvar(pSat)+100);
-      control_b.push_back(sat_solver_addvar(pSat)+100);
+      control_a.push_back(sat_solver_addvar(pSat)+1);
+      control_b.push_back(sat_solver_addvar(pSat)+1);
     }
     for (int i = 0 ; i < count_used ; ++i)
     {
@@ -281,6 +281,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // cout << "16" << endl;
             // count += 2;
           }
+        }
+        for (int k = 0 ; k < count_used ; ++k)
+        {
+          cout << "assumpList a" << k << " : " << assumpList[2*k] << endl;
+          cout << "assumpList b" << k << " : " << assumpList[2*k+1] << endl;
         }
         // cout << "count : " << count << endl;
         // pass into sat_solver_solve
