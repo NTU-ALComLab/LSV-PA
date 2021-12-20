@@ -148,10 +148,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     int *f_X_prime2 = &f_X_prime2_lit;
     // cout << "6" << endl;
     // debug
-    pSat->fPrintClause = true;
+    // pSat->fPrintClause = true;
     sat_solver_addclause(pSat, f_X_prime2, f_X_prime2+1);
     // debug
-    pSat->fPrintClause = false;
+    // pSat->fPrintClause = false;
         // add function content f(X')
     for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // addVar controlling variable (a_i & b_i) * nVar 個 (= count_used 個)
@@ -161,6 +161,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     {
       control_a.push_back(sat_solver_addvar(pSat));
       control_b.push_back(sat_solver_addvar(pSat));
+    }
+    for (int i = 0 ; i < count_used ; ++i)
+    {
+      cout << "control a" << i << " : " << control_a[i] << endl;
+      cout << "control b" << i << " : " << control_b[i] << endl;
     }
         // Add clause of controlling variable 
         // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
@@ -180,6 +185,9 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       sat_solver_addclause(pSat, &b1_clause[0], &b1_clause[b1_clause.size()]);
       sat_solver_addclause(pSat, &b2_clause[0], &b2_clause[b2_clause.size()]);
     }
+    // debug
+    pSat->fPrintClause = true;
+    pSat->fPrintClause = false;
     // 4. Solve a non-trivial variable partition
     int solve_ans;
     bool find_partition = false;
