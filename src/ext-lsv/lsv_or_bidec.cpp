@@ -77,7 +77,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       if (Aig_ObjType(pObj) == 3)
       {
         cout << "PO varnum : " << pObj->Id << endl;
-        PO_id = PO->Id;
+        PO_id = pObj->Id;
       }
     }
     // 3. Construct CNF formula --> f(X)
