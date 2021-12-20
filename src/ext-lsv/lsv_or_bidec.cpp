@@ -91,9 +91,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // cnf.h --> struct Cnf_Dat_t_
         // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
     Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
-    // debug
-    pSat->fPrintClause = true;
-    
     pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
 
     // for (int i = 0 ; i < pCNF->nVars ; ++i)
@@ -101,6 +98,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     //   cout << "x" << i << " varnum : " << pCNF->pVarNums[i] << endl;
     // }
     // cout << "nvars = " << pCNF->nVars << endl;
+    // debug
+    pSat->fPrintClause = true;
 
         // Obtain "VarShift" by extracting the max varnum() in CNF
     // int VarShift = 0, X_VarNum = pCNF->nVars
