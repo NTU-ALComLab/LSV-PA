@@ -60,10 +60,18 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // 2. Derive equivalent "Aig_Man_t" from "Abc_Ntk_t"
     Aig_Man_t* pAig = Abc_NtkToDar(pNtk_support, 0, 0);
         // 找 aig 的 PO (看 type 或 foreachaigpo) --> 參考 PA1 line 84
-    Aig_Obj_t* PO, PI;
+    Aig_Obj_t* PO;
+    Aig_Obj_t* pObj;
     int node_PO, node_PI, PO_id;
     Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; }
-    Aig_ManForEachCi(pAig, PI, node_PI) { cout << "PI varnum : " << PI->Id << endl; }
+    Aig_ManForEachObj(pAig, pObj, node_PI) 
+    { 
+      // PI
+      if (Aig_ObjType(pObj) == 2)
+      {
+        cout << "PI varnum : " << pObj->Id << endl;
+      }
+    }
     // 3. Construct CNF formula --> f(X)
         // cnf.h --> struct Cnf_Dat_t_
         // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
