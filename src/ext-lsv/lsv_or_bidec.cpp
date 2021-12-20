@@ -85,6 +85,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // cout << "1" << endl;
     // cout << "f_X_var : " << f_X_var << endl;
     int f_X_lit = Abc_Var2Lit(f_X_var, 0);
+    cout << "f(X) var : " << f_X_var << endl;
     int *f_X = &f_X_lit;
     // cout << "2" << endl;
         // sat_solver_addclause (參考 cnfMan.c 的用法)
@@ -127,6 +128,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
     // cout << "3" << endl;
     int f_X_prime_lit = Abc_Var2Lit(f_X_var + VarShift, 1);
+    cout << "f(X prime) var : " << f_X_var + VarShift << endl;
     int *f_X_prime = &f_X_prime_lit;
     // cout << "4" << endl;
     // debug
@@ -145,6 +147,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // xi_prime2_list = pCNF->pVarNums;
     // cout << "5" << endl;
     int f_X_prime2_lit = Abc_Var2Lit(f_X_var + 2*VarShift, 1);
+    cout << "f(X prime2) var : " << f_X_var + 2*VarShift << endl;
     int *f_X_prime2 = &f_X_prime2_lit;
     // cout << "6" << endl;
     // debug
