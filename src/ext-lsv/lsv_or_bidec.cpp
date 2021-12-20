@@ -90,6 +90,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     {
       cout << "x" << i << " varnum : " << pCNF->pVarNums[i] << endl;
     }
+    cout << "nvars = " << pCNF->nVars << endl;
     // debug
     pSat->fPrintClause = true;
 
