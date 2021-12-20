@@ -269,6 +269,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // count += 2;
           }
         }
+        for (int k = 0 ; k < count_used ; ++k)
+        {
+          cout << "assumpList control_a Id : " << assumpList[2*k] << endl;
+          cout << "assumpList control_b Id : " << assumpList[2*k+1] << endl;
+        }
         // cout << "count : " << count << endl;
         // pass into sat_solver_solve
             // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
