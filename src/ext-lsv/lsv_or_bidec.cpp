@@ -250,14 +250,14 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           // cout << "ans : " << ans << endl;
           printf("%s\n", ans.c_str());
         }
-        else 
-        {
-          // output : PO <po-name> support partition: 0
-          printf("PO %s support partition: 0\n", Abc_ObjName(ntk_PO));
-        }
         if (find_partition) { break; }
       }
       if (find_partition) { break; }
+    }
+    if (!find_partition)
+    {
+      // output : PO <po-name> support partition: 0
+      printf("PO %s support partition: 0\n", Abc_ObjName(ntk_PO));
     }
   }
 }
