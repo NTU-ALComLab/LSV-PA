@@ -125,7 +125,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     for (int i = 0 ; i < pCNF->nVars ; ++i)
     {
         // cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
-        if (pCNF->pVarNums[i] > VarShift) { VarShift = pCNF->pVarNums[i]; }
+        if (pCNF->pVarNums[i] != -1) { VarShift = (pCNF->pVarNums[i]) ? pCNF->pVarNums[i] > VarShift : VarShift; }
         // cout << "varnum : " << pCNF->pVarNums[i] << endl;
     } 
     cout << "VarShift = " << VarShift << endl;
