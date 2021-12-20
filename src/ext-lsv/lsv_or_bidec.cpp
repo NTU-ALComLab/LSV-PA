@@ -60,16 +60,24 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // 2. Derive equivalent "Aig_Man_t" from "Abc_Ntk_t"
     Aig_Man_t* pAig = Abc_NtkToDar(pNtk_support, 0, 0);
         // 找 aig 的 PO (看 type 或 foreachaigpo) --> 參考 PA1 line 84
+        // 3. Construct CNF formula --> f(X)
+        // cnf.h --> struct Cnf_Dat_t_
+        // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
+    Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
+    pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
+
     Aig_Obj_t* PO;
     Aig_Obj_t* PI;
     Aig_Obj_t* pObj;
     int node_PO, node_PI, node, PO_id;
+    int VarShift = 0;
     vector<int> PI_var_list;
     Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; cout << "PO Id Each Co : " << PO->Id << endl; }
     Aig_ManForEachCi(pAig, PI, node_PI) { PI_var_list.push_back(PI->Id); cout << "PI Id Each Ci : " << PI->Id << endl; }
     Aig_ManForEachObj(pAig, pObj, node)
     {
       cout << "node" << node << " Id : " << pObj->Id << endl;
+      if (pCNF->pVarNums[pObj->Id] > VarShift) { VarShift = pCNF->pVarNums[pObj->Id]; }
     }
     cout << "final node : " << node << endl;
     // Aig_ManForEachObj(pAig, pObj, node_PI) 
@@ -87,11 +95,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     //     // PO_id = pObj->Id;
     //   }
     // }
-    // 3. Construct CNF formula --> f(X)
-        // cnf.h --> struct Cnf_Dat_t_
-        // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
-    Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
-    pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
 
     // for (int i = 0 ; i < pCNF->nVars ; ++i)
     // {
@@ -103,7 +106,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
 
         // Obtain "VarShift" by extracting the max varnum() in CNF
     // int VarShift = 0, X_VarNum = pCNF->nVars
-    int VarShift = 0;
+    // int VarShift = 0;
     int f_X_var = pCNF->pVarNums[PO_id];
     cout << "pCNF->pVarNums[PO_id] : " << f_X_var << endl;
     // int *xi_list, *xi_prime_list, *xi_prime2_list;  // 存 var list pointer 就好, 不用存 lit (lit: 涵蓋 phase 資訊)
@@ -122,13 +125,13 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // debug
     // pSat->fPrintClause = false;
 
-    for (int i = 0 ; i < pCNF->nVars ; ++i)
-    {
-        // cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
-        cout << "pCNF->pVarNums[i] = " << pCNF->pVarNums[i] << endl;
-        if (pCNF->pVarNums[i] > VarShift) { VarShift = pCNF->pVarNums[i]; }
-        // cout << "varnum : " << pCNF->pVarNums[i] << endl;
-    } 
+    // for (int i = 0 ; i < pCNF->nVars ; ++i)
+    // {
+    //     // cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
+    //     cout << "pCNF->pVarNums[i] = " << pCNF->pVarNums[i] << endl;
+    //     if (pCNF->pVarNums[i] > VarShift) { VarShift = pCNF->pVarNums[i]; }
+    //     // cout << "varnum : " << pCNF->pVarNums[i] << endl;
+    // } 
     cout << "VarShift = " << VarShift << endl;
     vector<int> xi_list, xi_prime_list, xi_prime2_list;
     int count_used = 0;
