@@ -80,17 +80,16 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // cout << "2" << endl;
         // sat_solver_addclause (參考 cnfMan.c 的用法)
     sat_solver_addclause(pSat, f_X, f_X+1);
-    int count_used = 0;
     for (int i = 0 ; i < X_VarNum ; ++i)
     {
         // if unused, no need to be stored
         if (pCNF->pVarNums[i] == -1) { continue; }
         // cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
         if (pCNF->pVarNums[i] > VarShift) { VarShift = pCNF->pVarNums[i]; }
-        ++count_used;
         // cout << "varnum : " << pCNF->pVarNums[i] << endl;
     } 
     vector<int> xi_list, xi_prime_list, xi_prime2_list;
+    int count_used = 0;
     for (int i = 0 ; i < X_VarNum ; ++i)
     {
         // if unused, no need to be stored
@@ -99,6 +98,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           xi_list.push_back(pCNF->pVarNums[i]); 
           xi_prime_list.push_back(pCNF->pVarNums[i] + VarShift);
           xi_prime2_list.push_back(pCNF->pVarNums[i] + 2*VarShift);
+          ++count_used;
           // cout << "in" << endl;
         }
         // cout << "global : " << pCNF->pVarNums[i] << endl;
@@ -220,7 +220,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           printf("PO %s support partition: 1\n", Abc_ObjName(ntk_PO));
           for (int k = 0 ; k < nCoreLits ; ++k)
           {
-            if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
+            if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) && \
                 (std::find(control_b.begin(), control_b.end(), int(pCoreLits[k]/2)) != control_b.end()))
             {
               ans_candidate.push_back(int(pCoreLits[k]/2));
@@ -240,6 +240,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             }
             else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
                       (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
+            {
+              ans.append("2");
+            }
+            else // 都沒在上面分類就全塞到 xA
             {
               ans.append("2");
             }
