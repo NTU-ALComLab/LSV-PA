@@ -45,13 +45,13 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
 {
   // global variable 
   Abc_Obj_t* ntk_PO;
-  Abc_Ntk_t* pNtk_support;
-  sat_solver* pSat;
   int co_node;
 
   // For each Co, extract cone of each Co & support set (Co: Combinational output)
   Abc_NtkForEachCo(pNtk, ntk_PO, co_node)
   {
+    Abc_Ntk_t* pNtk_support;
+    sat_solver* pSat;
     // 1. Store support X as a circuit network 
     pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(ntk_PO), Abc_ObjName(ntk_PO), 0);
     pNtk_support = Abc_NtkStrash(pNtk_support, 0, 0, 0);
@@ -159,7 +159,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       for (int j = i+1 ; j < count_used ; ++j)
       {
         vector<int> assumpList;
-        int count = 0;
+        // int count = 0;
         // assumpList
         for (int k = 0 ; k < count_used ; ++k)
         {
@@ -170,7 +170,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             assumpList.push_back(Abc_Var2Lit(control_a[k], 0));
             assumpList.push_back(Abc_Var2Lit(control_b[k], 1));
             // cout << "12" << endl;
-            count += 2;
+            // count += 2;
           }
           // (x2_a, x2_b) = (0, 1) in xB
           else if (k == j)
@@ -179,7 +179,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             assumpList.push_back(Abc_Var2Lit(control_a[k], 1));
             assumpList.push_back(Abc_Var2Lit(control_b[k], 0));
             // cout << "14" << endl;
-            count += 2;
+            // count += 2;
           }
           // other (0, 0) in xC
           else 
@@ -188,7 +188,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             assumpList.push_back(Abc_Var2Lit(control_a[k], 1));
             assumpList.push_back(Abc_Var2Lit(control_b[k], 1));
             // cout << "16" << endl;
-            count += 2;
+            // count += 2;
           }
         }
         // cout << "count : " << count << endl;
@@ -241,7 +241,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             {
               ans.append("2");
             }
-            else // 都沒在上面分類就全塞到 xA
+            else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
+                      (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end())) // 都沒在上面分類就全塞到 xA
             {
               ans.append("2");
             }
