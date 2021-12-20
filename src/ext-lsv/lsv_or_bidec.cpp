@@ -86,11 +86,12 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
     pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
 
-    for (int i = 0 ; i < pCNF->nVars ; ++i)
+    for (int i = 0 ; i < sizeof(pCNF->pVarNums)/sizeof(pCNF->pVarNums[0]) ; ++i)
     {
       cout << "x" << i << " varnum : " << pCNF->pVarNums[i] << endl;
     }
     cout << "nvars = " << pCNF->nVars << endl;
+    cout << "pCNF->pVarNums.size() = " << sizeof(pCNF->pVarNums)/sizeof(pCNF->pVarNums[0]) << endl;
     // debug
     pSat->fPrintClause = true;
 
