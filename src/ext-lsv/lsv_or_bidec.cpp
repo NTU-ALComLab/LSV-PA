@@ -210,11 +210,19 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // sat_solver_addvar 會回傳 new variable 的 number, 要記錄下來 (maybe array)
     vector<int> control_a, control_b; 
     cout << "count_used = " << count_used << " / PI_var_size = " << PI_var_list.size() << endl;
+    // control varnum 自己算
+    int control_begin = 3*VarShift, count_control = 0;
     for (int i = 0 ; i < count_used ; ++i)
     {
       // ?????? sat_solver_addvar return "s->size-1"
-      control_a.push_back(sat_solver_addvar(pSat));
-      control_b.push_back(sat_solver_addvar(pSat));
+      // a
+      sat_solver_addvar(pSat)
+      control_a.push_back(control_begin + count_control));
+      ++count_control;
+      // b
+      sat_solver_addvar(pSat)
+      control_b.push_back(control_begin + count_control);
+      ++count_control;
     }
     for (int i = 0 ; i < count_used ; ++i)
     {
