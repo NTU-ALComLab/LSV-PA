@@ -47,10 +47,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
   Abc_Obj_t* ntk_PO;
   Abc_Ntk_t* pNtk_support;
   sat_solver* pSat;
-  int i;
+  int co_node;
 
   // For each Co, extract cone of each Co & support set (Co: Combinational output)
-  Abc_NtkForEachCo(pNtk, ntk_PO, i)
+  Abc_NtkForEachCo(pNtk, ntk_PO, co_node)
   {
     // 1. Store support X as a circuit network 
     pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(ntk_PO), Abc_ObjName(ntk_PO), 0);
