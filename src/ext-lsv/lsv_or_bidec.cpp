@@ -160,6 +160,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // cout << "count_used : " << count_used << endl;
     // negate f(X')
     Cnf_DataLift(pCNF, VarShift);
+    for (int i = 0 ; i < PI_var_list.size() ; ++i)
+    {
+      cout << "pCHF Datalift --> x_prime_" << i << " = " << pCNF->pVarNums[PI_var_list[i]] << endl;
+    }
     // for (int i = 0 ; i < pCNF->nVars ; ++i)
     // {
     //   cout << "x" << i << " prime varnum : " << pCNF->pVarNums[i] << endl;
@@ -180,6 +184,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // negate f(X'')
     Cnf_DataLift(pCNF, VarShift);
+    for (int i = 0 ; i < PI_var_list.size() ; ++i)
+    {
+      cout << "pCHF Datalift --> x_prime_" << i << " = " << pCNF->pVarNums[PI_var_list[i]] << endl;
+    }
     // for (int i = 0 ; i < pCNF->nVars ; ++i)
     // {
     //   cout << "x" << i << " prime2 varnum : " << pCNF->pVarNums[i] << endl;
@@ -284,7 +292,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         int nCoreLits, * pCoreLits;
         vector<int> ans_candidate;
         string ans = "";
-        cout << "solve ans = UNSAT / SAT ? " << solve_ans << endl;
         // cout << "18" << endl;
         if (solve_ans == l_False)
         {
