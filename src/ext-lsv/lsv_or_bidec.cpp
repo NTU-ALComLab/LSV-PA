@@ -190,12 +190,12 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     pSat->fPrintClause = true;
     pSat->fPrintClause = false;
     // 4. Solve a non-trivial variable partition
-    int solve_ans;
     bool find_partition = false;
     for (int i = 0 ; i < count_used-1 ; ++i)
     {
       for (int j = i+1 ; j < count_used ; ++j)
       {
+        int solve_ans;
         vector<int> assumpList;
         // int count = 0;
         // assumpList
