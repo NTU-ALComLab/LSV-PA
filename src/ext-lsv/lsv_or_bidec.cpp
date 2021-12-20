@@ -52,6 +52,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
   {
     Abc_Ntk_t* pNtk_support;
     sat_solver* pSat;
+
+    // debug
+    pSat->fPrintClause = true;
+    
     // 1. Store support X as a circuit network 
     pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(ntk_PO), Abc_ObjName(ntk_PO), 0);
     pNtk_support = Abc_NtkStrash(pNtk_support, 0, 0, 0);
