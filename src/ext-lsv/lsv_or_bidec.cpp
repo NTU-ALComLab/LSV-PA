@@ -155,6 +155,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     }
     // 4. Solve a non-trivial variable partition
     int solve_ans;
+    bool find_partition = false;
     for (int i = 0 ; i < count_used-1 ; ++i)
     {
       for (int j = i+1 ; j < count_used ; ++j)
@@ -206,6 +207,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // cout << "18" << endl;
         if (solve_ans == l_False)
         {
+          find_partition = true;
           // cout << "19" << endl;
           nCoreLits = sat_solver_final(pSat, &pCoreLits);
           // cout << "20" << endl;
@@ -253,7 +255,9 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           // output : PO <po-name> support partition: 0
           printf("PO %s support partition: 0\n", Abc_ObjName(ntk_PO));
         }
+        if (find_partition) { break; }
       }
+      if (find_partition) { break; }
     }
   }
 }
