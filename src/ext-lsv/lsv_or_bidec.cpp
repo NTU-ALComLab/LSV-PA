@@ -63,7 +63,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Aig_Obj_t* PO;
     Aig_Obj_t* pObj;
     int node_PO, node_PI, PO_id;
-    Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; }
+    // Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; }
     Aig_ManForEachObj(pAig, pObj, node_PI) 
     { 
       // PI
@@ -75,6 +75,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       if (Aig_ObjType(pObj) == 3)
       {
         cout << "PO varnum : " << pObj->Id << endl;
+        PO_id = PO->Id;
       }
     }
     // 3. Construct CNF formula --> f(X)
@@ -92,6 +93,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
 
         // Obtain "VarShift" by extracting the max varnum() in CNF
     int VarShift = 0, X_VarNum = pCNF->nVars, f_X_var = pCNF->pVarNums[PO_id];
+    cout << "pCNF->pVarNums[PO_id] : " << f_X_var << endl;
     // int *xi_list, *xi_prime_list, *xi_prime2_list;  // 存 var list pointer 就好, 不用存 lit (lit: 涵蓋 phase 資訊)
     // f(X)
     // xi_list = pCNF->pVarNums;
