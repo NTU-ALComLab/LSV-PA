@@ -102,7 +102,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // }
     // cout << "nvars = " << pCNF->nVars << endl;
     // debug
-    // pSat->fPrintClause = true;
+    pSat->fPrintClause = true;
 
         // Obtain "VarShift" by extracting the max varnum() in CNF
     // int VarShift = 0, X_VarNum = pCNF->nVars
@@ -240,7 +240,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       sat_solver_addclause(pSat, &b2_clause[0], &b2_clause[b2_clause.size()]);
     }
     // debug
-    // pSat->fPrintClause = false;
+    pSat->fPrintClause = false;
     // 4. Solve a non-trivial variable partition
     bool find_partition = false;
     for (int i = 0 ; i < count_used-1 ; ++i)
@@ -293,9 +293,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // proof/abs/absOldSat.c --> how "sat_solver_final" work
             // sat/bmc/bmcEco.c --> how "sat_solver_final" work
         // cout << "17" << endl;
-        // debug
-        pSat->fPrintClause = true;
-
         solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[assumpList.size()], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
             // if UNSAT, get relevant SAT literals
         int nCoreLits, * pCoreLits;
