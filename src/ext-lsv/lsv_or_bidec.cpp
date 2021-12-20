@@ -71,7 +71,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
 
     // debug
     pSat->fPrintClause = true;
-    
+
         // Obtain "VarShift" by extracting the max varnum() in CNF
     int VarShift = 0, X_VarNum = pCNF->nVars, f_X_var = pCNF->pVarNums[PO_id];
     // int *xi_list, *xi_prime_list, *xi_prime2_list;  // 存 var list pointer 就好, 不用存 lit (lit: 涵蓋 phase 資訊)
@@ -85,6 +85,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // cout << "2" << endl;
         // sat_solver_addclause (參考 cnfMan.c 的用法)
     sat_solver_addclause(pSat, f_X, f_X+1);
+
+    // debug
+    pSat->fPrintClause = false;
+
     for (int i = 0 ; i < X_VarNum ; ++i)
     {
         // cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
