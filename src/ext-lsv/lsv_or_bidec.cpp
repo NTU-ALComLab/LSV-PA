@@ -130,10 +130,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     int *f_X_prime = &f_X_prime_lit;
     // cout << "4" << endl;
     // debug
-    pSat->fPrintClause = true;
+    // pSat->fPrintClause = true;
     sat_solver_addclause(pSat, f_X_prime, f_X_prime+1);
     // debug
-    pSat->fPrintClause = false;
+    // pSat->fPrintClause = false;
         // add function content f(X')
     for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // negate f(X'')
@@ -147,7 +147,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     int f_X_prime2_lit = Abc_Var2Lit(f_X_var + 2*VarShift, 1);
     int *f_X_prime2 = &f_X_prime2_lit;
     // cout << "6" << endl;
+    // debug
+    pSat->fPrintClause = true;
     sat_solver_addclause(pSat, f_X_prime2, f_X_prime2+1);
+    // debug
+    pSat->fPrintClause = false;
         // add function content f(X')
     for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // addVar controlling variable (a_i & b_i) * nVar 個 (= count_used 個)
