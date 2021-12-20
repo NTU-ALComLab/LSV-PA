@@ -82,8 +82,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     sat_solver_addclause(pSat, f_X, f_X+1);
     for (int i = 0 ; i < X_VarNum ; ++i)
     {
-        // if unused, no need to be stored
-        if (pCNF->pVarNums[i] == -1) { continue; }
         // cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
         if (pCNF->pVarNums[i] > VarShift) { VarShift = pCNF->pVarNums[i]; }
         // cout << "varnum : " << pCNF->pVarNums[i] << endl;
@@ -169,7 +167,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           if (k == i) 
           { 
             // cout << "11" << endl;
-            assumpList.push_back((control_a[k], 0));
+            assumpList.push_back(Abc_Var2Lit(control_a[k], 0));
             assumpList.push_back(Abc_Var2Lit(control_b[k], 1));
             // cout << "12" << endl;
             count += 2;
