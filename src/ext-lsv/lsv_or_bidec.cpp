@@ -71,6 +71,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     {
       cout << "node" << node << " Id : " << pObj->Id << endl;
     }
+    cout << "final node : " << node << endl;
     // Aig_ManForEachObj(pAig, pObj, node_PI) 
     // { 
     //   // PI
