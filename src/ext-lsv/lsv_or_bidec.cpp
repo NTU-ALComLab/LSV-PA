@@ -220,7 +220,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           printf("PO %s support partition: 1\n", Abc_ObjName(ntk_PO));
           for (int k = 0 ; k < nCoreLits ; ++k)
           {
-            if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) && \
+            if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
                 (std::find(control_b.begin(), control_b.end(), int(pCoreLits[k]/2)) != control_b.end()))
             {
               ans_candidate.push_back(int(pCoreLits[k]/2));
