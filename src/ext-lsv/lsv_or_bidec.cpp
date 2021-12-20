@@ -69,6 +69,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
     pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
 
+    for (int i = 0 ; i < pCNF->nVars ; ++i)
+    {
+      cout << "x" << i << " varnum : " << pCNF->pVarNums[i] << endl;
+    }
     // debug
     pSat->fPrintClause = true;
 
@@ -87,7 +91,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     sat_solver_addclause(pSat, f_X, f_X+1);
 
     // debug
-    pSat->fPrintClause = false;
+    // pSat->fPrintClause = false;
 
     for (int i = 0 ; i < X_VarNum ; ++i)
     {
@@ -115,17 +119,29 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // cout << "count_used : " << count_used << endl;
     // negate f(X')
     Cnf_DataLift(pCNF, VarShift);
+    for (int i = 0 ; i < pCNF->nVars ; ++i)
+    {
+      cout << "x" << i << " prime varnum : " << pCNF->pVarNums[i] << endl;
+    }
     // xi_prime_list = pCNF->pVarNums;
         // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
     // cout << "3" << endl;
     int f_X_prime_lit = Abc_Var2Lit(f_X_var + VarShift, 1);
     int *f_X_prime = &f_X_prime_lit;
     // cout << "4" << endl;
+    // debug
+    pSat->fPrintClause = true;
     sat_solver_addclause(pSat, f_X_prime, f_X_prime+1);
+    // debug
+    pSat->fPrintClause = false;
         // add function content f(X')
     for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // negate f(X'')
     Cnf_DataLift(pCNF, VarShift);
+    for (int i = 0 ; i < pCNF->nVars ; ++i)
+    {
+      cout << "x" << i << " prime2 varnum : " << pCNF->pVarNums[i] << endl;
+    }
     // xi_prime2_list = pCNF->pVarNums;
     // cout << "5" << endl;
     int f_X_prime2_lit = Abc_Var2Lit(f_X_var + 2*VarShift, 1);
