@@ -77,9 +77,9 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Aig_ManForEachObj(pAig, pObj, node)
     {
       cout << "node" << node << " Id : " << pObj->Id << endl;
-      if (pCNF->pVarNums[pObj->Id] > VarShift) { VarShift = pCNF->pVarNums[pObj->Id]; }
     }
     cout << "final node : " << node << endl;
+    VarShift = node;
     // Aig_ManForEachObj(pAig, pObj, node_PI) 
     // { 
     //   // PI
@@ -195,7 +195,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     sat_solver_addclause(pSat, f_X_prime2, f_X_prime2+1);
     // debug
     // pSat->fPrintClause = false;
-        // add function content f(X')
+        // add function content f(X'')
     for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // addVar controlling variable (a_i & b_i) * nVar 個 (= count_used 個)
         // sat_solver_addvar 會回傳 new variable 的 number, 要記錄下來 (maybe array)
