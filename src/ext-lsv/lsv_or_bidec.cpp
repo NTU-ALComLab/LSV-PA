@@ -91,7 +91,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       cout << "x" << i << " varnum : " << pCNF->pVarNums[i] << endl;
     }
     cout << "nvars = " << pCNF->nVars << endl;
-    cout << "pCNF->pVarNums.size() = " << sizeof(pCNF->pVarNums)/sizeof(pCNF->pVarNums[0]) << endl;
+    cout << "pCNF->pVarNums.size() = " << pCNF->pVarNums.size() << endl;
     // debug
     pSat->fPrintClause = true;
 
