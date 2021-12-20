@@ -63,7 +63,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Aig_Obj_t* PO;
     Aig_Obj_t* pObj;
     int node_PO, node_PI, PO_id;
-    Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; }
+    // Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; }
     vector<int> PI_var_list;
     Aig_ManForEachObj(pAig, pObj, node_PI) 
     { 
@@ -77,7 +77,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       if (Aig_ObjType(pObj) == 3)
       {
         cout << "PO varnum : " << pObj->Id << endl;
-        // PO_id = PO->Id;
+        PO_id = PO->Id;
       }
     }
     // 3. Construct CNF formula --> f(X)
