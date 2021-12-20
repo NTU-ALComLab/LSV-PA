@@ -63,7 +63,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Aig_Obj_t* PO;
     Aig_Obj_t* pObj;
     int node_PO, node_PI, PO_id;
-    // Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; }
+    Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; cout << "PO Id Each Co : " << PO->Id << endl; }
     vector<int> PI_var_list;
     Aig_ManForEachObj(pAig, pObj, node_PI) 
     { 
@@ -76,8 +76,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       // PO
       if (Aig_ObjType(pObj) == 3)
       {
-        cout << "PO Id : " << pObj->Id << endl;
-        PO_id = pObj->Id;
+        cout << "PO Id Each Obj : " << pObj->Id << endl;
+        // PO_id = pObj->Id;
       }
     }
     // 3. Construct CNF formula --> f(X)
@@ -86,12 +86,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
     pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
 
-    for (int i = 0 ; i < sizeof(pCNF->pVarNums)/sizeof(pCNF->pVarNums[0]) ; ++i)
+    for (int i = 0 ; i < pCNF->nVars ; ++i)
     {
       cout << "x" << i << " varnum : " << pCNF->pVarNums[i] << endl;
     }
     cout << "nvars = " << pCNF->nVars << endl;
-    cout << "pCNF->pVarNums.size() = " << pCNF->pVarNums.size() << endl;
     // debug
     pSat->fPrintClause = true;
 
