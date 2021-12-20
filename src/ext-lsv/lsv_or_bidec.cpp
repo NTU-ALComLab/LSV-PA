@@ -61,36 +61,37 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Aig_Man_t* pAig = Abc_NtkToDar(pNtk_support, 0, 0);
         // 找 aig 的 PO (看 type 或 foreachaigpo) --> 參考 PA1 line 84
     Aig_Obj_t* PO;
-    Aig_Obj_t* pObj;
+    Aig_Obj_t* PI;
     int node_PO, node_PI, PO_id;
-    Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; cout << "PO Id Each Co : " << PO->Id << endl; }
     vector<int> PI_var_list;
-    Aig_ManForEachObj(pAig, pObj, node_PI) 
-    { 
-      // PI
-      if (Aig_ObjType(pObj) == 2)
-      {
-        cout << "PI Id : " << pObj->Id << endl;
-        PI_var_list.push_back(pObj->Id);
-      }
-      // PO
-      if (Aig_ObjType(pObj) == 3)
-      {
-        cout << "PO Id Each Obj : " << pObj->Id << endl;
-        // PO_id = pObj->Id;
-      }
-    }
+    Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; cout << "PO Id Each Co : " << PO->Id << endl; }
+    Aig_ManForEachCi(pAig, PI, node_PO) { PI_var_list.push_back(PI->Id);; cout << "PI Id Each Ci : " << PI->Id << endl; }
+    // Aig_ManForEachObj(pAig, pObj, node_PI) 
+    // { 
+    //   // PI
+    //   if (Aig_ObjType(pObj) == 2)
+    //   {
+    //     cout << "PI Id : " << pObj->Id << endl;
+    //     PI_var_list.push_back(pObj->Id);
+    //   }
+    //   // PO
+    //   if (Aig_ObjType(pObj) == 3)
+    //   {
+    //     cout << "PO Id Each Obj : " << pObj->Id << endl;
+    //     // PO_id = pObj->Id;
+    //   }
+    // }
     // 3. Construct CNF formula --> f(X)
         // cnf.h --> struct Cnf_Dat_t_
         // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
     Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
     pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
 
-    for (int i = 0 ; i < pCNF->nVars ; ++i)
-    {
-      cout << "x" << i << " varnum : " << pCNF->pVarNums[i] << endl;
-    }
-    cout << "nvars = " << pCNF->nVars << endl;
+    // for (int i = 0 ; i < pCNF->nVars ; ++i)
+    // {
+    //   cout << "x" << i << " varnum : " << pCNF->pVarNums[i] << endl;
+    // }
+    // cout << "nvars = " << pCNF->nVars << endl;
     // debug
     pSat->fPrintClause = true;
 
@@ -147,10 +148,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // cout << "count_used : " << count_used << endl;
     // negate f(X')
     Cnf_DataLift(pCNF, VarShift);
-    for (int i = 0 ; i < pCNF->nVars ; ++i)
-    {
-      cout << "x" << i << " prime varnum : " << pCNF->pVarNums[i] << endl;
-    }
+    // for (int i = 0 ; i < pCNF->nVars ; ++i)
+    // {
+    //   cout << "x" << i << " prime varnum : " << pCNF->pVarNums[i] << endl;
+    // }
     // xi_prime_list = pCNF->pVarNums;
         // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
     // cout << "3" << endl;
@@ -167,10 +168,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // negate f(X'')
     Cnf_DataLift(pCNF, VarShift);
-    for (int i = 0 ; i < pCNF->nVars ; ++i)
-    {
-      cout << "x" << i << " prime2 varnum : " << pCNF->pVarNums[i] << endl;
-    }
+    // for (int i = 0 ; i < pCNF->nVars ; ++i)
+    // {
+    //   cout << "x" << i << " prime2 varnum : " << pCNF->pVarNums[i] << endl;
+    // }
     // xi_prime2_list = pCNF->pVarNums;
     // cout << "5" << endl;
     int f_X_prime2_lit = Abc_Var2Lit(f_X_var + 2*VarShift, 1);
