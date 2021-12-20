@@ -130,6 +130,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           xi_prime_list.push_back(pCNF->pVarNums[i] + VarShift);
           xi_prime2_list.push_back(pCNF->pVarNums[i] + 2*VarShift);
           ++count_used;
+          cout << "pCNF->pVarNums[PI->Id] : " << pCNF->pVarNums[i] << endl;
           // cout << "in" << endl;
         }
         // cout << "global : " << pCNF->pVarNums[i] << endl;
