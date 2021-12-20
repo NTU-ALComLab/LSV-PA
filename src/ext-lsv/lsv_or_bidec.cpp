@@ -103,7 +103,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
 
         // Obtain "VarShift" by extracting the max varnum() in CNF
     // int VarShift = 0, X_VarNum = pCNF->nVars
-    int VarShift = node;
+    int VarShift = 0;
     int f_X_var = pCNF->pVarNums[PO_id];
     cout << "pCNF->pVarNums[PO_id] : " << f_X_var << endl;
     // int *xi_list, *xi_prime_list, *xi_prime2_list;  // 存 var list pointer 就好, 不用存 lit (lit: 涵蓋 phase 資訊)
@@ -122,12 +122,12 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // debug
     // pSat->fPrintClause = false;
 
-    // for (int i = 0 ; i < X_VarNum ; ++i)
-    // {
-    //     // cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
-    //     if (pCNF->pVarNums[i] > VarShift) { VarShift = pCNF->pVarNums[i]; }
-    //     // cout << "varnum : " << pCNF->pVarNums[i] << endl;
-    // } 
+    for (int i = 0 ; i < pCNF->nVars ; ++i)
+    {
+        // cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
+        if (pCNF->pVarNums[i] > VarShift) { VarShift = pCNF->pVarNums[i]; }
+        // cout << "varnum : " << pCNF->pVarNums[i] << endl;
+    } 
     cout << "VarShift = " << VarShift << endl;
     vector<int> xi_list, xi_prime_list, xi_prime2_list;
     int count_used = 0;
