@@ -66,7 +66,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     int node_PO, node_PI, node, PO_id;
     vector<int> PI_var_list;
     Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; cout << "PO Id Each Co : " << PO->Id << endl; }
-    Aig_ManForEachCi(pAig, PI, node_PI) { PI_var_list.push_back(PI->Id);; cout << "PI Id Each Ci : " << PI->Id << endl; }
+    Aig_ManForEachCi(pAig, PI, node_PI) { PI_var_list.push_back(PI->Id); cout << "PI Id Each Ci : " << PI->Id << endl; }
     Aig_ManForEachObj(pAig, pObj, node)
     {
       cout << "node" << node << " Id : " << pObj->Id << endl;
@@ -268,11 +268,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // cout << "16" << endl;
             // count += 2;
           }
-        }
-        for (int k = 0 ; k < count_used ; ++k)
-        {
-          cout << "assumpList control_a Id : " << assumpList[2*k] << endl;
-          cout << "assumpList control_b Id : " << assumpList[2*k+1] << endl;
         }
         // cout << "count : " << count << endl;
         // pass into sat_solver_solve
