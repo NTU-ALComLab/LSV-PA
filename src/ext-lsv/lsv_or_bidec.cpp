@@ -217,7 +217,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       // ?????? sat_solver_addvar return "s->size-1"
       // a
       sat_solver_addvar(pSat);
-      control_a.push_back(control_begin + count_control));
+      control_a.push_back(control_begin + count_control);
       ++count_control;
       // b
       sat_solver_addvar(pSat);
