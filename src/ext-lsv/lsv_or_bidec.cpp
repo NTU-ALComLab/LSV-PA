@@ -53,9 +53,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Abc_Ntk_t* pNtk_support;
     sat_solver* pSat;
 
-    // debug
-    pSat->fPrintClause = true;
-    
     // 1. Store support X as a circuit network 
     pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(ntk_PO), Abc_ObjName(ntk_PO), 0);
     pNtk_support = Abc_NtkStrash(pNtk_support, 0, 0, 0);
@@ -71,6 +68,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
     Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
     pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
+
+    // debug
+    pSat->fPrintClause = true;
+    
         // Obtain "VarShift" by extracting the max varnum() in CNF
     int VarShift = 0, X_VarNum = pCNF->nVars, f_X_var = pCNF->pVarNums[PO_id];
     // int *xi_list, *xi_prime_list, *xi_prime2_list;  // 存 var list pointer 就好, 不用存 lit (lit: 涵蓋 phase 資訊)
