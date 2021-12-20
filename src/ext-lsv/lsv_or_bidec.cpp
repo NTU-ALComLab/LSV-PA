@@ -104,9 +104,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // debug
     pSat->fPrintClause = true;
 
-    // debug 
-    for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
-
         // Obtain "VarShift" by extracting the max varnum() in CNF
     // int VarShift = 0, X_VarNum = pCNF->nVars
     // int VarShift = 0;
@@ -158,6 +155,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // }
         // cout << "global : " << pCNF->pVarNums[i] << endl;
     } 
+
+    // debug 
+    for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
+
     // cout << "size : " << sizeof(pCNF->pVarNums)/sizeof(int) << endl;
     // cout << "nVar : " << pCNF->nVars << endl;
     // cout << "count_used : " << count_used << endl;
