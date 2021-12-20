@@ -70,13 +70,13 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       // PI
       if (Aig_ObjType(pObj) == 2)
       {
-        cout << "PI varnum : " << pObj->Id << endl;
+        cout << "PI Id : " << pObj->Id << endl;
         PI_var_list.push_back(pObj->Id);
       }
       // PO
       if (Aig_ObjType(pObj) == 3)
       {
-        cout << "PO varnum : " << pObj->Id << endl;
+        cout << "PO Id : " << pObj->Id << endl;
         PO_id = pObj->Id;
       }
     }
@@ -120,19 +120,24 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     } 
     vector<int> xi_list, xi_prime_list, xi_prime2_list;
     int count_used = 0;
-    for (int i = 0 ; i < X_VarNum ; ++i)
+    for (int i = 0 ; i < PI_var_list.size() ; ++i)
     {
-        // if unused, no need to be stored
-        if ((pCNF->pVarNums[i] != -1) && \
-            (std::find(PI_var_list.begin(), PI_var_list.end(), pCNF->pVarNums[i]) != PI_var_list.end())) 
-        { 
-          xi_list.push_back(pCNF->pVarNums[i]); 
-          xi_prime_list.push_back(pCNF->pVarNums[i] + VarShift);
-          xi_prime2_list.push_back(pCNF->pVarNums[i] + 2*VarShift);
-          ++count_used;
-          cout << "pCNF->pVarNums[PI->Id] : " << pCNF->pVarNums[i] << endl;
-          // cout << "in" << endl;
-        }
+        xi_list.push_back(pCNF->pVarNums[PI_var_list[i]]); 
+        xi_prime_list.push_back(pCNF->pVarNums[PI_var_list[i]] + VarShift);
+        xi_prime2_list.push_back(pCNF->pVarNums[PI_var_list[i]] + 2*VarShift);
+        ++count_used;
+        cout << "pCNF->pVarNums[PI->Id] : " << pCNF->pVarNums[PI_var_list[i]] << endl;
+        // // if unused, no need to be stored
+        // if ((pCNF->pVarNums[i] != -1) && \
+        //     (std::find(PI_var_list.begin(), PI_var_list.end(), pCNF->pVarNums[i]) != PI_var_list.end())) 
+        // { 
+        //   xi_list.push_back(pCNF->pVarNums[i]); 
+        //   xi_prime_list.push_back(pCNF->pVarNums[i] + VarShift);
+        //   xi_prime2_list.push_back(pCNF->pVarNums[i] + 2*VarShift);
+        //   ++count_used;
+        //   cout << "pCNF->pVarNums[PI->Id] : " << pCNF->pVarNums[i] << endl;
+        //   // cout << "in" << endl;
+        // }
         // cout << "global : " << pCNF->pVarNums[i] << endl;
     } 
     // cout << "size : " << sizeof(pCNF->pVarNums)/sizeof(int) << endl;
