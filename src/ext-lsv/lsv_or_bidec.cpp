@@ -64,12 +64,14 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Aig_Obj_t* pObj;
     int node_PO, node_PI, PO_id;
     Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; }
+    vector<int> PI_var_list;
     Aig_ManForEachObj(pAig, pObj, node_PI) 
     { 
       // PI
       if (Aig_ObjType(pObj) == 2)
       {
         cout << "PI varnum : " << pObj->Id << endl;
+        PI_var_list.push_back(pObj->Id);
       }
       // PO
       if (Aig_ObjType(pObj) == 3)
@@ -121,7 +123,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     for (int i = 0 ; i < X_VarNum ; ++i)
     {
         // if unused, no need to be stored
-        if (pCNF->pVarNums[i] != -1) 
+        if ((pCNF->pVarNums[i] != -1) && \
+            (std::find(PI_var_list.begin(), PI_var_list.end(), pCNF->pVarNums[i]) != PI_var_list.end())) 
         { 
           xi_list.push_back(pCNF->pVarNums[i]); 
           xi_prime_list.push_back(pCNF->pVarNums[i] + VarShift);
