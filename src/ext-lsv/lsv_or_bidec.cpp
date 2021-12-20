@@ -76,7 +76,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Aig_ManForEachCi(pAig, PI, node_PI) { PI_var_list.push_back(PI->Id); cout << "PI Id Each Ci : " << PI->Id << endl; }
     Aig_ManForEachObj(pAig, pObj, node)
     {
-      cout << "node" << node << " Id : " << pObj->Id << endl;
+      cout << "node" << node << " Id : " << pObj->Id << " --> Type = " << Aig_ObjType(pObj) << endl;
     }
     cout << "final node : " << node << endl;
     VarShift = node;
@@ -155,9 +155,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // }
         // cout << "global : " << pCNF->pVarNums[i] << endl;
     } 
-
-    // debug 
-    for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
 
     // cout << "size : " << sizeof(pCNF->pVarNums)/sizeof(int) << endl;
     // cout << "nVar : " << pCNF->nVars << endl;
