@@ -284,6 +284,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         int nCoreLits, * pCoreLits;
         vector<int> ans_candidate;
         string ans = "";
+        cout << "solve ans = UNSAT / SAT ? " << solve_ans << endl;
         // cout << "18" << endl;
         if (solve_ans == l_False)
         {
