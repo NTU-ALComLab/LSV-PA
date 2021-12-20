@@ -234,8 +234,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     {
       for (int j = i+1 ; j < count_used ; ++j)
       {
-        int solve_ans;
-        cout << "partition find ? " << find_partition << endl; 
+        int solve_ans; 
         find_partition = false;
         vector<int> assumpList;
         // int count = 0;
@@ -332,6 +331,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           // cout << "ans : " << ans << endl;
           printf("%s\n", ans.c_str());
         }
+        cout << "partition find ? " << find_partition << endl;
         if (find_partition) { break; }
       }
       if (find_partition) { break; }
