@@ -227,11 +227,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       control_a.push_back(sat_solver_addvar(pSat));
       control_b.push_back(sat_solver_addvar(pSat));
     }
-    for (int i = 0 ; i < count_used ; ++i)
-    {
-      cout << "control a" << i << " : " << control_a[i] << endl;
-      cout << "control b" << i << " : " << control_b[i] << endl;
-    }
+    // for (int i = 0 ; i < count_used ; ++i)
+    // {
+    //   cout << "control a" << i << " : " << control_a[i] << endl;
+    //   cout << "control b" << i << " : " << control_b[i] << endl;
+    // }
         // Add clause of controlling variable 
         // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
     for (int i = 0 ; i < count_used ; ++i) 
@@ -293,11 +293,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // count += 2;
           }
         }
-        for (int k = 0 ; k < count_used ; ++k)
-        {
-          cout << "assumpList a" << k << " : " << assumpList[2*k] << endl;
-          cout << "assumpList b" << k << " : " << assumpList[2*k+1] << endl;
-        }
+        // for (int k = 0 ; k < count_used ; ++k)
+        // {
+        //   cout << "assumpList a" << k << " : " << assumpList[2*k] << endl;
+        //   cout << "assumpList b" << k << " : " << assumpList[2*k+1] << endl;
+        // }
         // cout << "count : " << count << endl;
         // pass into sat_solver_solve
             // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
@@ -325,7 +325,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           printf("PO %s support partition: 1\n", Abc_ObjName(ntk_PO));
           for (int k = 0 ; k < nCoreLits ; ++k)
           {
-            cout << "final conflict literal : " << pCoreLits[k] << " --> var : " << int(pCoreLits[k]/2) << endl;
+            // cout << "final conflict literal : " << pCoreLits[k] << " --> var : " << int(pCoreLits[k]/2) << endl;
             if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
                 (std::find(control_b.begin(), control_b.end(), int(pCoreLits[k]/2)) != control_b.end()))
             {
