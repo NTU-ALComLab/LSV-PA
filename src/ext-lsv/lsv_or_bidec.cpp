@@ -420,6 +420,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl;
       }
     }
+    else 
+    {
+      cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl;
+    }
   }
 }
 
