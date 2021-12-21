@@ -188,7 +188,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // pSat->fPrintClause = true;
     sat_solver_addclause(pSat, f_X_prime, f_X_prime+1);
     // debug
-    // pSat->fPrintClause = false;
+    pSat->fPrintClause = false;
         // add function content f(X')
     for (int i = 0 ; i < pCNF->nClauses ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // negate f(X'')
@@ -310,7 +310,6 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         if (solve_ans == l_False)
         {
           find_partition = true;
-          cout << "in" << endl;
           // cout << "19" << endl;
           nCoreLits = sat_solver_final(pSat, &pCoreLits);
           // cout << "20" << endl;
