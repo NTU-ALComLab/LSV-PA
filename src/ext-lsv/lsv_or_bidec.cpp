@@ -245,7 +245,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // }
         // Add clause of controlling variable 
         // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
-    int Big_AND[3];
+    // int Big_AND[3];
     for (int i = 0 ; i < count_used ; ++i) 
     {
       int a1_clause[3] = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
