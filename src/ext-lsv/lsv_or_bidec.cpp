@@ -86,7 +86,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // {
     //   cout << "node" << node << " Id : " << pObj->Id << " --> Type = " << Aig_ObjType(pObj) << endl;
     // }
-    // cout << "final node : " << node << endl;
+    cout << "final node : " << node << endl;
     VarShift = node;
     // Aig_ManForEachObj(pAig, pObj, node_PI) 
     // { 
