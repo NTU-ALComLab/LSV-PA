@@ -72,8 +72,16 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     int node_PO, node_PI, node, PO_id;
     int VarShift = 0;
     vector<int> PI_var_list;
-    Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; cout << "PO Id Each Co : " << PO->Id << endl; }
-    Aig_ManForEachCi(pAig, PI, node_PI) { PI_var_list.push_back(PI->Id); cout << "PI Id Each Ci : " << PI->Id << endl; }
+    Aig_ManForEachCo(pAig, PO, node_PO) 
+    { 
+      PO_id = PO->Id; 
+      // cout << "PO Id Each Co : " << PO->Id << endl; 
+    }
+    Aig_ManForEachCi(pAig, PI, node_PI) 
+    { 
+      PI_var_list.push_back(PI->Id); 
+      // cout << "PI Id Each Ci : " << PI->Id << endl; 
+    }
     // Aig_ManForEachObj(pAig, pObj, node)
     // {
     //   cout << "node" << node << " Id : " << pObj->Id << " --> Type = " << Aig_ObjType(pObj) << endl;
@@ -102,7 +110,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // }
     // cout << "nvars = " << pCNF->nVars << endl;
     // debug
-    pSat->fPrintClause = true;
+    // pSat->fPrintClause = true;
 
         // Obtain "VarShift" by extracting the max varnum() in CNF
     // int VarShift = 0, X_VarNum = pCNF->nVars
@@ -240,7 +248,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       sat_solver_addclause(pSat, &b2_clause[0], &b2_clause[b2_clause.size()]);
     }
     // debug
-    pSat->fPrintClause = false;
+    // pSat->fPrintClause = false;
     // 4. Solve a non-trivial variable partition
     bool find_partition = false;
     for (int i = 0 ; i < count_used-1 ; ++i)
