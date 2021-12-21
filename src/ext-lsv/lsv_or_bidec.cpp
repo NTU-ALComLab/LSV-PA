@@ -310,6 +310,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         if (solve_ans == l_False)
         {
           find_partition = true;
+          cout << "in" << endl;
           // cout << "19" << endl;
           nCoreLits = sat_solver_final(pSat, &pCoreLits);
           // cout << "20" << endl;
