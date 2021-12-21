@@ -55,6 +55,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
 
     // 1. Store support X as a circuit network 
     pNtk_support = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(ntk_PO), Abc_ObjName(ntk_PO), 0);
+    if ( Abc_ObjFaninC0(ntk_PO) ) { Abc_ObjXorFaninC( Abc_NtkPo(pNtk_support, 0), 0 ); }
     pNtk_support = Abc_NtkStrash(pNtk_support, 0, 1, 0);
 
     // 2. Derive equivalent "Aig_Man_t" from "Abc_Ntk_t"
@@ -63,7 +64,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // 3. Construct CNF formula --> f(X)
         // cnf.h --> struct Cnf_Dat_t_
         // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
-    Cnf_Dat_t* pCNF = Cnf_Derive(pAig, 1);
+    Cnf_Dat_t* pCNF = Cnf_Derive(pAig, Aig_ManCoNum(pAig));
     pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
 
     Aig_Obj_t* PO;
