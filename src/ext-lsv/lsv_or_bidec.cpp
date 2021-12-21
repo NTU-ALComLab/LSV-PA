@@ -82,11 +82,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       PI_var_list.push_back(PI->Id); 
       // cout << "PI Id Each Ci : " << PI->Id << endl; 
     }
-    // Aig_ManForEachObj(pAig, pObj, node)
-    // {
-    //   cout << "node" << node << " Id : " << pObj->Id << " --> Type = " << Aig_ObjType(pObj) << endl;
-    // }
-    cout << "final node : " << node << endl;
+    Aig_ManForEachObj(pAig, pObj, node)
+    {
+      cout << "node" << node << " Id : " << pObj->Id << " --> Type = " << Aig_ObjType(pObj) << endl;
+    }
+    // cout << "final node : " << node << endl;
     VarShift = node;
     // Aig_ManForEachObj(pAig, pObj, node_PI) 
     // { 
@@ -188,7 +188,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // pSat->fPrintClause = true;
     sat_solver_addclause(pSat, f_X_prime, f_X_prime+1);
     // debug
-    pSat->fPrintClause = false;
+    // pSat->fPrintClause = false;
         // add function content f(X')
     for (int i = 0 ; i < pCNF->nClauses ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // negate f(X'')
