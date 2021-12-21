@@ -337,10 +337,9 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                 // (4): if 只有 var_b = 0 --> 歸類在 xA
                 // (5): if 都不存在這些歸類, 代表哪邊都可以 --> either xA or xB --> 這邊統一丟在 xA
             // printf("PO %s support partition: 1\n", Abc_ObjName(ntk_PO));
-            cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl;
             for (int k = 0 ; k < nCoreLits ; ++k)
             {
-              cout << "int(pCoreLits[k]/2)) : " << int(pCoreLits[k]/2) << endl;
+              // cout << "int(pCoreLits[k]/2)) : " << int(pCoreLits[k]/2) << endl;
               // cout << "final conflict literal : " << pCoreLits[k] << " --> var : " << int(pCoreLits[k]/2) << endl;
               if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
                   (std::find(control_b.begin(), control_b.end(), int(pCoreLits[k]/2)) != control_b.end()))
@@ -390,6 +389,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // output : PO <po-name> support partition: 1
             //          <partition> (2: xA, 1: xB, 0: xC)
             // cout << "ans : " << ans << endl;
+            cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl;
             for (int k = 0 ; k < ans.size() ; ++k)
             {
               cout << ans[k];
