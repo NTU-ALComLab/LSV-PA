@@ -227,11 +227,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       control_a.push_back(sat_solver_addvar(pSat));
       control_b.push_back(sat_solver_addvar(pSat));
     }
-    // for (int i = 0 ; i < count_used ; ++i)
-    // {
-    //   cout << "control a" << i << " : " << control_a[i] << endl;
-    //   cout << "control b" << i << " : " << control_b[i] << endl;
-    // }
+    for (int i = 0 ; i < count_used ; ++i)
+    {
+      cout << "control a" << i << " : " << control_a[i] << endl;
+      cout << "control b" << i << " : " << control_b[i] << endl;
+    }
         // Add clause of controlling variable 
         // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
     for (int i = 0 ; i < count_used ; ++i) 
