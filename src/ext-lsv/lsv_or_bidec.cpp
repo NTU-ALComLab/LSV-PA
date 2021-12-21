@@ -265,137 +265,141 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // pSat->fPrintClause = false;
     // 4. Solve a non-trivial variable partition
     bool find_partition = false;
-    for (int i = 0 ; i < count_used-1 ; ++i)
+    // 若 PI 只有一個, 不會有 bidecomposition
+    if (count_used > 1)
     {
-      for (int j = i+1 ; j < count_used ; ++j)
+      for (int i = 0 ; i < count_used-1 ; ++i)
       {
-        int solve_ans; 
-        find_partition = false;
-        vector<int> assumpList;
-        // int count = 0;
-        // assumpList
-        for (int k = 0 ; k < count_used ; ++k)
+        for (int j = i+1 ; j < count_used ; ++j)
         {
-          // (x2_a, x2_b) = (0, 1) in xB
-          if (k == i) 
-          { 
-            // cout << "11" << endl;
-            assumpList.push_back(toLitCond(control_a[k], 1));
-            assumpList.push_back(toLitCond(control_b[k], 0));
-            // cout << "12" << endl;
-            // count += 2;
-          }
-          // (x1_a, x1_b) = (1, 0) in xA
-          else if (k == j)
-          {
-            // cout << "13" << endl;
-            assumpList.push_back(toLitCond(control_a[k], 0));
-            assumpList.push_back(toLitCond(control_b[k], 1));
-            // cout << "14" << endl;
-            // count += 2;
-          }
-          // other (0, 0) in xC
-          else 
-          {
-            // cout << "15" << endl;
-            assumpList.push_back(toLitCond(control_a[k], 1));
-            assumpList.push_back(toLitCond(control_b[k], 1));
-            // cout << "16" << endl;
-            // count += 2;
-          }
-        }
-        // for (int k = 0 ; k < count_used ; ++k)
-        // {
-        //   cout << "assumpList a" << k << " : " << assumpList[2*k] << endl;
-        //   cout << "assumpList b" << k << " : " << assumpList[2*k+1] << endl;
-        // }
-        // cout << "count : " << count << endl;
-        // pass into sat_solver_solve
-            // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
-            // proof/abs/absOldSat.c --> how "sat_solver_final" work
-            // sat/bmc/bmcEco.c --> how "sat_solver_final" work
-        // cout << "17" << endl;
-        solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[assumpList.size()], 0, 0, 0, 0);
-            // if UNSAT, get relevant SAT literals
-        int nCoreLits, * pCoreLits;
-        vector<int> ans_candidate;
-        string ans = "";
-        // cout << "18" << endl;
-        if (solve_ans == l_False)
-        {
-          find_partition = true;
-          // cout << "19" << endl;
-          nCoreLits = sat_solver_final(pSat, &pCoreLits);
-          // cout << "20" << endl;
-          // save literals
-              // (1): if int(lit/2)=var 不在 control_a, control_b 內 --> 丟掉不考慮 (考慮a, b ; 不考慮 x_i)
-              // (2): if var_a = 0 且 var_b = 0 --> 歸類在 xC
-              // (3): if 只有 var_a = 0 --> 歸類在 xB (a, b assume to be positive)
-              // (4): if 只有 var_b = 0 --> 歸類在 xA
-              // (5): if 都不存在這些歸類, 代表哪邊都可以 --> either xA or xB --> 這邊統一丟在 xA
-          printf("PO %s support partition: 1\n", Abc_ObjName(ntk_PO));
-          for (int k = 0 ; k < nCoreLits ; ++k)
-          {
-            // cout << "final conflict literal : " << pCoreLits[k] << " --> var : " << int(pCoreLits[k]/2) << endl;
-            if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
-                (std::find(control_b.begin(), control_b.end(), int(pCoreLits[k]/2)) != control_b.end()))
-            {
-              ans_candidate.push_back(int(pCoreLits[k]/2));
-            }
-          }
+          int solve_ans; 
+          find_partition = false;
+          vector<int> assumpList;
+          // int count = 0;
+          // assumpList
           for (int k = 0 ; k < count_used ; ++k)
           {
-            // 該 seed partition 自己成功分類的 node 要加進去
-            if (k == i)
-            {
-              ans.append("1");
-              continue;
+            // (x2_a, x2_b) = (0, 1) in xB
+            if (k == i) 
+            { 
+              // cout << "11" << endl;
+              assumpList.push_back(toLitCond(control_a[k], 1));
+              assumpList.push_back(toLitCond(control_b[k], 0));
+              // cout << "12" << endl;
+              // count += 2;
             }
-            if (k == j)
+            // (x1_a, x1_b) = (1, 0) in xA
+            else if (k == j)
             {
-              ans.append("2");
-              continue;
+              // cout << "13" << endl;
+              assumpList.push_back(toLitCond(control_a[k], 0));
+              assumpList.push_back(toLitCond(control_b[k], 1));
+              // cout << "14" << endl;
+              // count += 2;
             }
-            if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) != ans_candidate.end()) && \
-                (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
+            // other (0, 0) in xC
+            else 
             {
-              ans.append("0");
-              continue;
-            }
-            else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) != ans_candidate.end()) && \
-                      (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end()))
-            {
-              ans.append("1");
-              continue;
-            }
-            else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
-                      (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
-            {
-              ans.append("2");
-              continue;
-            }
-            else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
-                      (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end())) // 都沒在上面分類就全塞到 xB
-            {
-              ans.append("1");
-              continue;
+              // cout << "15" << endl;
+              assumpList.push_back(toLitCond(control_a[k], 1));
+              assumpList.push_back(toLitCond(control_b[k], 1));
+              // cout << "16" << endl;
+              // count += 2;
             }
           }
-          // cout << "22" << endl;
-          // output : PO <po-name> support partition: 1
-          //          <partition> (2: xA, 1: xB, 0: xC)
-          // cout << "ans : " << ans << endl;
-          printf("%s\n", ans.c_str());
+          // for (int k = 0 ; k < count_used ; ++k)
+          // {
+          //   cout << "assumpList a" << k << " : " << assumpList[2*k] << endl;
+          //   cout << "assumpList b" << k << " : " << assumpList[2*k+1] << endl;
+          // }
+          // cout << "count : " << count << endl;
+          // pass into sat_solver_solve
+              // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
+              // proof/abs/absOldSat.c --> how "sat_solver_final" work
+              // sat/bmc/bmcEco.c --> how "sat_solver_final" work
+          // cout << "17" << endl;
+          solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[assumpList.size()], 0, 0, 0, 0);
+              // if UNSAT, get relevant SAT literals
+          int nCoreLits, * pCoreLits;
+          vector<int> ans_candidate;
+          string ans = "";
+          // cout << "18" << endl;
+          if (solve_ans == l_False)
+          {
+            find_partition = true;
+            // cout << "19" << endl;
+            nCoreLits = sat_solver_final(pSat, &pCoreLits);
+            // cout << "20" << endl;
+            // save literals
+                // (1): if int(lit/2)=var 不在 control_a, control_b 內 --> 丟掉不考慮 (考慮a, b ; 不考慮 x_i)
+                // (2): if var_a = 0 且 var_b = 0 --> 歸類在 xC
+                // (3): if 只有 var_a = 0 --> 歸類在 xB (a, b assume to be positive)
+                // (4): if 只有 var_b = 0 --> 歸類在 xA
+                // (5): if 都不存在這些歸類, 代表哪邊都可以 --> either xA or xB --> 這邊統一丟在 xA
+            printf("PO %s support partition: 1\n", Abc_ObjName(ntk_PO));
+            for (int k = 0 ; k < nCoreLits ; ++k)
+            {
+              // cout << "final conflict literal : " << pCoreLits[k] << " --> var : " << int(pCoreLits[k]/2) << endl;
+              if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
+                  (std::find(control_b.begin(), control_b.end(), int(pCoreLits[k]/2)) != control_b.end()))
+              {
+                ans_candidate.push_back(int(pCoreLits[k]/2));
+              }
+            }
+            for (int k = 0 ; k < count_used ; ++k)
+            {
+              // 該 seed partition 自己成功分類的 node 要加進去
+              if (k == i)
+              {
+                ans.append("1");
+                continue;
+              }
+              if (k == j)
+              {
+                ans.append("2");
+                continue;
+              }
+              if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) != ans_candidate.end()) && \
+                  (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
+              {
+                ans.append("0");
+                continue;
+              }
+              else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) != ans_candidate.end()) && \
+                        (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end()))
+              {
+                ans.append("1");
+                continue;
+              }
+              else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
+                        (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
+              {
+                ans.append("2");
+                continue;
+              }
+              else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
+                        (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end())) // 都沒在上面分類就全塞到 xB
+              {
+                ans.append("1");
+                continue;
+              }
+            }
+            // cout << "22" << endl;
+            // output : PO <po-name> support partition: 1
+            //          <partition> (2: xA, 1: xB, 0: xC)
+            // cout << "ans : " << ans << endl;
+            printf("%s\n", ans.c_str());
+          }
+          // cout << "partition find ? " << find_partition << endl;
+          if (find_partition) { break; }
         }
-        // cout << "partition find ? " << find_partition << endl;
         if (find_partition) { break; }
       }
-      if (find_partition) { break; }
-    }
-    if (!find_partition)
-    {
-      // output : PO <po-name> support partition: 0
-      printf("PO %s support partition: 0\n", Abc_ObjName(ntk_PO));
+      if (!find_partition)
+      {
+        // output : PO <po-name> support partition: 0
+        printf("PO %s support partition: 0\n", Abc_ObjName(ntk_PO));
+      }
     }
   }
 }
