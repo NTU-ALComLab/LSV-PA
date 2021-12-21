@@ -245,21 +245,33 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // }
         // Add clause of controlling variable 
         // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
+    int Big_AND[3];
     for (int i = 0 ; i < count_used ; ++i) 
     {
+      int a1_clause[3] = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
+      sat_solver_addclause(pSat, a1_clause, a1_clause + 3);
+
+      int a2_clause[3] = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
+      sat_solver_addclause(pSat, a2_clause, a2_clause + 3);
+
+      int b1_clause[3] = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime2_list[i], 0), Abc_Var2Lit(control_b[i], 0)};
+      sat_solver_addclause(pSat, b1_clause, b1_clause + 3);
+
+      int b2_clause[3] = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
+      sat_solver_addclause(pSat, b2_clause, b2_clause + 3);
       // cout << "7" << endl;
       // cout << "xi_list[i] : " << xi_list[i] << " / xi_prime_list[i] : " << xi_prime_list[i] << " / control_a[i] : " << control_a[i] << endl;
-      vector<int> a1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
-      // cout << "8" << endl;
-      vector<int> a2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
-      // cout << "9" << endl;
-      vector<int> b1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime2_list[i], 0), Abc_Var2Lit(control_b[i], 0)};
-      // cout << "10" << endl;
-      vector<int> b2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
-      sat_solver_addclause(pSat, &a1_clause[0], &a1_clause[a1_clause.size()]);
-      sat_solver_addclause(pSat, &a2_clause[0], &a2_clause[a2_clause.size()]);
-      sat_solver_addclause(pSat, &b1_clause[0], &b1_clause[b1_clause.size()]);
-      sat_solver_addclause(pSat, &b2_clause[0], &b2_clause[b2_clause.size()]);
+      // vector<int> a1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
+      // // cout << "8" << endl;
+      // vector<int> a2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
+      // // cout << "9" << endl;
+      // vector<int> b1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime2_list[i], 0), Abc_Var2Lit(control_b[i], 0)};
+      // // cout << "10" << endl;
+      // vector<int> b2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
+      // sat_solver_addclause(pSat, &a1_clause[0], &a1_clause[a1_clause.size()]);
+      // sat_solver_addclause(pSat, &a2_clause[0], &a2_clause[a2_clause.size()]);
+      // sat_solver_addclause(pSat, &b1_clause[0], &b1_clause[b1_clause.size()]);
+      // sat_solver_addclause(pSat, &b2_clause[0], &b2_clause[b2_clause.size()]);
     }
     // debug
     // pSat->fPrintClause = false;
