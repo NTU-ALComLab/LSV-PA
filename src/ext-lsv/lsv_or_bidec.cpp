@@ -349,9 +349,9 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
               ans.append("2");
             }
             else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
-                      (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end())) // 都沒在上面分類就全塞到 xA
+                      (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end())) // 都沒在上面分類就全塞到 xB
             {
-              ans.append("2");
+              ans.append("1");
             }
           }
           // cout << "22" << endl;
