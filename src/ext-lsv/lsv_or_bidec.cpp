@@ -258,8 +258,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           if (k == i) 
           { 
             // cout << "11" << endl;
-            assumpList.push_back(Abc_Var2Lit(control_a[k], 0));
-            assumpList.push_back(Abc_Var2Lit(control_b[k], 1));
+            assumpList.push_back(toLitCond(control_a[k], 0));
+            assumpList.push_back(toLitCond(control_b[k], 1));
             // cout << "12" << endl;
             // count += 2;
           }
@@ -267,8 +267,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           else if (k == j)
           {
             // cout << "13" << endl;
-            assumpList.push_back(Abc_Var2Lit(control_a[k], 1));
-            assumpList.push_back(Abc_Var2Lit(control_b[k], 0));
+            assumpList.push_back(toLitCond(control_a[k], 1));
+            assumpList.push_back(toLitCond(control_b[k], 0));
             // cout << "14" << endl;
             // count += 2;
           }
@@ -276,8 +276,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           else 
           {
             // cout << "15" << endl;
-            assumpList.push_back(Abc_Var2Lit(control_a[k], 1));
-            assumpList.push_back(Abc_Var2Lit(control_b[k], 1));
+            assumpList.push_back(toLitCond(control_a[k], 1));
+            assumpList.push_back(toLitCond(control_b[k], 1));
             // cout << "16" << endl;
             // count += 2;
           }
