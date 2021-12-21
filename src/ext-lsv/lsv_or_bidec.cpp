@@ -85,12 +85,14 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // }
     Aig_ManForEachObj(pAig, pObj, node)
     {
+      node = pCNF->pVarNums[pObj->Id];
+      if (node > VarShift) { VarShift = node; }
       // cout << "node" << node << " Id : " << pObj->Id << " --> Type = " << Aig_ObjType(pObj) << endl;
       if (Aig_ObjType(pObj) == AIG_OBJ_CI) { PI_var_list.push_back(pObj->Id); }
       if (Aig_ObjType(pObj) == AIG_OBJ_CO) { PO_id = pObj->Id; }
     }
     // cout << "final node : " << node << endl;
-    VarShift = node;
+    // VarShift = node;
     // Aig_ManForEachObj(pAig, pObj, node_PI) 
     // { 
     //   // PI
@@ -221,12 +223,20 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // sat_solver_addvar 會回傳 new variable 的 number, 要記錄下來 (maybe array)
     vector<int> control_a, control_b; 
     // cout << "count_used = " << count_used << " / PI_var_size = " << PI_var_list.size() << endl;
+    int a_begin = 3*VarShift + 1;
+    int a_end = a_begin + count_used - 1;
+    int b_begin = a_end + 1;
+    int b_end = b_begin + count_used - 1;
     for (int i = 0 ; i < count_used ; ++i)
     {
+      sat_solver_addvar(pSat);
+      sat_solver_addvar(pSat);
       // ?????? sat_solver_addvar return "s->size-1"
-      control_a.push_back(sat_solver_addvar(pSat));
-      control_b.push_back(sat_solver_addvar(pSat));
+      // control_a.push_back(sat_solver_addvar(pSat));
+      // control_b.push_back(sat_solver_addvar(pSat));
     }
+    for (int i = a_begin ; i < a_end + 1 ; ++i) { control_a.push_back(i); }
+    for (int i = b_begin ; i < b_end + 1 ; ++i) { control_b.push_back(i); }
     // for (int i = 0 ; i < count_used ; ++i)
     // {
     //   cout << "control a" << i << " : " << control_a[i] << endl;
@@ -304,7 +314,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // proof/abs/absOldSat.c --> how "sat_solver_final" work
             // sat/bmc/bmcEco.c --> how "sat_solver_final" work
         // cout << "17" << endl;
-        solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[assumpList.size()], (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0, (ABC_INT64_T)0);
+        solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[assumpList.size()], 0, 0, 0, 0);
             // if UNSAT, get relevant SAT literals
         int nCoreLits, * pCoreLits;
         vector<int> ans_candidate;
