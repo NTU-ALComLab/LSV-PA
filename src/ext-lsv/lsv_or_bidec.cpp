@@ -72,19 +72,21 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     int node_PO, node_PI, node, PO_id;
     int VarShift = 0;
     vector<int> PI_var_list;
-    Aig_ManForEachCo(pAig, PO, node_PO) 
-    { 
-      PO_id = PO->Id; 
-      // cout << "PO Id Each Co : " << PO->Id << endl; 
-    }
-    Aig_ManForEachCi(pAig, PI, node_PI) 
-    { 
-      PI_var_list.push_back(PI->Id); 
-      // cout << "PI Id Each Ci : " << PI->Id << endl; 
-    }
+    // Aig_ManForEachCo(pAig, PO, node_PO) 
+    // { 
+    //   PO_id = PO->Id; 
+    //   // cout << "PO Id Each Co : " << PO->Id << endl; 
+    // }
+    // Aig_ManForEachCi(pAig, PI, node_PI) 
+    // { 
+    //   PI_var_list.push_back(PI->Id); 
+    //   // cout << "PI Id Each Ci : " << PI->Id << endl; 
+    // }
     Aig_ManForEachObj(pAig, pObj, node)
     {
-      cout << "node" << node << " Id : " << pObj->Id << " --> Type = " << Aig_ObjType(pObj) << endl;
+      // cout << "node" << node << " Id : " << pObj->Id << " --> Type = " << Aig_ObjType(pObj) << endl;
+      if (Aig_ObjType(pObj) == AIG_OBJ_CI) { PI_var_list.push_back(PI->Id); }
+      if (Aig_ObjType(pObj) == AIG_OBJ_CO) { PO_id = PO->Id; }
     }
     // cout << "final node : " << node << endl;
     VarShift = node;
