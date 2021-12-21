@@ -182,7 +182,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // debug
     // pSat->fPrintClause = false;
         // add function content f(X')
-    for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
+    for (int i = 0 ; i < pCNF->nClauses ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // negate f(X'')
     Cnf_DataLift(pCNF, VarShift);
     for (int i = 0 ; i < PI_var_list.size() ; ++i)
@@ -205,7 +205,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // debug
     // pSat->fPrintClause = false;
         // add function content f(X'')
-    for (int i = 0 ; i < count_used ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
+    for (int i = 0 ; i < pCNF->nClauses ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // addVar controlling variable (a_i & b_i) * nVar 個 (= count_used 個)
         // sat_solver_addvar 會回傳 new variable 的 number, 要記錄下來 (maybe array)
     vector<int> control_a, control_b; 
