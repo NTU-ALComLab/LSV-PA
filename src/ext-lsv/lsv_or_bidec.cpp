@@ -60,30 +60,16 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
 
     // 2. Derive equivalent "Aig_Man_t" from "Abc_Ntk_t"
     Aig_Man_t* pAig = Abc_NtkToDar(pNtk_support, 0, 1);
-        // 找 aig 的 PO (看 type 或 foreachaigpo) --> 參考 PA1 line 84
-        // 3. Construct CNF formula --> f(X)
-        // cnf.h --> struct Cnf_Dat_t_
-        // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
+    // 3. Construct CNF formula --> f(X)
     Cnf_Dat_t* pCNF = Cnf_Derive(pAig, Aig_ManCoNum(pAig));
     pSat = (sat_solver*) Cnf_DataWriteIntoSolver(pCNF, 1, 0);
 
     Aig_Obj_t* PO;
     Aig_Obj_t* PI;
     Aig_Obj_t* pObj;
-    int node_PO, node_PI, node, PO_id;
+    int node, PO_id, var;
     int VarShift = 0;
     vector<int> PI_var_list;
-    // Aig_ManForEachCo(pAig, PO, node_PO) 
-    // { 
-    //   PO_id = PO->Id; 
-    //   // cout << "PO Id Each Co : " << PO->Id << endl; 
-    // }
-    // Aig_ManForEachCi(pAig, PI, node_PI) 
-    // { 
-    //   PI_var_list.push_back(PI->Id); 
-    //   // cout << "PI Id Each Ci : " << PI->Id << endl; 
-    // }
-    int var;
     Aig_ManForEachObj(pAig, pObj, node)
     {
       var = pCNF->pVarNums[pObj->Id];
@@ -92,160 +78,54 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       if (Aig_ObjType(pObj) == AIG_OBJ_CI) { PI_var_list.push_back(pObj->Id); }
       if (Aig_ObjType(pObj) == AIG_OBJ_CO) { PO_id = pObj->Id; }
     }
-    // cout << "final node : " << node << endl;
-    // VarShift = node;
-    // Aig_ManForEachObj(pAig, pObj, node_PI) 
-    // { 
-    //   // PI
-    //   if (Aig_ObjType(pObj) == 2)
-    //   {
-    //     cout << "PI Id : " << pObj->Id << endl;
-    //     PI_var_list.push_back(pObj->Id);
-    //   }
-    //   // PO
-    //   if (Aig_ObjType(pObj) == 3)
-    //   {
-    //     cout << "PO Id Each Obj : " << pObj->Id << endl;
-    //     // PO_id = pObj->Id;
-    //   }
-    // }
-
-    // for (int i = 0 ; i < pCNF->nVars ; ++i)
-    // {
-    //   cout << "x" << i << " varnum : " << pCNF->pVarNums[i] << endl;
-    // }
-    // cout << "nvars = " << pCNF->nVars << endl;
-    // debug
-    // pSat->fPrintClause = true;
-
-        // Obtain "VarShift" by extracting the max varnum() in CNF
-    // int VarShift = 0, X_VarNum = pCNF->nVars
-    // int VarShift = 0;
-    int f_X_var = pCNF->pVarNums[PO_id];
-    // cout << "pCNF->pVarNums[PO_id] : " << f_X_var << endl;
-    // int *xi_list, *xi_prime_list, *xi_prime2_list;  // 存 var list pointer 就好, 不用存 lit (lit: 涵蓋 phase 資訊)
     // f(X)
-    // xi_list = pCNF->pVarNums;
-        // Store varnum(f(X)) & add to CNF: Aig_Obj_t->Id --> Abc_Var2Lit
-    // cout << "1" << endl;
-    // cout << "f_X_var : " << f_X_var << endl;
+    int f_X_var = pCNF->pVarNums[PO_id];
     int f_X_lit = Abc_Var2Lit(f_X_var, 0);
-    // cout << "f(X) var : " << f_X_var << endl;
     int *f_X = &f_X_lit;
-    // cout << "2" << endl;
-        // sat_solver_addclause (參考 cnfMan.c 的用法)
     sat_solver_addclause(pSat, f_X, f_X+1);
 
     // debug
-    // pSat->fPrintClause = false;
+    // pSat->fPrintClause = true;
 
-    // for (int i = 0 ; i < pCNF->nVars ; ++i)
-    // {
-    //     // cout << "var " <<  i << " id : " << pCNF->pVarNums[i] << endl;
-    //     cout << "pCNF->pVarNums[i] = " << pCNF->pVarNums[i] << endl;
-    //     if (pCNF->pVarNums[i] > VarShift) { VarShift = pCNF->pVarNums[i]; }
-    //     // cout << "varnum : " << pCNF->pVarNums[i] << endl;
-    // } 
-    // cout << "VarShift = " << VarShift << endl;
     vector<int> xi_list, xi_prime_list, xi_prime2_list;
     int count_used = 0;
+    // store input 
     for (int i = 0 ; i < PI_var_list.size() ; ++i)
     {
         xi_list.push_back(pCNF->pVarNums[PI_var_list[i]]); 
         xi_prime_list.push_back(pCNF->pVarNums[PI_var_list[i]] + VarShift);
         xi_prime2_list.push_back(pCNF->pVarNums[PI_var_list[i]] + 2*VarShift);
         ++count_used;
-        // cout << "pCNF->pVarNums[PI->Id] : " << pCNF->pVarNums[PI_var_list[i]] << endl;
-        // // if unused, no need to be stored
-        // if ((pCNF->pVarNums[i] != -1) && \
-        //     (std::find(PI_var_list.begin(), PI_var_list.end(), pCNF->pVarNums[i]) != PI_var_list.end())) 
-        // { 
-        //   xi_list.push_back(pCNF->pVarNums[i]); 
-        //   xi_prime_list.push_back(pCNF->pVarNums[i] + VarShift);
-        //   xi_prime2_list.push_back(pCNF->pVarNums[i] + 2*VarShift);
-        //   ++count_used;
-        //   cout << "pCNF->pVarNums[PI->Id] : " << pCNF->pVarNums[i] << endl;
-        //   // cout << "in" << endl;
-        // }
-        // cout << "global : " << pCNF->pVarNums[i] << endl;
     } 
-
-    // cout << "size : " << sizeof(pCNF->pVarNums)/sizeof(int) << endl;
-    // cout << "nVar : " << pCNF->nVars << endl;
-    // cout << "count_used : " << count_used << endl;
     // negate f(X')
     Cnf_DataLift(pCNF, VarShift);
-    // for (int i = 0 ; i < PI_var_list.size() ; ++i)
-    // {
-    //   cout << "pCHF Datalift --> x_prime_" << i << " = " << pCNF->pVarNums[PI_var_list[i]] << endl;
-    // }
-    // for (int i = 0 ; i < pCNF->nVars ; ++i)
-    // {
-    //   cout << "x" << i << " prime varnum : " << pCNF->pVarNums[i] << endl;
-    // }
-    // xi_prime_list = pCNF->pVarNums;
-        // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
-    // cout << "3" << endl;
     int f_X_prime_lit = Abc_Var2Lit(f_X_var + VarShift, 1);
-    // cout << "f(X prime) var : " << f_X_var + VarShift << endl;
     int *f_X_prime = &f_X_prime_lit;
-    // cout << "4" << endl;
-    // debug
-    // pSat->fPrintClause = true;
     sat_solver_addclause(pSat, f_X_prime, f_X_prime+1);
-    // debug
-    // pSat->fPrintClause = false;
-        // add function content f(X')
+    // add function content f(X')
     for (int i = 0 ; i < pCNF->nClauses ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // negate f(X'')
     Cnf_DataLift(pCNF, VarShift);
-    // for (int i = 0 ; i < PI_var_list.size() ; ++i)
-    // {
-    //   cout << "pCHF Datalift --> x_prime2_" << i << " = " << pCNF->pVarNums[PI_var_list[i]] << endl;
-    // }
-    // for (int i = 0 ; i < pCNF->nVars ; ++i)
-    // {
-    //   cout << "x" << i << " prime2 varnum : " << pCNF->pVarNums[i] << endl;
-    // }
-    // xi_prime2_list = pCNF->pVarNums;
-    // cout << "5" << endl;
     int f_X_prime2_lit = Abc_Var2Lit(f_X_var + 2*VarShift, 1);
-    // cout << "f(X prime2) var : " << f_X_var + 2*VarShift << endl;
     int *f_X_prime2 = &f_X_prime2_lit;
-    // cout << "6" << endl;
-    // debug
-    // pSat->fPrintClause = true;
     sat_solver_addclause(pSat, f_X_prime2, f_X_prime2+1);
-    // debug
-    // pSat->fPrintClause = false;
-        // add function content f(X'')
+    // add function content f(X'')
     for (int i = 0 ; i < pCNF->nClauses ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // addVar controlling variable (a_i & b_i) * nVar 個 (= count_used 個)
         // sat_solver_addvar 會回傳 new variable 的 number, 要記錄下來 (maybe array)
     vector<int> control_a, control_b; 
-    // cout << "count_used = " << count_used << " / PI_var_size = " << PI_var_list.size() << endl;
     int a_begin = 3*VarShift + 1;
     int a_end = a_begin + count_used - 1;
     int b_begin = a_end + 1;
     int b_end = b_begin + count_used - 1;
-    for (int i = 0 ; i < count_used ; ++i)
-    {
-      sat_solver_addvar(pSat);
-    }
-    for (int i = 0 ; i < count_used ; ++i)
-    {
-      sat_solver_addvar(pSat);
-    }
+    // add var
+    for (int i = 0 ; i < count_used ; ++i) { sat_solver_addvar(pSat); }
+    for (int i = 0 ; i < count_used ; ++i) { sat_solver_addvar(pSat); }
+    // store the var 
     for (int i = a_begin ; i < a_end + 1 ; ++i) { control_a.push_back(i); }
     for (int i = b_begin ; i < b_end + 1 ; ++i) { control_b.push_back(i); }
-    // for (int i = 0 ; i < count_used ; ++i)
-    // {
-    //   cout << "control a" << i << " : " << control_a[i] << endl;
-    //   cout << "control b" << i << " : " << control_b[i] << endl;
-    // }
-        // Add clause of controlling variable 
+    // Add clause of controlling variable 
         // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
-    // int Big_AND[3];
     for (int i = 0 ; i < count_used ; ++i) 
     {
       int a1_clause[3] = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
@@ -259,22 +139,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
 
       int b2_clause[3] = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
       sat_solver_addclause(pSat, b2_clause, b2_clause + 3);
-      // cout << "7" << endl;
-      // cout << "xi_list[i] : " << xi_list[i] << " / xi_prime_list[i] : " << xi_prime_list[i] << " / control_a[i] : " << control_a[i] << endl;
-      // vector<int> a1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
-      // // cout << "8" << endl;
-      // vector<int> a2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
-      // // cout << "9" << endl;
-      // vector<int> b1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime2_list[i], 0), Abc_Var2Lit(control_b[i], 0)};
-      // // cout << "10" << endl;
-      // vector<int> b2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
-      // sat_solver_addclause(pSat, &a1_clause[0], &a1_clause[a1_clause.size()]);
-      // sat_solver_addclause(pSat, &a2_clause[0], &a2_clause[a2_clause.size()]);
-      // sat_solver_addclause(pSat, &b1_clause[0], &b1_clause[b1_clause.size()]);
-      // sat_solver_addclause(pSat, &b2_clause[0], &b2_clause[b2_clause.size()]);
     }
+
     // debug
     // pSat->fPrintClause = false;
+
     // 4. Solve a non-trivial variable partition
     bool find_partition = false;
     // 若 PI 只有一個, 不會有 bidecomposition
@@ -287,72 +156,48 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           int solve_ans; 
           find_partition = false;
           vector<int> assumpList;
-          // int count = 0;
           // assumpList
           for (int k = 0 ; k < count_used ; ++k)
           {
             // (x2_a, x2_b) = (0, 1) in xB
             if (k == i) 
             { 
-              // cout << "11" << endl;
               assumpList.push_back(toLitCond(control_a[k], 1));
               assumpList.push_back(toLitCond(control_b[k], 0));
-              // cout << "12" << endl;
-              // count += 2;
             }
             // (x1_a, x1_b) = (1, 0) in xA
             else if (k == j)
             {
-              // cout << "13" << endl;
               assumpList.push_back(toLitCond(control_a[k], 0));
               assumpList.push_back(toLitCond(control_b[k], 1));
-              // cout << "14" << endl;
-              // count += 2;
             }
             // other (0, 0) in xC
             else 
             {
-              // cout << "15" << endl;
               assumpList.push_back(toLitCond(control_a[k], 1));
               assumpList.push_back(toLitCond(control_b[k], 1));
-              // cout << "16" << endl;
-              // count += 2;
             }
           }
-          // for (int k = 0 ; k < count_used ; ++k)
-          // {
-          //   cout << "assumpList a" << k << " : " << assumpList[2*k] << endl;
-          //   cout << "assumpList b" << k << " : " << assumpList[2*k+1] << endl;
-          // }
-          // cout << "count : " << count << endl;
           // pass into sat_solver_solve
               // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
               // proof/abs/absOldSat.c --> how "sat_solver_final" work
               // sat/bmc/bmcEco.c --> how "sat_solver_final" work
-          // cout << "17" << endl;
           solve_ans = sat_solver_solve(pSat, &assumpList[0], &assumpList[assumpList.size()], 0, 0, 0, 0);
-              // if UNSAT, get relevant SAT literals
+          // if UNSAT, get relevant SAT literals
           int nCoreLits, * pCoreLits;
-          vector<int> ans_candidate;
-          vector<int> ans;
-          // cout << "18" << endl;
+          vector<int> ans_candidate, ans;
           if (solve_ans == l_False)
           {
             find_partition = true;
-            // cout << "19" << endl;
             nCoreLits = sat_solver_final(pSat, &pCoreLits);
-            // cout << "20" << endl;
             // save literals
                 // (1): if int(lit/2)=var 不在 control_a, control_b 內 --> 丟掉不考慮 (考慮a, b ; 不考慮 x_i)
                 // (2): if var_a = 0 且 var_b = 0 --> 歸類在 xC
                 // (3): if 只有 var_a = 0 --> 歸類在 xB (a, b assume to be positive)
                 // (4): if 只有 var_b = 0 --> 歸類在 xA
                 // (5): if 都不存在這些歸類, 代表哪邊都可以 --> either xA or xB --> 這邊統一丟在 xA
-            // printf("PO %s support partition: 1\n", Abc_ObjName(ntk_PO));
             for (int k = 0 ; k < nCoreLits ; ++k)
             {
-              // cout << "int(pCoreLits[k]/2)) : " << int(pCoreLits[k]/2) << endl;
-              // cout << "final conflict literal : " << pCoreLits[k] << " --> var : " << int(pCoreLits[k]/2) << endl;
               if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
                   (std::find(control_b.begin(), control_b.end(), int(pCoreLits[k]/2)) != control_b.end()))
               {
@@ -397,15 +242,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                 continue;
               }
             }
-            // cout << "22" << endl;
             // output : PO <po-name> support partition: 1
             //          <partition> (2: xA, 1: xB, 0: xC)
-            // cout << "ans : " << ans << endl;
             cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl;
-            for (int k = 0 ; k < ans.size() ; ++k)
-            {
-              cout << ans[k];
-            }
+            for (int k = 0 ; k < ans.size() ; ++k) { cout << ans[k]; }
             cout << endl;
           }
           // cout << "partition find ? " << find_partition << endl;
@@ -413,17 +253,9 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         }
         if (find_partition) { break; }
       }
-      if (!find_partition)
-      {
-        // output : PO <po-name> support partition: 0
-        // printf("PO %s support partition: 0\n", Abc_ObjName(ntk_PO));
-        cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl;
-      }
+      if (!find_partition) { cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl; }
     }
-    else 
-    {
-      cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl;
-    }
+    else { cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl; }
   }
 }
 
