@@ -322,7 +322,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
               // if UNSAT, get relevant SAT literals
           int nCoreLits, * pCoreLits;
           vector<int> ans_candidate;
-          string ans = "";
+          vector<int> ans;
           // cout << "18" << endl;
           if (solve_ans == l_False)
           {
@@ -336,7 +336,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
                 // (3): if 只有 var_a = 0 --> 歸類在 xB (a, b assume to be positive)
                 // (4): if 只有 var_b = 0 --> 歸類在 xA
                 // (5): if 都不存在這些歸類, 代表哪邊都可以 --> either xA or xB --> 這邊統一丟在 xA
-            printf("PO %s support partition: 1\n", Abc_ObjName(ntk_PO));
+            // printf("PO %s support partition: 1\n", Abc_ObjName(ntk_PO));
+            cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl;
             for (int k = 0 ; k < nCoreLits ; ++k)
             {
               // cout << "final conflict literal : " << pCoreLits[k] << " --> var : " << int(pCoreLits[k]/2) << endl;
@@ -351,36 +352,36 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
               // 該 seed partition 自己成功分類的 node 要加進去
               if (k == i)
               {
-                ans.append("1");
+                ans.push_back(1);
                 continue;
               }
               if (k == j)
               {
-                ans.append("2");
+                ans.push_back(2);
                 continue;
               }
               if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) != ans_candidate.end()) && \
                   (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
               {
-                ans.append("0");
+                ans.push_back(0);
                 continue;
               }
               else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) != ans_candidate.end()) && \
                         (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end()))
               {
-                ans.append("1");
+                ans.push_back(1);
                 continue;
               }
               else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
                         (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
               {
-                ans.append("2");
+                ans.push_back(2);
                 continue;
               }
               else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
                         (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end())) // 都沒在上面分類就全塞到 xB
               {
-                ans.append("1");
+                ans.push_back(1);
                 continue;
               }
             }
@@ -388,7 +389,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // output : PO <po-name> support partition: 1
             //          <partition> (2: xA, 1: xB, 0: xC)
             // cout << "ans : " << ans << endl;
-            printf("%s\n", ans.c_str());
+            for (int k = 0 ; k < ans.size() ; ++k)
+            {
+              cout << ans[k];
+            }
+            cout << endl;
           }
           // cout << "partition find ? " << find_partition << endl;
           if (find_partition) { break; }
@@ -398,7 +403,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       if (!find_partition)
       {
         // output : PO <po-name> support partition: 0
-        printf("PO %s support partition: 0\n", Abc_ObjName(ntk_PO));
+        // printf("PO %s support partition: 0\n", Abc_ObjName(ntk_PO));
+        cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl;
       }
     }
   }
