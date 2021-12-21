@@ -58,7 +58,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     pNtk_support = Abc_NtkStrash(pNtk_support, 0, 1, 0);
 
     // 2. Derive equivalent "Aig_Man_t" from "Abc_Ntk_t"
-    Aig_Man_t* pAig = Abc_NtkToDar(pNtk_support, 0, 0);
+    Aig_Man_t* pAig = Abc_NtkToDar(pNtk_support, 0, 1);
         // 找 aig 的 PO (看 type 或 foreachaigpo) --> 參考 PA1 line 84
         // 3. Construct CNF formula --> f(X)
         // cnf.h --> struct Cnf_Dat_t_
