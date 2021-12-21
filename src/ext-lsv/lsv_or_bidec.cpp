@@ -85,8 +85,8 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     Aig_ManForEachObj(pAig, pObj, node)
     {
       // cout << "node" << node << " Id : " << pObj->Id << " --> Type = " << Aig_ObjType(pObj) << endl;
-      if (Aig_ObjType(pObj) == AIG_OBJ_CI) { PI_var_list.push_back(PI->Id); }
-      if (Aig_ObjType(pObj) == AIG_OBJ_CO) { PO_id = PO->Id; }
+      if (Aig_ObjType(pObj) == AIG_OBJ_CI) { PI_var_list.push_back(pObj->Id); }
+      if (Aig_ObjType(pObj) == AIG_OBJ_CO) { PO_id = pObj->Id; }
     }
     // cout << "final node : " << node << endl;
     VarShift = node;
