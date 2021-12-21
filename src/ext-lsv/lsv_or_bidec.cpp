@@ -231,31 +231,31 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     for (int i = 0 ; i < count_used ; ++i)
     {
       sat_solver_addvar(pSat);
+    }
+    for (int i = 0 ; i < count_used ; ++i)
+    {
       sat_solver_addvar(pSat);
-      // ?????? sat_solver_addvar return "s->size-1"
-      // control_a.push_back(sat_solver_addvar(pSat));
-      // control_b.push_back(sat_solver_addvar(pSat));
     }
     for (int i = a_begin ; i < a_end + 1 ; ++i) { control_a.push_back(i); }
     for (int i = b_begin ; i < b_end + 1 ; ++i) { control_b.push_back(i); }
-    // for (int i = 0 ; i < count_used ; ++i)
-    // {
-    //   cout << "control a" << i << " : " << control_a[i] << endl;
-    //   cout << "control b" << i << " : " << control_b[i] << endl;
-    // }
+    for (int i = 0 ; i < count_used ; ++i)
+    {
+      cout << "control a" << i << " : " << control_a[i] << endl;
+      cout << "control b" << i << " : " << control_b[i] << endl;
+    }
         // Add clause of controlling variable 
         // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
     for (int i = 0 ; i < count_used ; ++i) 
     {
       // cout << "7" << endl;
       // cout << "xi_list[i] : " << xi_list[i] << " / xi_prime_list[i] : " << xi_prime_list[i] << " / control_a[i] : " << control_a[i] << endl;
-      vector<int> a1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
+      vector<lit> a1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime_list[i], 0), Abc_Var2Lit(control_a[i], 0)};
       // cout << "8" << endl;
-      vector<int> a2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
+      vector<lit> a2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime_list[i], 1), Abc_Var2Lit(control_a[i], 0)};
       // cout << "9" << endl;
-      vector<int> b1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime2_list[i], 0), Abc_Var2Lit(control_b[i], 0)};
+      vector<lit> b1_clause = {Abc_Var2Lit(xi_list[i], 1), Abc_Var2Lit(xi_prime2_list[i], 0), Abc_Var2Lit(control_b[i], 0)};
       // cout << "10" << endl;
-      vector<int> b2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
+      vector<lit> b2_clause = {Abc_Var2Lit(xi_list[i], 0), Abc_Var2Lit(xi_prime2_list[i], 1), Abc_Var2Lit(control_b[i], 0)};
       sat_solver_addclause(pSat, &a1_clause[0], &a1_clause[a1_clause.size()]);
       sat_solver_addclause(pSat, &a2_clause[0], &a2_clause[a2_clause.size()]);
       sat_solver_addclause(pSat, &b1_clause[0], &b1_clause[b1_clause.size()]);
@@ -340,6 +340,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl;
             for (int k = 0 ; k < nCoreLits ; ++k)
             {
+              cout << "int(pCoreLits[k]/2)) : " << int(pCoreLits[k]/2)) << endl;
               // cout << "final conflict literal : " << pCoreLits[k] << " --> var : " << int(pCoreLits[k]/2) << endl;
               if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
                   (std::find(control_b.begin(), control_b.end(), int(pCoreLits[k]/2)) != control_b.end()))
