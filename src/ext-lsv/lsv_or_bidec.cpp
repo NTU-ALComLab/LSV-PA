@@ -333,25 +333,40 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           }
           for (int k = 0 ; k < count_used ; ++k)
           {
+            // 該 seed partition 自己成功分類的 node 要加進去
+            if (k == i)
+            {
+              ans.append("1");
+              continue;
+            }
+            if (k == j)
+            {
+              ans.append("2");
+              continue;
+            }
             if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) != ans_candidate.end()) && \
                 (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
             {
               ans.append("0");
+              continue;
             }
             else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) != ans_candidate.end()) && \
                       (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end()))
             {
               ans.append("1");
+              continue;
             }
             else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
                       (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) != ans_candidate.end()))
             {
               ans.append("2");
+              continue;
             }
             else if ((std::find(ans_candidate.begin(), ans_candidate.end(), control_a[k]) == ans_candidate.end()) && \
                       (std::find(ans_candidate.begin(), ans_candidate.end(), control_b[k]) == ans_candidate.end())) // 都沒在上面分類就全塞到 xB
             {
               ans.append("1");
+              continue;
             }
           }
           // cout << "22" << endl;
