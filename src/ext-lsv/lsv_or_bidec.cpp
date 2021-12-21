@@ -265,21 +265,21 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // assumpList
         for (int k = 0 ; k < count_used ; ++k)
         {
-          // (x1_a, x1_b) = (1, 0) in xA
+          // (x2_a, x2_b) = (0, 1) in xB
           if (k == i) 
           { 
             // cout << "11" << endl;
-            assumpList.push_back(toLitCond(control_a[k], 0));
-            assumpList.push_back(toLitCond(control_b[k], 1));
+            assumpList.push_back(toLitCond(control_a[k], 1));
+            assumpList.push_back(toLitCond(control_b[k], 0));
             // cout << "12" << endl;
             // count += 2;
           }
-          // (x2_a, x2_b) = (0, 1) in xB
+          // (x1_a, x1_b) = (1, 0) in xA
           else if (k == j)
           {
             // cout << "13" << endl;
-            assumpList.push_back(toLitCond(control_a[k], 1));
-            assumpList.push_back(toLitCond(control_b[k], 0));
+            assumpList.push_back(toLitCond(control_a[k], 0));
+            assumpList.push_back(toLitCond(control_b[k], 1));
             // cout << "14" << endl;
             // count += 2;
           }
