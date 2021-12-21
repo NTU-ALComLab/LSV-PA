@@ -340,7 +340,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             cout << "PO " << Abc_ObjName(ntk_PO) << " support partition: " << find_partition << endl;
             for (int k = 0 ; k < nCoreLits ; ++k)
             {
-              cout << "int(pCoreLits[k]/2)) : " << int(pCoreLits[k]/2)) << endl;
+              cout << "int(pCoreLits[k]/2)) : " << int(pCoreLits[k]/2) << endl;
               // cout << "final conflict literal : " << pCoreLits[k] << " --> var : " << int(pCoreLits[k]/2) << endl;
               if ((std::find(control_a.begin(), control_a.end(), int(pCoreLits[k]/2)) != control_a.end()) || \
                   (std::find(control_b.begin(), control_b.end(), int(pCoreLits[k]/2)) != control_b.end()))
