@@ -72,13 +72,21 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     int node_PO, node_PI, node, PO_id;
     int VarShift = 0;
     vector<int> PI_var_list;
-    Aig_ManForEachCo(pAig, PO, node_PO) { PO_id = PO->Id; cout << "PO Id Each Co : " << PO->Id << endl; }
-    Aig_ManForEachCi(pAig, PI, node_PI) { PI_var_list.push_back(PI->Id); cout << "PI Id Each Ci : " << PI->Id << endl; }
-    Aig_ManForEachObj(pAig, pObj, node)
-    {
-      cout << "node" << node << " Id : " << pObj->Id << " --> Type = " << Aig_ObjType(pObj) << endl;
+    Aig_ManForEachCo(pAig, PO, node_PO) 
+    { 
+      PO_id = PO->Id; 
+      // cout << "PO Id Each Co : " << PO->Id << endl; 
     }
-    cout << "final node : " << node << endl;
+    Aig_ManForEachCi(pAig, PI, node_PI) 
+    { 
+      PI_var_list.push_back(PI->Id); 
+      // cout << "PI Id Each Ci : " << PI->Id << endl; 
+    }
+    // Aig_ManForEachObj(pAig, pObj, node)
+    // {
+    //   cout << "node" << node << " Id : " << pObj->Id << " --> Type = " << Aig_ObjType(pObj) << endl;
+    // }
+    // cout << "final node : " << node << endl;
     VarShift = node;
     // Aig_ManForEachObj(pAig, pObj, node_PI) 
     // { 
@@ -102,13 +110,13 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // }
     // cout << "nvars = " << pCNF->nVars << endl;
     // debug
-    pSat->fPrintClause = true;
+    // pSat->fPrintClause = true;
 
         // Obtain "VarShift" by extracting the max varnum() in CNF
     // int VarShift = 0, X_VarNum = pCNF->nVars
     // int VarShift = 0;
     int f_X_var = pCNF->pVarNums[PO_id];
-    cout << "pCNF->pVarNums[PO_id] : " << f_X_var << endl;
+    // cout << "pCNF->pVarNums[PO_id] : " << f_X_var << endl;
     // int *xi_list, *xi_prime_list, *xi_prime2_list;  // 存 var list pointer 就好, 不用存 lit (lit: 涵蓋 phase 資訊)
     // f(X)
     // xi_list = pCNF->pVarNums;
@@ -132,7 +140,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     //     if (pCNF->pVarNums[i] > VarShift) { VarShift = pCNF->pVarNums[i]; }
     //     // cout << "varnum : " << pCNF->pVarNums[i] << endl;
     // } 
-    cout << "VarShift = " << VarShift << endl;
+    // cout << "VarShift = " << VarShift << endl;
     vector<int> xi_list, xi_prime_list, xi_prime2_list;
     int count_used = 0;
     for (int i = 0 ; i < PI_var_list.size() ; ++i)
@@ -141,7 +149,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         xi_prime_list.push_back(pCNF->pVarNums[PI_var_list[i]] + VarShift);
         xi_prime2_list.push_back(pCNF->pVarNums[PI_var_list[i]] + 2*VarShift);
         ++count_used;
-        cout << "pCNF->pVarNums[PI->Id] : " << pCNF->pVarNums[PI_var_list[i]] << endl;
+        // cout << "pCNF->pVarNums[PI->Id] : " << pCNF->pVarNums[PI_var_list[i]] << endl;
         // // if unused, no need to be stored
         // if ((pCNF->pVarNums[i] != -1) && \
         //     (std::find(PI_var_list.begin(), PI_var_list.end(), pCNF->pVarNums[i]) != PI_var_list.end())) 
@@ -161,10 +169,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // cout << "count_used : " << count_used << endl;
     // negate f(X')
     Cnf_DataLift(pCNF, VarShift);
-    for (int i = 0 ; i < PI_var_list.size() ; ++i)
-    {
-      cout << "pCHF Datalift --> x_prime_" << i << " = " << pCNF->pVarNums[PI_var_list[i]] << endl;
-    }
+    // for (int i = 0 ; i < PI_var_list.size() ; ++i)
+    // {
+    //   cout << "pCHF Datalift --> x_prime_" << i << " = " << pCNF->pVarNums[PI_var_list[i]] << endl;
+    // }
     // for (int i = 0 ; i < pCNF->nVars ; ++i)
     // {
     //   cout << "x" << i << " prime varnum : " << pCNF->pVarNums[i] << endl;
@@ -173,7 +181,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
         // abc_global.h --> Abc_Var2Lit(), 參數吃 1 代表 negation
     // cout << "3" << endl;
     int f_X_prime_lit = Abc_Var2Lit(f_X_var + VarShift, 1);
-    cout << "f(X prime) var : " << f_X_var + VarShift << endl;
+    // cout << "f(X prime) var : " << f_X_var + VarShift << endl;
     int *f_X_prime = &f_X_prime_lit;
     // cout << "4" << endl;
     // debug
@@ -185,10 +193,10 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     for (int i = 0 ; i < pCNF->nClauses ; ++i) { sat_solver_addclause(pSat, pCNF->pClauses[i], pCNF->pClauses[i+1]); }
     // negate f(X'')
     Cnf_DataLift(pCNF, VarShift);
-    for (int i = 0 ; i < PI_var_list.size() ; ++i)
-    {
-      cout << "pCHF Datalift --> x_prime2_" << i << " = " << pCNF->pVarNums[PI_var_list[i]] << endl;
-    }
+    // for (int i = 0 ; i < PI_var_list.size() ; ++i)
+    // {
+    //   cout << "pCHF Datalift --> x_prime2_" << i << " = " << pCNF->pVarNums[PI_var_list[i]] << endl;
+    // }
     // for (int i = 0 ; i < pCNF->nVars ; ++i)
     // {
     //   cout << "x" << i << " prime2 varnum : " << pCNF->pVarNums[i] << endl;
@@ -196,7 +204,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // xi_prime2_list = pCNF->pVarNums;
     // cout << "5" << endl;
     int f_X_prime2_lit = Abc_Var2Lit(f_X_var + 2*VarShift, 1);
-    cout << "f(X prime2) var : " << f_X_var + 2*VarShift << endl;
+    // cout << "f(X prime2) var : " << f_X_var + 2*VarShift << endl;
     int *f_X_prime2 = &f_X_prime2_lit;
     // cout << "6" << endl;
     // debug
@@ -209,18 +217,18 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
     // addVar controlling variable (a_i & b_i) * nVar 個 (= count_used 個)
         // sat_solver_addvar 會回傳 new variable 的 number, 要記錄下來 (maybe array)
     vector<int> control_a, control_b; 
-    cout << "count_used = " << count_used << " / PI_var_size = " << PI_var_list.size() << endl;
+    // cout << "count_used = " << count_used << " / PI_var_size = " << PI_var_list.size() << endl;
     for (int i = 0 ; i < count_used ; ++i)
     {
       // ?????? sat_solver_addvar return "s->size-1"
       control_a.push_back(sat_solver_addvar(pSat)+1);
       control_b.push_back(sat_solver_addvar(pSat)+1);
     }
-    for (int i = 0 ; i < count_used ; ++i)
-    {
-      cout << "control a" << i << " : " << control_a[i] << endl;
-      cout << "control b" << i << " : " << control_b[i] << endl;
-    }
+    // for (int i = 0 ; i < count_used ; ++i)
+    // {
+    //   cout << "control a" << i << " : " << control_a[i] << endl;
+    //   cout << "control b" << i << " : " << control_b[i] << endl;
+    // }
         // Add clause of controlling variable 
         // (a' + b + c) --> a': Abc_Var2Lit(pVarnum[i], 1) --> 存 int array [a', b, c] 然後傳進 addclause
     for (int i = 0 ; i < count_used ; ++i) 
@@ -240,7 +248,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
       sat_solver_addclause(pSat, &b2_clause[0], &b2_clause[b2_clause.size()]);
     }
     // debug
-    pSat->fPrintClause = false;
+    // pSat->fPrintClause = false;
     // 4. Solve a non-trivial variable partition
     bool find_partition = false;
     for (int i = 0 ; i < count_used-1 ; ++i)
@@ -282,11 +290,11 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
             // count += 2;
           }
         }
-        for (int k = 0 ; k < count_used ; ++k)
-        {
-          cout << "assumpList a" << k << " : " << assumpList[2*k] << endl;
-          cout << "assumpList b" << k << " : " << assumpList[2*k+1] << endl;
-        }
+        // for (int k = 0 ; k < count_used ; ++k)
+        // {
+        //   cout << "assumpList a" << k << " : " << assumpList[2*k] << endl;
+        //   cout << "assumpList b" << k << " : " << assumpList[2*k+1] << endl;
+        // }
         // cout << "count : " << count << endl;
         // pass into sat_solver_solve
             // satInterP.c --> sat_solver will return "l_Undef", "l_True", "l_False"
@@ -349,7 +357,7 @@ void Lsv_NtkOrBidec(Abc_Ntk_t* pNtk)
           // cout << "ans : " << ans << endl;
           printf("%s\n", ans.c_str());
         }
-        cout << "partition find ? " << find_partition << endl;
+        // cout << "partition find ? " << find_partition << endl;
         if (find_partition) { break; }
       }
       if (find_partition) { break; }
