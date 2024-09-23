@@ -84,23 +84,27 @@ void Lsv_NtkPrintCut(Abc_Ntk_t* pNtk, int K) {
       Queue.push(id);
     }    
   }  
-  while(!Queue.empty()){
-    int level_size = Queue.size();
+  std::unordered_map<int,int> node_fanins_count;
+  while(!Queue.empty()){    
+    int node_id = Queue.front();
+    Queue.pop();
+
+    Abc_Obj_t* pObj = Abc_NtkObj(pNtk, node_id);
+    Abc_Obj_t* pFanout;
+    int i;
     std::unordered_set<int> next_level_nodes;
-    for(int i=0;i<level_size;i++){
-      int node_id = Queue.front();
-      Queue.pop();
-      Abc_Obj_t* pObj = Abc_NtkObj(pNtk, node_id);
-      Abc_Obj_t* pFanout;
-      int j;      
-      Abc_ObjForEachFanout(pObj, pFanout, j) {
-        int fanout_id = Abc_ObjId(pFanout);
-        if(next_level_nodes.find(fanout_id) == next_level_nodes.end()){
-          next_level_nodes.insert(fanout_id);
-          Queue.push(fanout_id);           
-        }                
-        node_fanins[fanout_id].insert(node_id);
-      }
+
+    Abc_ObjForEachFanout(pObj, pFanout, i) {
+      int fanout_id = Abc_ObjId(pFanout);
+      node_fanins_count[fanout_id]++;
+      Abc_Obj_t* fanout_pObj = Abc_NtkObj(pNtk, fanout_id);    
+      int fanout_fanin_count = Abc_ObjFaninNum(fanout_pObj);
+      if(node_fanins_count[fanout_id] == fanout_fanin_count){
+        // all fanins are solved
+        next_level_nodes.insert(fanout_id);
+        Queue.push(fanout_id);
+      }                 
+      node_fanins[fanout_id].insert(node_id);
     }
     
     // merge cuts from fanins
