@@ -58,3 +58,9 @@ usage:
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
 }
+
+
+void Lsv_NtkPrintMOCuts(Abc_Ntk_t* pNtk, int k, int l) {
+
+  
+}
