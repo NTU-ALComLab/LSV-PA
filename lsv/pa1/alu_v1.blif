@@ -1,0 +1,48 @@
+.model alu
+.inputs a1 a0 b1 b0 c
+.outputs y2 y1 y0
+
+# --- 2's complement b ---
+.names c b0 b2c0
+01 1
+11 1
+
+.names c b0 carryc1
+10 1
+
+.names c b1 carryc1 b2c1
+01- 1
+101 1
+
+.names c b1 carryc1 b2c2
+101 1
+
+# --- adder ---
+# --- bit 0 sum ---
+.names a0 b2c0 y0
+10 1
+01 1
+
+# --- bit 0 carry ---
+.names a0 b2c0 c1
+11 1
+
+# --- bit 1 sum ---
+.names a1 b2c1 c1 y1
+100 1
+010 1
+001 1
+111 1
+
+# --- bit 1 carry ---
+.names a1 b2c1 c1 c2
+110 1
+101 1
+011 1
+111 1
+
+# --- bit 2 sum ---
+.names b2c2 c2 y2
+11 1
+
+.end
