@@ -650,8 +650,7 @@ static int Abc_CommandAbc9Test               ( Abc_Frame_t * pAbc, int argc, cha
 static int Abc_CommandAbc9eSLIM              ( Abc_Frame_t * pAbc, int argc, char ** argv );
 
 
-//lsv commands =================================================================================
-static int Abc_CommandLsvPrintMOCut         (Abc_Frame_t * pAbc, int argc, char ** argv);
+
 //=============================================================================================
 
 extern int Abc_CommandAbcLivenessToSafety    ( Abc_Frame_t * pAbc, int argc, char ** argv );
@@ -1004,8 +1003,7 @@ void Abc_Init( Abc_Frame_t * pAbc )
     Cmd_CommandAdd( pAbc, "Exact synthesis", "testexact",  Abc_CommandTestExact,        0 );
     Cmd_CommandAdd( pAbc, "Exact synthesis", "majgen",     Abc_CommandMajGen,           0 );
 
-    //LSV commands =================================================================================
-    Cmd_CommandAdd( pAbc, "LSV",          "lsv_printmocut", Abc_CommandLsvPrintMOCut,   0 );
+    
     Cmd_CommandAdd( pAbc, "Various",      "logic",         Abc_CommandLogic,            1 );
     Cmd_CommandAdd( pAbc, "Various",      "comb",          Abc_CommandComb,             1 );
     Cmd_CommandAdd( pAbc, "Various",      "miter",         Abc_CommandMiter,            1 );
@@ -33668,70 +33666,6 @@ usage:
     return 1;
 }
 
-
-/**Function*************************************************************
-
-  Synopsis    []
-
-  Description []
-
-  SideEffects []
-
-  SeeAlso     []
-
-***********************************************************************/
-int Abc_CommandLsvPrintMOCut(Abc_Frame_t * pAbc, int argc, char ** argv) {
-  int k, l, c;
-  Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
-
-  // Check if network exists
-  if (pNtk == NULL) {
-    Abc_Print( -1, "Empty network.\n");
-    return 1;
-  }
-
-  // Parse command line arguments
-  if (argc != 3) {
-    goto usage;
-  }
-
-  // Parse k parameter
-  k = atoi(argv[1]);
-  if (k < 3 || k > 6) {
-    Abc_Print( -1, "Error: k must be between 3 and 6 (inclusive).\n");
-    return 1;
-  }
-
-  // Parse l parameter
-  l = atoi(argv[2]);
-  if (l < 1 || l > 4) {
-    Abc_Print( -1, "Error: l must be between 1 and 4 (inclusive).\n");
-    return 1;
-  }
-
-  Extra_UtilGetoptReset();
-  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
-    switch (c) {
-      case 'h':
-        goto usage;
-      default:
-        goto usage;
-    }
-  }
-  // TODO: Implement k-l multi-output cut enumeration
-    // Enumerate and print k-l multi-output cuts
-    Lsv_NtkPrintMOCuts(pNtk, k, l);
-
-  return 0;
-
-  usage:
-    Abc_Print( -2, "usage: lsv_printmocut <k> <l> [-h]\n");
-    Abc_Print( -2, "\t        prints the k-l multi-output cuts in the network\n");
-    Abc_Print( -2, "\t<k>    : maximum cut size (3 <= k <= 6)\n");
-    Abc_Print( -2, "\t<l>    : minimum number of outputs (1 <= l <= 4)\n");
-    Abc_Print( -2, "\t-h     : print the command usage\n");
-  return 1;
-}
 
 /**Function*************************************************************
 

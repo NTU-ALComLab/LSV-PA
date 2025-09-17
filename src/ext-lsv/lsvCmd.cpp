@@ -3,10 +3,27 @@
 #include "base/main/mainInt.h"
 #include "opt/cut/cut.h"
 
-static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
+/*===lsv_ext ===============================================================*/
+extern ABC_DLL void               Lsv_NtkPrintMOCuts( Abc_Ntk_t * pNtk ,int k, int l);
 
+//lsv commands ==============================================================
+static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Abc_CommandLsvPrintMOCut         (Abc_Frame_t * pAbc, int argc, char ** argv);
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description [initializes the lsv package]
+
+  SideEffects []
+
+  SeeAlso     [Cmd_CommandAdd]
+
+***********************************************************************/
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+  Cmd_CommandAdd( pAbc, "LSV",          "lsv_printmocut", Abc_CommandLsvPrintMOCut,   0 );
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -17,6 +34,17 @@ struct PackageRegistrationManager {
   PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer); }
 } lsvPackageRegistrationManager;
 
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description [prints the nodes in the network]
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
 void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pObj;
   int i;
@@ -33,6 +61,17 @@ void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
     }
   }
 }
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     [Lsv_NtkPrintMOCuts]
+
+***********************************************************************/
 
 int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
@@ -60,7 +99,90 @@ usage:
   return 1;
 }
 
+/**Function*************************************************************
 
+  Synopsis    []
+
+  Description [prints the k-l multi-output cuts in the network]
+
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Abc_CommandLsvPrintMOCut(Abc_Frame_t * pAbc, int argc, char ** argv) {
+  int k, l, c;
+  Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
+
+  // Check if network exists
+  if (pNtk == NULL) {
+    Abc_Print( -1, "Empty network.\n");
+    return 1;
+  }
+
+  // Parse command line options first
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    switch (c) {
+      case 'h':
+        goto usage;
+      default:
+        goto usage;
+    }
+  }
+
+  // Check if the correct number of positional arguments are provided
+  if (argc != globalUtilOptind + 2) {
+    Abc_Print( -1, "Error: Expecting exactly two parameters (k and l).\n");
+    goto usage;
+  }
+
+  // Parse k parameter
+  k = atoi(argv[globalUtilOptind]);
+  if (k < 3 || k > 6) {
+    Abc_Print( -1, "Error: k must be between 3 and 6 (inclusive).\n");
+    return 1;
+  }
+
+  // Parse l parameter
+  l = atoi(argv[globalUtilOptind + 1]);
+  if (l < 1 || l > 4) {
+    Abc_Print( -1, "Error: l must be between 1 and 4 (inclusive).\n");
+    return 1;
+  }
+
+  // Check if network is strashed
+  if (!Abc_NtkIsStrash(pNtk)) {
+    Abc_Print( -1, "Error: This command works only for AIGs. Please run \"strash\" first.\n");
+    return 1;
+  }
+
+  // TODO: Implement k-l multi-output cut enumeration
+  // Enumerate and print k-l multi-output cuts
+  Lsv_NtkPrintMOCuts(pNtk, k, l);
+
+  return 0;
+
+  usage:
+    Abc_Print( -2, "usage: lsv_printmocut <k> <l> [-h]\n");
+    Abc_Print( -2, "\t        prints the k-l multi-output cuts in the network\n");
+    Abc_Print( -2, "\t<k>    : maximum cut size (3 <= k <= 6)\n");
+    Abc_Print( -2, "\t<l>    : minimum number of outputs (1 <= l <= 4)\n");
+    Abc_Print( -2, "\t-h     : print the command usage\n");
+  return 1;
+}
+
+/**Function*************************************************************
+
+  Synopsis    []
+
+  Description []
+
+  SideEffects []
+
+  SeeAlso     [Lsv_NtkPrintMOCuts]
+
+***********************************************************************/
 void Lsv_NtkPrintMOCuts(Abc_Ntk_t* pNtk, int k, int l) {
   Cut_Man_t* pManCut;
   Cut_Params_t Params;

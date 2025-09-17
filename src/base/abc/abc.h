@@ -1063,8 +1063,7 @@ extern ABC_DLL int *              Abc_NtkVerifySimulatePattern( Abc_Ntk_t * pNtk
 extern ABC_DLL int                Abc_NtkIsTrueCex( Abc_Ntk_t * pNtk, Abc_Cex_t * pCex );
 extern ABC_DLL int                Abc_NtkIsValidCex( Abc_Ntk_t * pNtk, Abc_Cex_t * pCex );
 
-/*===lsv_ext ===============================================================*/
-extern ABC_DLL void               Lsv_NtkPrintMOCuts( Abc_Ntk_t * pNtk ,int k, int l);
+
 
 
 

@@ -2,32 +2,16 @@
 .inputs 1 2 3
 .outputs 4 5 6 7
 
-# AND nodes driven by {1,2}
-.names 1 2 8
+.names 1 2 4
 11 1
-.names 1 2 9
+.names 1 2 5
+10 1
+.names 1 2 t0
+01 1
+.names t0 3 6
+10 1
+.names 2 3 t1
 11 1
-.names 1 2 10
-11 1
-.names 1 2 12
-11 1
-
-# 11 = AND(10, 3)
-.names 10 3 11
-11 1
-
-# 13 = AND(11, 12)
-.names 11 12 13
-11 1
-
-# Primary outputs: 4=8, 5=9, 6=11, 7=13
-.names 8 4
-1 1
-.names 9 5
-1 1
-.names 11 6
-1 1
-.names 13 7
-1 1
-
+.names 1 t1 7
+01 1
 .end
