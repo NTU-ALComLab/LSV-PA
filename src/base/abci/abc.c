@@ -33681,7 +33681,7 @@ usage:
 
 ***********************************************************************/
 int Abc_CommandLsvPrintMOCut(Abc_Frame_t * pAbc, int argc, char ** argv) {
-  int k, l;
+  int k, l, c;
   Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
 
   // Check if network exists
@@ -33709,17 +33709,27 @@ int Abc_CommandLsvPrintMOCut(Abc_Frame_t * pAbc, int argc, char ** argv) {
     return 1;
   }
 
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    switch (c) {
+      case 'h':
+        goto usage;
+      default:
+        goto usage;
+    }
+  }
   // TODO: Implement k-l multi-output cut enumeration
     // Enumerate and print k-l multi-output cuts
     Lsv_NtkPrintMOCuts(pNtk, k, l);
 
   return 0;
 
-usage:
-  Abc_Print( -2, "usage: lsv printmocut <k> <l>\n");
-  Abc_Print( -2, "\t        prints the k-l multi-output cuts in the network\n");
-  Abc_Print( -2, "\t<k>    : maximum cut size (3 <= k <= 6)\n");
-  Abc_Print( -2, "\t<l>    : minimum number of outputs (1 <= l <= 4)\n");
+  usage:
+    Abc_Print( -2, "usage: lsv_printmocut <k> <l> [-h]\n");
+    Abc_Print( -2, "\t        prints the k-l multi-output cuts in the network\n");
+    Abc_Print( -2, "\t<k>    : maximum cut size (3 <= k <= 6)\n");
+    Abc_Print( -2, "\t<l>    : minimum number of outputs (1 <= l <= 4)\n");
+    Abc_Print( -2, "\t-h     : print the command usage\n");
   return 1;
 }
 
