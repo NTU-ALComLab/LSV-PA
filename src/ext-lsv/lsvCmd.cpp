@@ -347,6 +347,7 @@ void Lsv_NtkPrintMOCuts(Abc_Ntk_t* pNtk, int k, int l) {
     if (Vec_IntSize(pMultiCut->vOutputs) >= l) {
       multiOutputCutCount++;
       
+      /*
       // Print inputs
       printf("Cut %d:\n", multiOutputCutCount);
       printf("  Inputs (%d): {", Vec_IntSize(pMultiCut->vLeaves));
@@ -354,7 +355,7 @@ void Lsv_NtkPrintMOCuts(Abc_Ntk_t* pNtk, int k, int l) {
         if (j > 0) printf(", ");
         int nodeId = Vec_IntEntry(pMultiCut->vLeaves, j);
         Abc_Obj_t* pNode = Abc_NtkObj(pNtk, nodeId);
-        printf("%s", Abc_ObjName(pNode));
+        printf("%d", Abc_ObjId(pNode));
       }
       printf("}\n");
       
@@ -364,13 +365,30 @@ void Lsv_NtkPrintMOCuts(Abc_Ntk_t* pNtk, int k, int l) {
         if (j > 0) printf(", ");
         int nodeId = Vec_IntEntry(pMultiCut->vOutputs, j);
         Abc_Obj_t* pNode = Abc_NtkObj(pNtk, nodeId);
-        printf("%s", Abc_ObjName(pNode));
+        printf("%d", Abc_ObjId(pNode));
       }
       printf("}\n\n");
+      */
+
+      // print with requested format
+      for(j = 0; j < Vec_IntSize(pMultiCut->vLeaves); j++){
+        if (j > 0) printf(" ");
+        int nodeId = Vec_IntEntry(pMultiCut->vLeaves, j);
+        Abc_Obj_t* pNode = Abc_NtkObj(pNtk, nodeId);
+        printf("%d", Abc_ObjId(pNode));
+      }
+      printf(" : ");
+      for(j = 0; j < Vec_IntSize(pMultiCut->vOutputs); j++){
+        if (j > 0) printf(" ");
+        int nodeId = Vec_IntEntry(pMultiCut->vOutputs, j);
+        Abc_Obj_t* pNode = Abc_NtkObj(pNtk, nodeId);
+        printf("%d", Abc_ObjId(pNode));
+      }
+      printf("\n");
     }
   }
   
-  printf("Total %d-%d multi-output cuts: %d\n", k, l, multiOutputCutCount);
+  //printf("Total %d-%d multi-output cuts: %d\n", k, l, multiOutputCutCount);
   
   // Clean up
   Vec_PtrForEachEntry(MultiOutputCut*, vMultiCuts, pMultiCut, i) {
