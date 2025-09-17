@@ -188,7 +188,7 @@ void Lsv_NtkPrintMOCuts(Abc_Ntk_t* pNtk, int k, int l) {
   Cut_Params_t Params;
   Cut_Cut_t* pList;
   Abc_Obj_t* pObj;
-  int i, cutCount = 0;
+  int i, j;
   
   // Initialize cut parameters
   memset(&Params, 0, sizeof(Cut_Params_t));
@@ -227,78 +227,157 @@ void Lsv_NtkPrintMOCuts(Abc_Ntk_t* pNtk, int k, int l) {
   }
   Vec_PtrFree(vNodes);
   
-  // Print k-feasible cuts for all PI and AND nodes
-  printf("k-feasible Cuts (k=%d):\n", k);
-  printf("========================\n");
+  // Data structure to store multi-output cuts
+  // Key: cut signature (sorted list of leaf IDs), Value: list of output nodes
+  typedef struct {
+    Vec_Int_t* vLeaves;     // sorted leaf IDs
+    Vec_Int_t* vOutputs;    // output node IDs that have this cut
+  } MultiOutputCut;
   
-  // Print cuts for Primary Inputs
-  printf("Primary Inputs:\n");
+  Vec_Ptr_t* vMultiCuts = Vec_PtrAlloc(100);
+  
+  // Collect all cuts and group by cut content
+  // Process Primary Inputs
   Abc_NtkForEachCi(pNtk, pObj, i) {
     if (Abc_ObjFanoutNum(pObj) > 0) {
       pList = (Cut_Cut_t*)Abc_NodeReadCuts(pManCut, pObj);
       if (pList) {
         Cut_Cut_t* pCut;
-        int nodeCutCount = 0;
-        
-        // Count and print k-feasible cuts for this PI
         for (pCut = pList; pCut; pCut = pCut->pNext) {
-          if (pCut->nLeaves <= k) { // k-feasible cut
-            nodeCutCount++;
-          }
-        }
-        
-        if (nodeCutCount > 0) {
-          printf("Node %s (ID=%d): %d cuts\n", Abc_ObjName(pObj), Abc_ObjId(pObj), nodeCutCount);
-          
-          // Print individual cuts
-          for (pCut = pList; pCut; pCut = pCut->pNext) {
-            if (pCut->nLeaves <= k) { // k-feasible cut
-              printf("  ");
-              Cut_CutPrint(pCut, 0);
-              printf("\n");
-              cutCount++;
+          if (pCut->nLeaves <= k && pCut->nLeaves > 0) { // k-feasible non-trivial cut
+            // Create sorted array of leaf IDs for this cut
+            Vec_Int_t* vCutLeaves = Vec_IntAlloc(pCut->nLeaves);
+            int idx;
+            for (idx = 0; idx < pCut->nLeaves; idx++) {
+              Vec_IntPush(vCutLeaves, pCut->pLeaves[idx]);
             }
+            Vec_IntSort(vCutLeaves, 0);
+            
+            // Check if this cut already exists
+            MultiOutputCut* pMultiCut = NULL;
+            int idx2;
+            Vec_PtrForEachEntry(MultiOutputCut*, vMultiCuts, pMultiCut, idx2) {
+              if (Vec_IntSize(pMultiCut->vLeaves) == Vec_IntSize(vCutLeaves)) {
+                int equal = 1;
+                int k;
+                for (k = 0; k < Vec_IntSize(vCutLeaves); k++) {
+                  if (Vec_IntEntry(pMultiCut->vLeaves, k) != Vec_IntEntry(vCutLeaves, k)) {
+                    equal = 0;
+                    break;
+                  }
+                }
+                if (equal) {
+                  Vec_IntFree(vCutLeaves);
+                  Vec_IntPushUnique(pMultiCut->vOutputs, Abc_ObjId(pObj));
+                  goto next_cut_pi;
+                }
+              }
+            }
+            
+            // Create new multi-output cut entry
+            pMultiCut = (MultiOutputCut*)malloc(sizeof(MultiOutputCut));
+            pMultiCut->vLeaves = vCutLeaves;
+            pMultiCut->vOutputs = Vec_IntAlloc(4);
+            Vec_IntPush(pMultiCut->vOutputs, Abc_ObjId(pObj));
+            Vec_PtrPush(vMultiCuts, pMultiCut);
+            
+            next_cut_pi:;
           }
-          printf("\n");
         }
       }
     }
   }
   
-  // Print cuts for AND nodes
-  printf("AND Nodes:\n");
+  // Process AND nodes
   Abc_NtkForEachNode(pNtk, pObj, i) {
     pList = (Cut_Cut_t*)Abc_NodeReadCuts(pManCut, pObj);
     if (pList) {
       Cut_Cut_t* pCut;
-      int nodeCutCount = 0;
-      
-      // Count k-feasible cuts for this AND node
       for (pCut = pList; pCut; pCut = pCut->pNext) {
-        if (pCut->nLeaves <= k) { // k-feasible cut
-          nodeCutCount++;
-        }
-      }
-      
-      if (nodeCutCount > 0) {
-        printf("Node %s (ID=%d): %d cuts\n", Abc_ObjName(pObj), Abc_ObjId(pObj), nodeCutCount);
-        
-        // Print individual cuts
-        for (pCut = pList; pCut; pCut = pCut->pNext) {
-          if (pCut->nLeaves <= k) { // k-feasible cut
-            printf("  ");
-            Cut_CutPrint(pCut, 0);
-            printf("\n");
-            cutCount++;
+        if (pCut->nLeaves <= k && pCut->nLeaves > 0) { // k-feasible non-trivial cut
+          // Create sorted array of leaf IDs for this cut
+          Vec_Int_t* vCutLeaves = Vec_IntAlloc(pCut->nLeaves);
+          int idx;
+          for (idx = 0; idx < pCut->nLeaves; idx++) {
+            Vec_IntPush(vCutLeaves, pCut->pLeaves[idx]);
           }
+          Vec_IntSort(vCutLeaves, 0);
+          
+          // Check if this cut already exists
+          MultiOutputCut* pMultiCut = NULL;
+          int idx2;
+          Vec_PtrForEachEntry(MultiOutputCut*, vMultiCuts, pMultiCut, idx2) {
+            if (Vec_IntSize(pMultiCut->vLeaves) == Vec_IntSize(vCutLeaves)) {
+              int equal = 1;
+              int k;
+              for (k = 0; k < Vec_IntSize(vCutLeaves); k++) {
+                if (Vec_IntEntry(pMultiCut->vLeaves, k) != Vec_IntEntry(vCutLeaves, k)) {
+                  equal = 0;
+                  break;
+                }
+              }
+              if (equal) {
+                Vec_IntFree(vCutLeaves);
+                Vec_IntPushUnique(pMultiCut->vOutputs, Abc_ObjId(pObj));
+                goto next_cut_and;
+              }
+            }
+          }
+          
+          // Create new multi-output cut entry
+          pMultiCut = (MultiOutputCut*)malloc(sizeof(MultiOutputCut));
+          pMultiCut->vLeaves = vCutLeaves;
+          pMultiCut->vOutputs = Vec_IntAlloc(4);
+          Vec_IntPush(pMultiCut->vOutputs, Abc_ObjId(pObj));
+          Vec_PtrPush(vMultiCuts, pMultiCut);
+          
+          next_cut_and:;
         }
-        printf("\n");
       }
     }
   }
   
-  printf("Total irredundant k-feasible cuts found: %d\n", cutCount);
+  // Print k-l multi-output cuts
+  printf("k-l Multi-Output Cuts (k=%d, l=%d):\n", k, l);
+  printf("===================================\n");
+  
+  int multiOutputCutCount = 0;
+  MultiOutputCut* pMultiCut;
+  Vec_PtrForEachEntry(MultiOutputCut*, vMultiCuts, pMultiCut, i) {
+    if (Vec_IntSize(pMultiCut->vOutputs) >= l) {
+      multiOutputCutCount++;
+      
+      // Print inputs
+      printf("Cut %d:\n", multiOutputCutCount);
+      printf("  Inputs (%d): {", Vec_IntSize(pMultiCut->vLeaves));
+      for (j = 0; j < Vec_IntSize(pMultiCut->vLeaves); j++) {
+        if (j > 0) printf(", ");
+        int nodeId = Vec_IntEntry(pMultiCut->vLeaves, j);
+        Abc_Obj_t* pNode = Abc_NtkObj(pNtk, nodeId);
+        printf("%s", Abc_ObjName(pNode));
+      }
+      printf("}\n");
+      
+      // Print outputs
+      printf("  Outputs (%d): {", Vec_IntSize(pMultiCut->vOutputs));
+      for (j = 0; j < Vec_IntSize(pMultiCut->vOutputs); j++) {
+        if (j > 0) printf(", ");
+        int nodeId = Vec_IntEntry(pMultiCut->vOutputs, j);
+        Abc_Obj_t* pNode = Abc_NtkObj(pNtk, nodeId);
+        printf("%s", Abc_ObjName(pNode));
+      }
+      printf("}\n\n");
+    }
+  }
+  
+  printf("Total %d-%d multi-output cuts: %d\n", k, l, multiOutputCutCount);
   
   // Clean up
+  Vec_PtrForEachEntry(MultiOutputCut*, vMultiCuts, pMultiCut, i) {
+    Vec_IntFree(pMultiCut->vLeaves);
+    Vec_IntFree(pMultiCut->vOutputs);
+    free(pMultiCut);
+  }
+  Vec_PtrFree(vMultiCuts);
   Cut_ManStop(pManCut);
 }
