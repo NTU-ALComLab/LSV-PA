@@ -14,9 +14,29 @@ Abc_FrameInitializer_t frame_initializer_moc = {init_moc, destroy_moc};
 
 struct PackageRegistrationManager {
   PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer_moc); }
-} mocPackageRegistrationManager;
+} PackageRegistrationManager_moc;
 
 int Lsv_PrintMOCuts(Abc_Frame_t* pAbc, int argc, char** argv) {
-    
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  int c;
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "klh")) != EOF) {
+    switch (c) {
+      case 'h':
+        goto usage;
+      default:
+        goto usage;
+    }
+  }
+  if (!pNtk) {
+    Abc_Print(-1, "Empty network.\n");
     return 1;
+  }
+  return 1;
+
+usage:
+  Abc_Print(-2, "usage: lsv_printmocut <k> <l> [-h]\n");
+  Abc_Print(-2, "\t          prints the nodes in the network\n");
+  Abc_Print(-2, "\t-h      : print the command usage\n");
+  return 1;
 }
