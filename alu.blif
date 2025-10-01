@@ -1,0 +1,48 @@
+.model alu
+.inputs a1 a0 b1 b0 c
+.outputs y2 y1 y0
+
+# handle subtraction
+
+.names b0 c b0x
+01 1
+10 1
+
+.names b1 c b1x
+01 1
+10 1
+
+.names c cin
+1 1
+
+# Full adder for bit0
+
+.names a0 b0x t0
+01 1
+10 1
+
+.names t0 cin y0
+01 1
+10 1
+
+.names a0 b0x cin carry1
+11- 1
+1-1 1
+-11 1
+
+# Full adder for bit1
+
+.names a1 b1x t1
+01 1
+10 1
+
+.names t1 carry1 y1
+01 1
+10 1
+
+.names a1 b1x carry1 y2
+11- 1
+1-1 1
+-11 1
+
+.end
