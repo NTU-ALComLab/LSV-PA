@@ -220,20 +220,38 @@ static int Lsv_CommandPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv) {
     }
   }
 
-  // Print those with at least l outputs
+  // Collect and sort results before printing
+  std::vector<std::pair<std::vector<int>, std::vector<int>>> results;
   for (const auto& kv : cutToOutputs) {
     const std::string& key = kv.first;
     const auto& outs = kv.second;
     if ((int)outs.size() < l) continue;
     const auto& ins = keyToInputs[key];
-    // print inputs
-    for (size_t t = 0; t < ins.size(); ++t) {
-      if (t) printf(" ");
-      printf("%d", ins[t]);
-    }
-    printf(" : ");
+    
+    // Sort inputs and outputs
+    std::vector<int> sortedIns = ins;
+    std::sort(sortedIns.begin(), sortedIns.end());
     std::vector<int> sortedOuts = outs;
     std::sort(sortedOuts.begin(), sortedOuts.end());
+    
+    results.push_back({sortedIns, sortedOuts});
+  }
+  
+  // Sort results by input cuts (lexicographically)
+  std::sort(results.begin(), results.end());
+  
+  // Print sorted results
+  for (const auto& result : results) {
+    const auto& sortedIns = result.first;
+    const auto& sortedOuts = result.second;
+    
+    // print inputs
+    for (size_t t = 0; t < sortedIns.size(); ++t) {
+      if (t) printf(" ");
+      printf("%d", sortedIns[t]);
+    }
+    printf(" : ");
+    // print outputs
     for (size_t t = 0; t < sortedOuts.size(); ++t) {
       if (t) printf(" ");
       printf("%d", sortedOuts[t]);
