@@ -1,13 +1,31 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include <pthread.h>
 
-static int LSV_PrintMOCuts(Abc_Frame_t* pAbc, int argc, char** argv);
+// Number of threads to use for the parrallelism
+#define NUM_THREADS 12
+
+// Structure for computation parrallelism
+typedef struct {
+  Abc_Ntk_t* pNtk;
+  Vec_Wec_t** all_inputs_nodes;
+  int offset;
+  int max_input;
+  int total_nodes;
+  int* shared_index;
+  pthread_mutex_t* shared_mutex;
+} ThreadArgs_t;
+
+static int LSV_MOCuts_init(Abc_Frame_t* pAbc, int argc, char** argv);
 static Vec_Wec_t* LSV_computeNodeInputs(Abc_Ntk_t* pNtk, Abc_Obj_t * pNode, int max_input);
+void* compute_inputs_worker(void* arg);
 static int LSV_printDebug(Abc_Ntk_t* pNtk);
 static int LSV_MOCuts(Abc_Ntk_t* pNtk, int max_inputs, int min_outputs, int debug);
 static Vec_Wec_t* LSV_singleVectorInputs(Vec_Vec_t* all_nodes_inputs);
 static Vec_Wec_t* LSV_combineInputsVec(Vec_Wec_t** p, int size);
+static void LSV_printMOCuts(Vec_Wec_t* p);
+static Vec_Wec_t* LSV_filterMOCuts(Vec_Wec_t* p);
 
 // Function additions for vectors of int 
 
@@ -17,7 +35,7 @@ static Vec_Wec_t* Vec_WecRemoveSizeOver(Vec_Wec_t* p, int size);
 static inline void Vec_WecPrint_multiples(Vec_Wec_t** p, int size);
 
 void init_moc(Abc_Frame_t* pAbc) {
-  Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", LSV_PrintMOCuts, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", LSV_MOCuts_init, 0);
 }
 
 void destroy_moc(Abc_Frame_t* pAbc) {}
@@ -78,15 +96,17 @@ static inline void Vec_WecPrint_multiples(Vec_Wec_t** p, int size) {
 
 
 
-int LSV_PrintMOCuts(Abc_Frame_t* pAbc, int argc, char** argv) {
+int LSV_MOCuts_init(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   int c;
   int K, L;
   Extra_UtilGetoptReset();
-  while ((c = Extra_UtilGetopt(argc, argv, "hd")) != EOF) {
+  while ((c = Extra_UtilGetopt(argc, argv, "hds")) != EOF) {
     switch (c) {
       case 'd':
         goto debug;
+      case 's':
+        goto stats;
       case 'h':
         goto usage;
       default:
@@ -114,11 +134,14 @@ int LSV_PrintMOCuts(Abc_Frame_t* pAbc, int argc, char** argv) {
   return 1;
 
 debug:
-  LSV_printDebug(pNtk);
   if (!LSV_MOCuts(pNtk, K, L, 1)) {
     Abc_Print(-1, "The multi-output cut computation failed.\n");
     return 1;
   }
+  return 1;
+
+stats:
+  LSV_printDebug(pNtk);
   return 1;
 
 usage:
@@ -126,7 +149,8 @@ usage:
   Abc_Print(-2, "\t          prints the nodes in the network\n");
   Abc_Print(-2, "\t<k>     : maximum number of nodes in a cut (2 < k < 7)\n");
   Abc_Print(-2, "\t<l>     : minimum number of output nodes of a cut (0 < l < 5)\n");
-  Abc_Print(-2, "\t-d      : debug mode, show a few important informations about the circuit\n");
+  Abc_Print(-2, "\t-d      : debug mode\n");
+  Abc_Print(-2, "\t-s      : stats mode, show a few important informations about the circuit\n");
   Abc_Print(-2, "\t-h      : print the command usage\n");
   return 1;
 }
@@ -159,7 +183,7 @@ static Vec_Wec_t* LSV_computeNodeInputs(Abc_Ntk_t* pNtk, Abc_Obj_t * pNode, int 
             Vec_IntPush(next_input_set, Abc_ObjId(pFanin));
           }
         }
-        if (Vec_IntSize(next_input_set)>0) {
+        if (Vec_IntSize(next_input_set)>0 and Vec_IntSize(next_input_set)<(2*max_input)) {
           Vec_IntSort(next_input_set, 0);
           if (Vec_WecCompare(node_input,next_input_set)==-1) {
             Vec_WecPush_vecint(node_input, next_input_set);
@@ -212,10 +236,24 @@ static int LSV_printDebug(Abc_Ntk_t* pNtk) {
 static int LSV_MOCuts(Abc_Ntk_t* pNtk, int max_inputs, int min_outputs, int debug) {
   // First part, create the nodes combination of inputs vectors
   Vec_Wec_t* all_inputs_nodes[Abc_NtkNodeNum(pNtk)];
-  int offset = Abc_NtkPiNum(pNtk )+Abc_NtkPoNum(pNtk )+1;
-  for (int i=offset; i<Abc_NtkObjNum(pNtk ); i++) {
-    Abc_Obj_t * pNode = Abc_NtkObj(pNtk, i);
-    all_inputs_nodes[i-offset] = LSV_computeNodeInputs(pNtk, pNode, max_inputs);
+  int offset = Abc_NtkPiNum(pNtk) + Abc_NtkPoNum(pNtk) + 1;
+  int total_nodes = Abc_NtkObjNum(pNtk);
+  int shared_index = offset;
+  pthread_mutex_t shared_mutex = PTHREAD_MUTEX_INITIALIZER;
+  pthread_t threads[NUM_THREADS];
+  ThreadArgs_t thread_args[NUM_THREADS];
+  for (int t = 0; t < NUM_THREADS; t++) {
+    thread_args[t].pNtk = pNtk;
+    thread_args[t].all_inputs_nodes = all_inputs_nodes;
+    thread_args[t].offset = offset;
+    thread_args[t].max_input = max_inputs;
+    thread_args[t].total_nodes = total_nodes;
+    thread_args[t].shared_index = &shared_index;
+    thread_args[t].shared_mutex = &shared_mutex;
+    pthread_create(&threads[t], NULL, compute_inputs_worker, &thread_args[t]);
+  }
+  for (int t = 0; t < NUM_THREADS; t++) {
+    pthread_join(threads[t], NULL);
   }
   if (debug) {Vec_WecPrint_multiples(all_inputs_nodes, Abc_NtkNodeNum(pNtk));}
   Vec_Wec_t* combined_unique_inputs = LSV_combineInputsVec(all_inputs_nodes, Abc_NtkNodeNum(pNtk));
@@ -241,10 +279,19 @@ static int LSV_MOCuts(Abc_Ntk_t* pNtk, int max_inputs, int min_outputs, int debu
       Vec_WecPush_vecint(unfiltered_mocuts, modified_current_inputs);
     }
   }
+  Vec_WecFreeP(&combined_unique_inputs);
   if (debug) {
-    Abc_Print(1, "Unfiltered multi-output cuts [1: Nb Inputs, 2: Nb Outputs, ...]: \n");
-    Vec_WecPrint(unfiltered_mocuts, 0);
+    Abc_Print(1, "Unfiltered multi-output cuts : \n");
+    LSV_printMOCuts(unfiltered_mocuts);
   }
+  // Third part, filtering of the subsets of cuts
+  Vec_Wec_t* filtered_mocuts = LSV_filterMOCuts(unfiltered_mocuts);
+
+  // Finalisation, printing of the multi-output cuts
+  if (debug) {
+    Abc_Print(1, "Filtered multi-output cuts : \n");
+  }
+  LSV_printMOCuts(filtered_mocuts);
   return 1;
 }
 
@@ -259,4 +306,79 @@ static Vec_Wec_t* LSV_combineInputsVec(Vec_Wec_t** p, int size) {
     }
   }
   return comb;
+}
+
+static void LSV_printMOCuts(Vec_Wec_t* p) {
+  for (int i=0; i<Vec_WecSize(p); i++) {
+    Vec_Int_t* cut = Vec_WecEntry(p, i);
+    for (int input=0; input<Vec_IntEntry(cut,0); input++) {
+      Abc_Print(1, "%d ", Vec_IntEntry(cut, input+2));
+    }
+    Abc_Print(1, ": ");
+    for (int output=0; output<Vec_IntEntry(cut,1); output++) {
+      Abc_Print(1, "%d ", Vec_IntEntry(cut, Vec_IntEntry(cut,0)+output+2));
+    }
+    Abc_Print(1, "\n");
+  }
+}
+
+void* compute_inputs_worker(void* arg) {
+  ThreadArgs_t* args = (ThreadArgs_t*)arg;
+  int local_idx;
+  while (1) {
+    pthread_mutex_lock(args->shared_mutex);
+    if (*(args->shared_index) >= args->total_nodes) {
+      pthread_mutex_unlock(args->shared_mutex);
+      break;
+    }
+    local_idx = *(args->shared_index);
+    (*(args->shared_index))++;
+    pthread_mutex_unlock(args->shared_mutex);
+    Abc_Obj_t* pNode = Abc_NtkObj(args->pNtk, local_idx);
+    if (!Abc_ObjIsNode(pNode)) continue;
+    args->all_inputs_nodes[local_idx - args->offset] =
+        LSV_computeNodeInputs(args->pNtk, pNode, args->max_input);
+  }
+  return NULL;
+}
+
+static Vec_Wec_t* LSV_filterMOCuts(Vec_Wec_t* p) {
+  Vec_Wec_t* filtered = Vec_WecStart(0);
+  Vec_Wec_t* filtered_outputs = Vec_WecStart(0);
+  for (int i=0; i<Vec_WecSize(p); i++) {
+    int is_valid = 1;
+    Vec_Int_t* a = Vec_WecEntry(p,i);
+    Vec_Int_t* a_outputs = Vec_IntDup(a);
+    Vec_IntRemove(a_outputs, Vec_IntEntry(a, 0));
+    Vec_IntRemove(a_outputs, Vec_IntEntry(a, 1));
+    for (int j=0; j<Vec_IntEntry(a,0); j++) {
+      Vec_IntRemove(a_outputs, Vec_IntEntry(a, j+2));
+    }
+    for (int j=i+1; j<Vec_WecSize(p); j++) {
+      Vec_Int_t* b = Vec_WecEntry(p,j);
+      Vec_Int_t* b_outputs = Vec_IntDup(b);
+      Vec_IntRemove(b_outputs, Vec_IntEntry(b, 0));
+      Vec_IntRemove(b_outputs, Vec_IntEntry(b, 1));
+      for (int k=0; k<Vec_IntEntry(b,0); k++) {
+        Vec_IntRemove(b_outputs, Vec_IntEntry(b, k+2));
+      }
+      if (Vec_IntEqual(a_outputs,b_outputs)==0) {
+        break;
+      }
+      if (Vec_IntEntry(a,1+Vec_IntEntry(a,0)) < Vec_IntEntry(b,1+Vec_IntEntry(b,0))) {
+        is_valid = 0;
+        break;
+      } else if (Vec_IntEntry(a,1+Vec_IntEntry(a,0)) == Vec_IntEntry(b,1+Vec_IntEntry(b,0))) {
+        if (Vec_IntEntry(a,0) > Vec_IntEntry(b,0)) {
+          is_valid = 0;
+          break;
+        }
+      }
+    }
+    if (is_valid and Vec_WecCompare(filtered_outputs, a_outputs)==-1) {
+      Vec_WecPush_vecint(filtered, a);
+      Vec_WecPush_vecint(filtered_outputs, a_outputs);
+    }
+  }
+  return filtered;
 }
