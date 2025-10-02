@@ -212,3 +212,7 @@ extern "C" void Lsv_Init(Abc_Frame_t* pAbc) {
 extern "C" void Lsv_End(Abc_Frame_t* pAbc) {
     (void)pAbc;
 }
+extern "C" Abc_FrameInitializer_t Abc_FrameInitializerLsv = {
+    /* .init    = */ Lsv_Init,
+    /* .destroy = */ Lsv_End
+};
