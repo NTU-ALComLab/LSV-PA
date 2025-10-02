@@ -99,12 +99,15 @@ static inline void Vec_WecPrint_multiples(Vec_Wec_t** p, int size) {
 int LSV_MOCuts_init(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   int c;
-  int K, L;
+  int debug = 0;
+  int K = 3;
+  int L = 1;
   Extra_UtilGetoptReset();
   while ((c = Extra_UtilGetopt(argc, argv, "hds")) != EOF) {
     switch (c) {
       case 'd':
-        goto debug;
+        debug = 1;
+        break;
       case 's':
         goto stats;
       case 'h':
@@ -127,14 +130,7 @@ int LSV_MOCuts_init(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_Print(-1, "This command require an AIG strash network.\n");
     return 1;
   }
-  if (!LSV_MOCuts(pNtk, K, L, 0)) {
-    Abc_Print(-1, "The multi-output cut computation failed.\n");
-    return 1;
-  }
-  return 1;
-
-debug:
-  if (!LSV_MOCuts(pNtk, K, L, 1)) {
+  if (!LSV_MOCuts(pNtk, K, L, debug)) {
     Abc_Print(-1, "The multi-output cut computation failed.\n");
     return 1;
   }
@@ -145,10 +141,10 @@ stats:
   return 1;
 
 usage:
-  Abc_Print(-2, "usage: lsv_printmocut <k> <l> [-h]\n");
+  Abc_Print(-2, "usage: lsv_printmocut [-h] <k> <l>\n");
   Abc_Print(-2, "\t          prints the nodes in the network\n");
-  Abc_Print(-2, "\t<k>     : maximum number of nodes in a cut (2 < k < 7)\n");
-  Abc_Print(-2, "\t<l>     : minimum number of output nodes of a cut (0 < l < 5)\n");
+  Abc_Print(-2, "\t<k>     : maximum number of nodes in a cut (2 < k < 7) [default : 3]\n");
+  Abc_Print(-2, "\t<l>     : minimum number of output nodes of a cut (0 < l < 5) [default : 1]\n");
   Abc_Print(-2, "\t-d      : debug mode\n");
   Abc_Print(-2, "\t-s      : stats mode, show a few important informations about the circuit\n");
   Abc_Print(-2, "\t-h      : print the command usage\n");
