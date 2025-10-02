@@ -2,18 +2,22 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 
-static int Lsv_PrintMOCuts(Abc_Frame_t* pAbc, int argc, char** argv);
-static Vec_Wec_t* Lsv_computeNodeInputs(Abc_Ntk_t* pNtk, Abc_Obj_t * pNode, int max_input);
-static int Lsv_printExample(Abc_Ntk_t* pNtk);
+static int LSV_PrintMOCuts(Abc_Frame_t* pAbc, int argc, char** argv);
+static Vec_Wec_t* LSV_computeNodeInputs(Abc_Ntk_t* pNtk, Abc_Obj_t * pNode, int max_input);
+static int LSV_printDebug(Abc_Ntk_t* pNtk);
+static int LSV_MOCuts(Abc_Ntk_t* pNtk, int max_inputs, int min_outputs, int debug);
+static Vec_Wec_t* LSV_singleVectorInputs(Vec_Vec_t* all_nodes_inputs);
+static Vec_Wec_t* LSV_combineInputsVec(Vec_Wec_t** p, int size);
 
 // Function additions for vectors of int 
 
 static inline void Vec_WecPush_vecint(Vec_Wec_t* p, Vec_Int_t* a);
 static inline int Vec_WecCompare(Vec_Wec_t* p, Vec_Int_t* a);
 static Vec_Wec_t* Vec_WecRemoveSizeOver(Vec_Wec_t* p, int size);
+static inline void Vec_WecPrint_multiples(Vec_Wec_t** p, int size);
 
 void init_moc(Abc_Frame_t* pAbc) {
-  Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_PrintMOCuts, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", LSV_PrintMOCuts, 0);
 }
 
 void destroy_moc(Abc_Frame_t* pAbc) {}
@@ -63,15 +67,26 @@ static Vec_Wec_t* Vec_WecRemoveSizeOver(Vec_Wec_t* p, int size) {
   return new_vec;
 }
 
+/// @brief 
+/// @param p 
+static inline void Vec_WecPrint_multiples(Vec_Wec_t** p, int size) {
+  for (int i=0; i<size; i++) {
+    printf("Node %d :\n", i);
+    Vec_WecPrint(p[i], 0);
+  }
+}
 
 
-int Lsv_PrintMOCuts(Abc_Frame_t* pAbc, int argc, char** argv) {
+
+int LSV_PrintMOCuts(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   int c;
   int K, L;
   Extra_UtilGetoptReset();
-  while ((c = Extra_UtilGetopt(argc, argv, "klh")) != EOF) {
+  while ((c = Extra_UtilGetopt(argc, argv, "hd")) != EOF) {
     switch (c) {
+      case 'd':
+        goto debug;
       case 'h':
         goto usage;
       default:
@@ -92,8 +107,16 @@ int Lsv_PrintMOCuts(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_Print(-1, "This command require an AIG strash network.\n");
     return 1;
   }
-  if (!Lsv_printExample(pNtk)) {
-    Abc_Print(-1, "The computation of the cuts failed.\n");
+  if (!LSV_MOCuts(pNtk, K, L, 0)) {
+    Abc_Print(-1, "The multi-output cut computation failed.\n");
+    return 1;
+  }
+  return 1;
+
+debug:
+  LSV_printDebug(pNtk);
+  if (!LSV_MOCuts(pNtk, K, L, 1)) {
+    Abc_Print(-1, "The multi-output cut computation failed.\n");
     return 1;
   }
   return 1;
@@ -103,11 +126,12 @@ usage:
   Abc_Print(-2, "\t          prints the nodes in the network\n");
   Abc_Print(-2, "\t<k>     : maximum number of nodes in a cut (2 < k < 7)\n");
   Abc_Print(-2, "\t<l>     : minimum number of output nodes of a cut (0 < l < 5)\n");
+  Abc_Print(-2, "\t-d      : debug mode, show a few important informations about the circuit\n");
   Abc_Print(-2, "\t-h      : print the command usage\n");
   return 1;
 }
 
-static Vec_Wec_t* Lsv_computeNodeInputs(Abc_Ntk_t* pNtk, Abc_Obj_t * pNode, int max_input) {
+static Vec_Wec_t* LSV_computeNodeInputs(Abc_Ntk_t* pNtk, Abc_Obj_t * pNode, int max_input) {
   assert(Abc_ObjIsNode(pNode)==1);
   int input_set_pointer = 0;
   Vec_Wec_t* node_input = Vec_WecStart(0);
@@ -149,11 +173,10 @@ static Vec_Wec_t* Lsv_computeNodeInputs(Abc_Ntk_t* pNtk, Abc_Obj_t * pNode, int 
     }
   }
   Vec_Wec_t* final_node_inputs = Vec_WecRemoveSizeOver(node_input, max_input);
-  Vec_WecPrint(final_node_inputs, 0);
   return final_node_inputs;
 }
 
-static int Lsv_printExample(Abc_Ntk_t* pNtk) {
+static int LSV_printDebug(Abc_Ntk_t* pNtk) {
   Abc_Print(1, "Number of Primary inputs : %d.\n", Abc_NtkPiNum(pNtk ));
   Abc_Print(1, "Number of Nodes : %d.\n", Abc_NtkNodeNum(pNtk ));
   Abc_Print(1, "Number of Objects : %d.\n", Abc_NtkObjNum(pNtk ));
@@ -178,9 +201,62 @@ static int Lsv_printExample(Abc_Ntk_t* pNtk) {
       }
     }
     if (Abc_ObjIsNode(pObj )) {
-      Vec_Wec_t* a = Lsv_computeNodeInputs(pNtk, pObj, 3);
+      Vec_Wec_t* pNode_inputs = LSV_computeNodeInputs(pNtk, pObj, 3);
+      Vec_WecPrint(pNode_inputs, 0);
     }
     Abc_Print(1, "------------------%d------------------\n\n", i);
   }
   return 1;
+}
+
+static int LSV_MOCuts(Abc_Ntk_t* pNtk, int max_inputs, int min_outputs, int debug) {
+  // First part, create the nodes combination of inputs vectors
+  Vec_Wec_t* all_inputs_nodes[Abc_NtkNodeNum(pNtk)];
+  int offset = Abc_NtkPiNum(pNtk )+Abc_NtkPoNum(pNtk )+1;
+  for (int i=offset; i<Abc_NtkObjNum(pNtk ); i++) {
+    Abc_Obj_t * pNode = Abc_NtkObj(pNtk, i);
+    all_inputs_nodes[i-offset] = LSV_computeNodeInputs(pNtk, pNode, max_inputs);
+  }
+  if (debug) {Vec_WecPrint_multiples(all_inputs_nodes, Abc_NtkNodeNum(pNtk));}
+  Vec_Wec_t* combined_unique_inputs = LSV_combineInputsVec(all_inputs_nodes, Abc_NtkNodeNum(pNtk));
+  if (debug) {
+    Abc_Print(1, "Combined Vector of all inputs : \n");
+    Vec_WecPrint(combined_unique_inputs, 0);
+  }
+  // Second part, computes all of the multiple outputs
+  Vec_Wec_t* unfiltered_mocuts = Vec_WecStart(0);
+  for (int i=0; i<Vec_WecSize(combined_unique_inputs); i++) {
+    Vec_Int_t* current_inputs = Vec_WecEntry(combined_unique_inputs, i);
+    Vec_Int_t* modified_current_inputs = Vec_IntDup(current_inputs);
+    int number_outputs = 0;
+    for (int j=0; j<Abc_NtkNodeNum(pNtk); j++) {
+      if (Vec_WecCompare(all_inputs_nodes[j], current_inputs)==1) {
+        number_outputs++;
+        Vec_IntPush(modified_current_inputs, j+offset);
+      }
+    }
+    if (number_outputs>=min_outputs) {
+      Vec_IntPushFirst(modified_current_inputs, number_outputs);
+      Vec_IntPushFirst(modified_current_inputs, Vec_IntSize(current_inputs));
+      Vec_WecPush_vecint(unfiltered_mocuts, modified_current_inputs);
+    }
+  }
+  if (debug) {
+    Abc_Print(1, "Unfiltered multi-output cuts [1: Nb Inputs, 2: Nb Outputs, ...]: \n");
+    Vec_WecPrint(unfiltered_mocuts, 0);
+  }
+  return 1;
+}
+
+static Vec_Wec_t* LSV_combineInputsVec(Vec_Wec_t** p, int size) {
+  Vec_Wec_t* comb = Vec_WecStart(0);
+  for (int i=0; i<size; i++) {
+    Vec_Wec_t* current_node = p[i];
+    for (int j=0; j<Vec_WecSize(current_node);j++) {
+      if (Vec_WecCompare(comb, Vec_WecEntry(current_node, j))==-1) {
+        Vec_WecPush_vecint(comb, Vec_WecEntry(current_node, j));
+      }
+    }
+  }
+  return comb;
 }
