@@ -212,7 +212,17 @@ extern "C" void Lsv_Init(Abc_Frame_t* pAbc) {
 extern "C" void Lsv_End(Abc_Frame_t* pAbc) {
     (void)pAbc;
 }
+// 1) Define the initializer object (you already have this, keep it):
 extern "C" Abc_FrameInitializer_t Abc_FrameInitializerLsv = {
     /* .init    = */ Lsv_Init,
     /* .destroy = */ Lsv_End
 };
+
+// 2) ***Register*** the initializer with ABC *before main()* runs:
+namespace {
+struct LsvAutoRegistrar {
+  LsvAutoRegistrar() {
+    Abc_FrameAddInitializer(&Abc_FrameInitializerLsv);
+  }
+} _lsv_auto_registrar;
+} // namespace
