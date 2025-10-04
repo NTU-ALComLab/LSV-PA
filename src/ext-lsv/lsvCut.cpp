@@ -5,42 +5,39 @@
 #include <algorithm>
 #include <functional>
 
-// ABC headers
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 #include "aig/aig/aig.h"
 #include "misc/vec/vec.h"
 
-// Use a C++ anonymous namespace to limit the scope of helper functions and variables
+
 namespace {
 
-// Forward declarations of static functions
 static int Lsv_CommandPrintMocut(Abc_Frame_t* pAbc, int argc, char** argv);
 void Lsv_NtkEnumerateAndPrintMocut(Abc_Ntk_t* pNtk, int k, int l);
 
-// Function to register the command
+
 void init(Abc_Frame_t* pAbc) {
     Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_CommandPrintMocut, 0);
 }
 
-// Function to be called upon exit
+
 void destroy(Abc_Frame_t* pAbc) {}
 
-// ABC frame initializer
+
 Abc_FrameInitializer_t frame_initializer = {init, destroy};
 
-// Package registration manager
+
 struct PackageRegistrationManager {
     PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer); }
 } lsvPackageRegistrationManager;
 
 
-// A map for memoization to store computed cuts for each node.
-// Key: Node ID, Value: A vector of cuts, where each cut is a sorted vector of node IDs.
+
 std::map<int, std::vector<std::vector<int>>> g_memo;
 
-// Recursive function to find all k-feasible cuts for a given node.
+
 const std::vector<std::vector<int>>& find_cuts_recursive(Abc_Obj_t* pNode, int k) {
     int nodeId = Abc_ObjId(pNode);
 
@@ -101,7 +98,7 @@ const std::vector<std::vector<int>>& find_cuts_recursive(Abc_Obj_t* pNode, int k
 }
 
 
-// Main logic to enumerate and print multi-output cuts.
+
 void Lsv_NtkEnumerateAndPrintMocut(Abc_Ntk_t* pNtk, int k, int l) {
     if (!Abc_NtkIsStrash(pNtk)) {
         Abc_Print(-1, "The network is not a structurally hashed AIG. Please run 'strash'.\n");
@@ -116,7 +113,7 @@ void Lsv_NtkEnumerateAndPrintMocut(Abc_Ntk_t* pNtk, int k, int l) {
     
     Vec_Ptr_t* vNodes = Abc_AigGetLevelizedOrder(pNtk, 1);
     
-    // ** FINAL FIX: Add a NULL check before using the object pointer **
+    
     for (i = 0; i < Vec_PtrSize(vNodes); i++)
     {
         pObj = (Abc_Obj_t *)Vec_PtrEntry(vNodes, i);
@@ -154,7 +151,7 @@ void Lsv_NtkEnumerateAndPrintMocut(Abc_Ntk_t* pNtk, int k, int l) {
 }
 
 
-// The command function callable from the ABC framework.
+
 int Lsv_CommandPrintMocut(Abc_Frame_t* pAbc, int argc, char** argv) {
     int k = 0, l = 0;
     int c;
@@ -200,4 +197,5 @@ usage:
     return 1;
 }
 
-} // end anonymous namespace
+
+} 
