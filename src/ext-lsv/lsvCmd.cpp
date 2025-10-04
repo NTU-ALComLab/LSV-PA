@@ -88,11 +88,11 @@ void Lsv_Iterate_Cuts(
   Abc_Obj_t* pObj, 
   const int size_upper_bound, 
   std::vector<std::vector<std::set<unsigned>>>& cut_list, 
-  std::map<std::set<unsigned>, std::vector<unsigned>>& cut_map){
+  std::map<std::set<unsigned>, std::set<unsigned>>& cut_map){
 
   unsigned id = Abc_ObjId(pObj);
   cut_list[id].push_back(std::set<unsigned>{id});
-  cut_map[std::set<unsigned>{id}] = std::vector<unsigned>{id};
+  cut_map[std::set<unsigned>{id}] = std::set<unsigned>{id};
 
   // printf("Iterate cuts of node  %d with type %d\n", Abc_ObjId(pObj), Abc_ObjType(pObj));
 
@@ -118,10 +118,10 @@ void Lsv_Iterate_Cuts(
         // Add the new cut to the cut map
         if (cut_map.find(new_cut) == cut_map.end()){
           // This cut is not in the map yet
-          cut_map[new_cut] = std::vector<unsigned>{id};
+          cut_map[new_cut] = std::set<unsigned>{id};
         } else {
           // This cut is already in the map
-          cut_map[new_cut].push_back(id);
+          cut_map[new_cut].insert(id);
         }
       }
 
@@ -137,7 +137,7 @@ void Lsv_Iterate_Cuts(
     //     printf("  Node with this cut: %d", e);
     //   }
     //   printf("\n");
-    
+
     }
   }
 }
@@ -153,7 +153,7 @@ void Lsv_NtkPrintMOCuts(Abc_Ntk_t* pNtk, const int k, const int l) {
   std::vector<std::vector<std::set<unsigned>>> cut_list(vsize);
 
   // cut_map[cut] = {list of nodes that have this cut}
-  std::map<std::set<unsigned>, std::vector<unsigned>> cut_map;
+  std::map<std::set<unsigned>, std::set<unsigned>> cut_map;
   
   // Step 2: Calculate the cut list and the cut map
   // ==========================================================
@@ -175,7 +175,6 @@ void Lsv_NtkPrintMOCuts(Abc_Ntk_t* pNtk, const int k, const int l) {
 
       printf(":");
 
-      std::sort(nodes.begin(), nodes.end());
       for (unsigned node: nodes){
         printf(" %d", node);
       }
