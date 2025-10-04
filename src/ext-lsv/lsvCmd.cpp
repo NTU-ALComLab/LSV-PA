@@ -269,7 +269,7 @@ int Lsv_CommandPrintKLCuts(Abc_Frame_t* pAbc, int argc, char** argv) {
   return 0;
 
 usage:
-  Abc_Print(-2, "usage: lsv_printklcuts [-k K] [-l L] [-h]\n");
+  Abc_Print(-2, "usage: lsv_print_klcuts [-k K] [-l L] [-h]\n");
   Abc_Print(-2, "options: \n");
   Abc_Print(-2, "\t-k K\tLimits the enumeration to K inputs (Default 3, 3 <= K <= 6)\n");
   Abc_Print(-2, "\t-l L\tLimits the enumeration to L outputs (Default 1, 1 <= L <= 4)\n");
