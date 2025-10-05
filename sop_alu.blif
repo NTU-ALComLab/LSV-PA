@@ -1,0 +1,50 @@
+# Benchmark "alu" written by ABC on Fri Sep 19 16:47:15 2025
+.model alu
+.inputs a[1] a[0] b[1] b[0] c
+.outputs y[2] y[1] y[0]
+.names new_n11 new_n19 y[2]
+00 0
+.names new_n12 a[1] new_n11
+01 1
+.names new_n13 new_n18 new_n12
+11 1
+.names new_n14 new_n16 new_n13
+00 1
+.names new_n15 a[0] new_n14
+01 1
+.names b[0] c new_n15
+00 1
+.names a[0] new_n17 new_n16
+01 1
+.names b[0] c new_n17
+01 1
+.names b[1] c new_n18
+00 1
+11 1
+.names a[1] new_n20 new_n19
+01 1
+.names new_n13 new_n18 new_n20
+00 1
+.names new_n22 new_n24 y[1]
+00 0
+.names new_n23 a[1] new_n22
+01 1
+.names new_n13 new_n18 new_n23
+01 1
+10 1
+.names new_n25 a[1] new_n24
+00 1
+.names new_n13 new_n18 new_n25
+00 1
+11 1
+.names new_n27 new_n29 y[0]
+00 0
+.names new_n28 a[0] new_n27
+01 1
+.names b[0] c new_n28
+1- 1
+.names new_n30 a[0] new_n29
+00 1
+.names b[0] c new_n30
+0- 1
+.end
