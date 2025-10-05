@@ -5,7 +5,8 @@
 #include <set>
 #include <algorithm>
 #include <cstdlib>
-
+#include <unordered_map>
+#include <map>
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv);
 
@@ -49,18 +50,6 @@ static std::vector<std::set<int>> create_cut(
 
   for (const auto& a : cuts0) {
     for (const auto& b : cuts1) {
-
-      for(const auto& n :a){
-        //printf("%d ",n);
-
-      }
-      //printf("\n");
-
-      for(const auto& n :b){
-        //printf("%d ",n);
-      }
-      //printf("\n");
-
       std::set<int> merged;
       std::set_union(a.begin(), a.end(), b.begin(), b.end(),
                      std::inserter(merged, merged.begin()));
@@ -74,6 +63,7 @@ static std::vector<std::set<int>> create_cut(
 }
 
 
+
 void Lsv_NtkPrintCut(Abc_Ntk_t* pNtk, int k, int l) {
   Abc_Obj_t* pObj;
   int i;
@@ -84,6 +74,8 @@ void Lsv_NtkPrintCut(Abc_Ntk_t* pNtk, int k, int l) {
     id_max = std::max(id_max, (int)Abc_ObjId(pObj));
     level_max = std::max(level_max, Abc_ObjLevel(pObj));
   }
+
+
   std::vector<std::vector<int>> fanin(id_max+1);
   std::vector<std::vector<int>> level_vec(level_max+1);
 
@@ -106,17 +98,10 @@ void Lsv_NtkPrintCut(Abc_Ntk_t* pNtk, int k, int l) {
   for(int id =0;id<id_max+1;id++){
     cuts[id].push_back(std::set<int>{id});
   }
-  // int limit_level = std::min(level_max, l);
   for (int cur_level = 0; cur_level <= level_max; ++cur_level) {
     for (int id : level_vec[cur_level]) {
-      // Assume 2-input AIG. Handle leaves/trivial cases.
       
 
-      // size >= 2
-      // Always include the trivial cut containing the node itself (if allowed)
-      if(cur_level ==1){
-
-      }
       // Build from fanin cuts
       const int f0 = fanin[id][0];
       const int f1 = fanin[id][1];
@@ -132,24 +117,43 @@ void Lsv_NtkPrintCut(Abc_Ntk_t* pNtk, int k, int l) {
       }
     }
   }
+  
+  // Remove single element sets in cuts
+  for (int id = 0; id <= id_max; ++id) {
+    cuts[id].erase(
+      std::remove_if(cuts[id].begin(), cuts[id].end(),
+        [](const std::set<int>& s) { return s.size() == 1; }),
+      cuts[id].end()
+    );
+  }
 
-  // Print cuts up to level l
-  for (int cur_level = 0; cur_level <= level_max; ++cur_level) {
-    for (int id : level_vec[cur_level]) {
-      printf("Cuts for node %d (level %d):\n", id, cur_level);
-      int idx = 0;
-      for (const auto& s : cuts[id]) {
-        printf("  Cut %d: ", idx++);
-        bool first = true;
-        for (int v : s) {
-          if (!first) printf(", ");
-          first = false;
-          printf("%d", v);
-        }
-        printf("\n");
-      }
+  int total_cut = 0;
+  std::map<std::set<int>, std::set<int>> cut_to_output;
+  for (int id = 0; id <= id_max; ++id) {
+    total_cut+=cuts[id].size();
+    for(auto cut_set: cuts[id]){
+      cut_to_output[cut_set].insert(id);
     }
   }
+  for(auto iter:cut_to_output){
+    if(iter.second.size()<l) continue;
+    for(auto c: iter.first){
+      printf("%d ",c);
+
+    }
+    printf(": ");
+    bool first = true;
+    for(auto o: iter.second){
+      if(!first) printf(" ");
+      printf("%d",o);
+      first = false;
+    }
+    printf("\n");
+
+  }
+  
+    
+
 
 }
 
