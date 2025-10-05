@@ -2,6 +2,7 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 
+namespace {
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
@@ -58,3 +59,4 @@ usage:
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
 }
+}  // namespace
