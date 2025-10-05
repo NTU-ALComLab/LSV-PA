@@ -1,0 +1,24 @@
+.model spec_example
+.inputs 1 2 3
+.outputs 4 5 6 7
+.names 1 2 8
+11 1
+.names 1 2 9
+10 1
+.names 1 2 10
+01 1
+.names 2 3 12
+11 1
+.names 12 1 13
+10 1
+.names 10 3 11
+10 1
+.names 8 4
+1 1
+.names 9 5
+1 1
+.names 11 6
+1 1
+.names 13 7
+1 1
+.end

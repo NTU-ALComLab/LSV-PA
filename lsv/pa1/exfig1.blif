@@ -1,0 +1,24 @@
+.model example_fig1
+.inputs pi1 pi2 pi3
+.outputs po4 po5 po6 po7
+.names pi1 pi2 n8
+11 1
+.names pi1 pi2 n9
+10 1
+.names pi1 pi2 n10
+01 1
+.names pi2 pi3 n12
+11 1
+.names n12 pi1 n13
+10 1
+.names n10 pi3 n11
+10 1
+.names n8 po4
+1 1
+.names n9 po5
+1 1
+.names n11 po6
+1 1
+.names n13 po7
+1 1
+.end
