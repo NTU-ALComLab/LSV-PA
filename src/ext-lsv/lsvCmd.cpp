@@ -131,6 +131,9 @@ std::multimap<Lsv_Cut, unsigned int> Lsv_BuildCutMap(Abc_Ntk_t* pNtk, unsigned i
   int i;
   Abc_NtkForEachPi(pNtk, pObj, i) {
     Lsv_AddUnitCutToCutSet(Abc_ObjId(pObj), nodes_cuts[Abc_ObjId(pObj)]);
+    for (Lsv_Cut cut: nodes_cuts[Abc_ObjId(pObj)]) {
+      cut_map.insert({cut, Abc_ObjId(pObj)});
+    }
   }
   Abc_NtkForEachNode(pNtk, pObj, i) {
     assert(Abc_ObjFaninNum(pObj) == 2);
