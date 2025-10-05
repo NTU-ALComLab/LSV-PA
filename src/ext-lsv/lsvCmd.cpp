@@ -227,7 +227,7 @@ static int Lsv_CommandPrintMultiOutputCut(Abc_Frame_t *pAbc, int argc, char **ar
     if (argc == 2 && strcmp(argv[1], "-h") == 0)
     {
         Abc_Print(-2, "usage: lsv_printmocut [-h] [<k>] [<l>]\n");
-        Abc_Print(-2, "\t         enumerate k-l multi-output cuts in an AIG\n");
+        Abc_Print(-2, "\t        enumerate k-l multi-output cuts in an AIG\n");
         Abc_Print(-2, "\t-h    : print the command usage\n");
         return 1;
     }
