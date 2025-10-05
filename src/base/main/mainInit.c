@@ -21,6 +21,11 @@
 #include "base/abc/abc.h"
 #include "mainInt.h"
 
+//
+extern void Lsv_Init(Abc_Frame_t *pAbc);
+//
+
+
 ABC_NAMESPACE_IMPL_START
  
 ////////////////////////////////////////////////////////////////////////
@@ -125,6 +130,10 @@ void Abc_FrameInit( Abc_Frame_t * pAbc )
     Test_Init( pAbc );
     Glucose_Init( pAbc );
     Glucose2_Init( pAbc );
+
+    // ✅ 在這裡加上你的模組初始化
+    Lsv_Init(pAbc);
+
     for( p = s_InitializerStart ; p ; p = p->next )
         if(p->init)
             p->init(pAbc);
