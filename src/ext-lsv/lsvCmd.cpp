@@ -116,7 +116,7 @@ void Lsv_NtkPrintmocuts (Abc_Ntk_t* pNtk,int k,int l){
   int i;
   std::set<int> new_cut;
   
-  //iterate over all objects
+  //iterate over all objects in topological order
   Abc_NtkForEachObj(pNtk,pObj,i){
 
     new_cut.clear();
