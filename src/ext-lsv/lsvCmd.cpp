@@ -443,13 +443,6 @@ void Lsv_NtkPrintMOCut(Abc_Ntk_t* pNtk, int k, int l) {
     
     // Process each cut and group by input signature
     Vec_PtrForEachEntry(Lsv_Cut_t*, vAllCuts, pCut, ii) {
-        // Skip trivial cuts (single node as both input and output)
-        if (Vec_IntSize(pCut->vInputs) == 1 && 
-            Vec_IntSize(pCut->vOutputs) == 1 &&
-            Vec_IntEntry(pCut->vInputs, 0) == Vec_IntEntry(pCut->vOutputs, 0)) {
-            continue;
-        }
-        
         // Generate hash key from sorted inputs: "2_3_5_7"
         // Maximum key length: k inputs * (10 digits + 1 underscore) + null terminator
         char key[256];
@@ -540,7 +533,8 @@ void Lsv_NtkPrintMOCut(Abc_Ntk_t* pNtk, int k, int l) {
         }
         
         // Free the key string we allocated
-        ABC_FREE(key);
+        char* keyToFree = (char*)key;
+        ABC_FREE(keyToFree);
     }
     
     // Free hash table structure (cuts are either in vMultiOutputCuts or freed)
