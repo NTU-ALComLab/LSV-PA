@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <algorithm>
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_commandPrintmocut(Abc_Frame_t* pAbc, int argc, char** argv);
@@ -78,6 +79,18 @@ void generateCombination(
     for(const auto& cut : CutListTemp){
       CutTemp.insert(cut.begin(), cut.end());
       if(CutTemp.size() > valK){
+        return;
+      }
+    }
+    for (auto cut = result.begin(); cut != result.end(); ) {
+        if (std::includes(cut->begin(), cut->end(), CutTemp.begin(), CutTemp.end())) {
+            cut = result.erase(cut);  // Safe erase while iterating
+        } else {
+            ++cut;
+        }
+    }
+    for(const auto& cut : result){
+      if(std::includes(CutTemp.begin(), CutTemp.end(), cut.begin(), cut.end())){
         return;
       }
     }
