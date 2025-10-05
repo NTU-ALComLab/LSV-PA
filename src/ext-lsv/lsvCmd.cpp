@@ -167,7 +167,7 @@ static void Lsv_FreeCuts(st__table *memo)
     st__generator *gen;
     Abc_Obj_t *pObj;
     Vec_Ptr_t *vCuts;
-    st__foreach(memo, gen, (char **)&pObj, (char **)&vCuts)
+    for (gen = st__init_gen(memo); st__gen(gen, (char **)&pObj, (char **)&vCuts); )
     {
         for (int i = 0; i < Vec_PtrSize(vCuts); i++)
         {
@@ -177,6 +177,7 @@ static void Lsv_FreeCuts(st__table *memo)
         }
         Vec_PtrFree(vCuts);
     }
+    st__gen_free(gen);
 }
 
 /** Convert cut to string key (sorted ascending IDs) **/
@@ -218,9 +219,9 @@ static void PrintCutLine(Vec_Ptr_t *vInputs, Vec_Ptr_t *vOutputs)
     Abc_Print(1, "\n");
 }
 
-////////////////////////////////////////////////////////////////////////
-///  Main command
-////////////////////////////////////////////////////////////////////////
+
+//  Main command
+
 static int Lsv_CommandPrintMultiOutputCut(Abc_Frame_t *pAbc, int argc, char **argv)
 {
     if (argc != 3)
@@ -277,13 +278,13 @@ static int Lsv_CommandPrintMultiOutputCut(Abc_Frame_t *pAbc, int argc, char **ar
     st__generator *gen;
     char *key;
     Vec_Ptr_t *vOuts;
-    st__foreach(cutMap, gen, &key, (char **)&vOuts)
+    for (gen = st__init_gen(cutMap); st__gen(gen, (char **)&key, (char **)&vOuts); )
     {
         if (Vec_PtrSize(vOuts) >= l)
         {
-            // reconstruct Vec_Ptr_t for inputs from key string
             Vec_Ptr_t *vInputs = Vec_PtrAlloc(4);
-            char *tok = strtok(key, " ");
+            char *keyCopy = Extra_UtilStrsav(key);  // strtok modifies string
+            char *tok = strtok(keyCopy, " ");
             while (tok)
             {
                 int id = atoi(tok);
@@ -293,8 +294,10 @@ static int Lsv_CommandPrintMultiOutputCut(Abc_Frame_t *pAbc, int argc, char **ar
             }
             PrintCutLine(vInputs, vOuts);
             Vec_PtrFree(vInputs);
+            ABC_FREE(keyCopy);
         }
     }
+    st__gen_free(gen);
 
     // Step 4: Cleanup
     Lsv_FreeCuts(memo);
