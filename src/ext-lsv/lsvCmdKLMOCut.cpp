@@ -82,6 +82,7 @@ void FindCut(Abc_Ntk_t* pNtk, int node, vector<vector<set<int>>>& Cuts, int k) {
     // Cuts[node].insert(Cuts[node].end(), Cuts[pFanin0].begin(), Cuts[pFanin0].end());
     return;
   } else if (Abc_ObjIsNode(pObj) == 0) {
+    Cuts[node].pop_back();
     // cout << "Processing non-PI/PO/non-node node " << node << "...\n";
     return;
   } else {
@@ -107,7 +108,7 @@ void Lsv_NtkMOCut(Abc_Ntk_t* pNtk, int k, int l) {
     return;
   }
 
-  Abc_Obj_t* pObj;
+  // Abc_Obj_t* pObj;
   vector<vector<set<int>>> Cuts(Vec_PtrSize((pNtk)->vObjs));  // Cuts[node_id] = { {cut1}, {cut2}, ...}
 
   for (int i = 0; i < Vec_PtrSize((pNtk)->vObjs); ++i) {
