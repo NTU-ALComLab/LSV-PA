@@ -1,0 +1,17 @@
+.model fig1
+.inputs 1 2 3
+.outputs 4 5 6 7
+
+.names 1 2 4
+11 1
+.names 1 2 5
+10 1
+.names 1 2 t0
+01 1
+.names t0 3 6
+10 1
+.names 2 3 t1
+11 1
+.names 1 t1 7
+01 1
+.end

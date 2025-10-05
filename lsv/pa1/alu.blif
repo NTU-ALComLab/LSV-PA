@@ -1,0 +1,47 @@
+.model alu
+.inputs a1 a0 b1 b0 c
+.outputs y2 y1 y0
+
+# x0 = b0 XOR c ; x1 = b1 XOR c
+.names b0 c x0
+01 1
+10 1
+.names b1 c x1
+01 1
+10 1
+
+# LSB full-adder
+# t0 = a0 XOR x0 ; y0 = t0 XOR c
+.names a0 x0 t0
+01 1
+10 1
+.names t0 c y0
+01 1
+10 1
+# carry0 = majority(a0, x0, c) = a0x0 + a0c + x0c
+.names a0 x0 c carry0
+11- 1
+1-1 1
+-11 1
+
+# MSB full-adder (bit1) -> y1 and carry1
+# t1 = a1 XOR x1 ; y1 = t1 XOR carry0
+.names a1 x1 t1
+01 1
+10 1
+.names t1 carry0 y1
+01 1
+10 1
+# carry1 = majority(a1, x1, carry0)
+.names a1 x1 carry0 carry1
+11- 1
+1-1 1
+-11 1
+
+# Top bit (sign / overflow into y2):
+# y2 = c XOR carry1  (equivalent to adding A2=0 and B2=c with carry-in = carry1)
+.names c carry1 y2
+01 1
+10 1
+
+.end
