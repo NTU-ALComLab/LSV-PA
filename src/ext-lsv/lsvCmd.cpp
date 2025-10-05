@@ -1,11 +1,4 @@
-// src/ext-lsv/lsvCmd.cpp
-//
-// PA1 Problem 4: lsv_printmocut <k> <l>
-// Minimal corrections on top of your original file:
-//   * nodeCuts sized to N+1 (IDs are 1-based)
-//   * CONST1 has exactly one cut: {} (never a leaf)
-//   * Deterministic output (collect + sort results before printing)
-//   * Keep your original initializer/registration (so command is recognized)
+
 
 #include <vector>
 #include <string>
@@ -219,7 +212,7 @@ static int Cmd_LsvPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv) {
     return Lsv_PrintMoCut_Run(pAbc, K, L);
 }
 
-// === Registration (unchanged from your original; do not remove) ===
+// === Registration ===
 extern "C" void Lsv_Init(Abc_Frame_t* pAbc) {
     Cmd_CommandAdd( pAbc, "LSV", "lsv_printmocut", Cmd_LsvPrintMoCut, 0 );
     // Keep this category entry as in your original
@@ -242,3 +235,4 @@ struct LsvAutoRegistrar {
     }
 } _lsv_auto_registrar;
 } // namespace
+
