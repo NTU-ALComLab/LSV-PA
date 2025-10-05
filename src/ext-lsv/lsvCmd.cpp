@@ -117,6 +117,69 @@ static Cut_t *Cut_Merge(Cut_t *pCut0, Cut_t *pCut1, int k)
     return pNew;
 }
 
+/** Check if cut A is a subset of cut B **/
+static int Cut_IsSubset(Cut_t *pA, Cut_t *pB)
+{
+    Vec_Ptr_t *vA = pA->vInputs;
+    Vec_Ptr_t *vB = pB->vInputs;
+
+    for (int i = 0; i < Vec_PtrSize(vA); i++)
+    {
+        Abc_Obj_t *pObjA = (Abc_Obj_t *)Vec_PtrEntry(vA, i);
+        int found = 0;
+        for (int j = 0; j < Vec_PtrSize(vB); j++)
+        {
+            if (pObjA == Vec_PtrEntry(vB, j))
+            {
+                found = 1;
+                break;
+            }
+        }
+        if (!found)
+            return 0;
+    }
+    return 1;
+}
+
+/** Remove redundant cuts (supersets) from vCuts **/
+static void Cuts_RemoveRedundant(Vec_Ptr_t *vCuts)
+{
+    int i, j;
+    for (i = 0; i < Vec_PtrSize(vCuts); i++)
+    {
+        Cut_t *pCi = (Cut_t *)Vec_PtrEntry(vCuts, i);
+        if (!pCi) continue;
+
+        for (j = 0; j < Vec_PtrSize(vCuts); j++)
+        {
+            if (i == j) continue;
+            Cut_t *pCj = (Cut_t *)Vec_PtrEntry(vCuts, j);
+            if (!pCj) continue;
+
+            // If Ci is a superset of Cj, remove Ci
+            if (Cut_IsSubset(pCj, pCi))
+            {
+                Vec_PtrWriteEntry(vCuts, i, NULL);
+                Vec_PtrFree(pCi->vInputs);
+                ABC_FREE(pCi);
+                break;
+            }
+        }
+    }
+
+    // Compact the vector (remove NULLs)
+    Vec_Ptr_t *vNew = Vec_PtrAlloc(Vec_PtrSize(vCuts));
+    for (i = 0; i < Vec_PtrSize(vCuts); i++)
+    {
+        Cut_t *pC = (Cut_t *)Vec_PtrEntry(vCuts, i);
+        if (pC)
+            Vec_PtrPush(vNew, pC);
+    }
+    Vec_PtrClear(vCuts);
+    Vec_PtrAppend(vCuts, vNew);
+    Vec_PtrFree(vNew);
+}
+
 /** Recursively enumerate all cuts for a node **/
 static void Lsv_EnumCuts_rec(Abc_Obj_t *pObj, int k, st__table *memo)
 {
@@ -158,6 +221,7 @@ static void Lsv_EnumCuts_rec(Abc_Obj_t *pObj, int k, st__table *memo)
 
     // Also include the unit cut {this node}
     Vec_PtrPush(vCuts, Cut_CreateSingle(pObj));
+    Cuts_RemoveRedundant(vCuts);
     st__insert(memo, (char *)pObj, (char *)vCuts);
 }
 
