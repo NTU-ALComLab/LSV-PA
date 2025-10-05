@@ -165,9 +165,9 @@ static void Lsv_EnumCuts_rec(Abc_Obj_t *pObj, int k, st__table *memo)
 static void Lsv_FreeCuts(st__table *memo)
 {
     st__generator *gen;
-    Abc_Obj_t *pObj;
+    const char *key;
     Vec_Ptr_t *vCuts;
-    for (gen = st__init_gen(memo); st__gen(gen, (char **)&pObj, (char **)&vCuts); )
+    for (gen = st__init_gen(memo); st__gen(gen, &key, (char **)&vCuts); )
     {
         for (int i = 0; i < Vec_PtrSize(vCuts); i++)
         {
@@ -276,9 +276,9 @@ static int Lsv_CommandPrintMultiOutputCut(Abc_Frame_t *pAbc, int argc, char **ar
 
     // Step 3: Print cuts shared by >= l outputs
     st__generator *gen;
-    char *key;
+    const char *key;
     Vec_Ptr_t *vOuts;
-    for (gen = st__init_gen(cutMap); st__gen(gen, (char **)&key, (char **)&vOuts); )
+    for (gen = st__init_gen(cutMap); st__gen(gen, &key, (char **)&vOuts); )
     {
         if (Vec_PtrSize(vOuts) >= l)
         {
