@@ -177,7 +177,7 @@ static void Lsv_FreeCuts(st__table *memo)
         }
         Vec_PtrFree(vCuts);
     }
-    st__gen_free(gen);
+    st__free_gen(gen);
 }
 
 /** Convert cut to string key (sorted ascending IDs) **/
@@ -297,7 +297,7 @@ static int Lsv_CommandPrintMultiOutputCut(Abc_Frame_t *pAbc, int argc, char **ar
             ABC_FREE(keyCopy);
         }
     }
-    st__gen_free(gen);
+    st__free_gen(gen);
 
     // Step 4: Cleanup
     Lsv_FreeCuts(memo);
