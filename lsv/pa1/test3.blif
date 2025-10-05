@@ -1,0 +1,28 @@
+.model test3
+.inputs a b c d
+.outputs o1 o2
+
+# n_ab = a & b
+.names a b n_ab
+11 1
+
+# n_ac = a & c
+.names a c n_ac
+11 1
+
+# m2 = (a & b) & c
+.names n_ab c m2
+11 1
+
+# m3 = (a & c) & b
+.names n_ac b m3
+11 1
+
+# Primary outputs (ignored by our command, included for completeness)
+.names m2 o1
+1 1
+.names m3 o2
+1 1
+
+.end
+
