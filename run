@@ -1,0 +1,4 @@
+read ./lsv/pa1/benchmarks/adder.blif 
+strash
+lsv_printmocut 3 2
+s
