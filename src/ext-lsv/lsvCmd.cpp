@@ -11,7 +11,7 @@ static int Lsv_CommandPrintKLCuts(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
-  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_klcuts", Lsv_CommandPrintKLCuts, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocuts", Lsv_CommandPrintKLCuts, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -269,7 +269,7 @@ int Lsv_CommandPrintKLCuts(Abc_Frame_t* pAbc, int argc, char** argv) {
   return 0;
 
 usage:
-  Abc_Print(-2, "usage: lsv_print_klcuts [-k K] [-l L] [-h]\n");
+  Abc_Print(-2, "usage: lsv_printmocuts [-k K] [-l L] [-h]\n");
   Abc_Print(-2, "options: \n");
   Abc_Print(-2, "\t-k K\tEnumeration for at most K inputs (Default 3, 3 <= K <= 6)\n");
   Abc_Print(-2, "\t-l L\tEnumeration for at least L outputs (Default 1, 1 <= L <= 4)\n");
