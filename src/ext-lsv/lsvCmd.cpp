@@ -224,11 +224,11 @@ static void PrintCutLine(Vec_Ptr_t *vInputs, Vec_Ptr_t *vOutputs)
 
 static int Lsv_CommandPrintMultiOutputCut(Abc_Frame_t *pAbc, int argc, char **argv)
 {
-    if (argc != 3)
+    /*if (argc != 3)
     {
         Abc_Print(-1, "Usage: lsv_printmocut <k> <l>\n");
         return 1;
-    }
+    }*/
     int k = atoi(argv[1]);
     int l = atoi(argv[2]);
 
@@ -305,4 +305,9 @@ static int Lsv_CommandPrintMultiOutputCut(Abc_Frame_t *pAbc, int argc, char **ar
     st__free_table(cutMap);
 
     return 0;
+usage:
+    Abc_Print(-2, "usage: lsv_printmocut [-h] [<k>] [<l>]\n");
+    Abc_Print(-2, "\t         enumerate k-l multi-output cuts in an AIG\n");
+    Abc_Print(-2, "\t-h    : print the command usage\n");
+    return 1;
 }
