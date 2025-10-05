@@ -1,4 +1,4 @@
-// 檔案: src/ext-lsv/lsvCmd.cpp
+// 檔案:src/ext-lsv/lsvCmd.cpp
 
 #include "base/abc/abc.h"
 #include "base/main/main.h"
