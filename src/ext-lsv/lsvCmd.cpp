@@ -68,7 +68,7 @@ bool Lsv_CutIsSubset(const Lsv_Cut& cut0, const Lsv_Cut& cut1) {
   if (cut0.num_leaves > cut1.num_leaves) return false;
   size_t i = 0, j = 0;
   while (i < cut0.num_leaves && j < cut1.num_leaves) {
-    if (cut0.leaves[i] > cut1.leaves[j]) return false;
+    if (cut0.leaves[i] < cut1.leaves[j]) return false;
     if (cut0.leaves[i] == cut1.leaves[j]) {
       i++; j++;
     } else {
