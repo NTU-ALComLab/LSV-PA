@@ -1,0 +1,12 @@
+ABC command line: "
+                read /home/alex/code/LSV-PA/lsv/pa1/benchmarks/adder.blif;
+                strash;
+                lsv_printmocut 3 3;
+                quit;
+            ".
+
+55 183 : 471 472 473
+55 183 470 : 474 475 476
+258 469 473 : 474 475 476
+470 471 472 : 474 475 476
+470 473 : 474 475 476

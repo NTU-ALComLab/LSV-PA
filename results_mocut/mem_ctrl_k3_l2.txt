@@ -1,0 +1,7 @@
+ABC command line: "
+                read /home/alex/code/LSV-PA/lsv/pa1/benchmarks/mem_ctrl.blif;
+                strash;
+                lsv_printmocut 3 2;
+                quit;
+            ".
+
