@@ -1,0 +1,47 @@
+.model alu
+.inputs a1 a0 b1 b0 c
+.outputs y2 y1 y0
+
+# x0 = b0 XOR c
+.names b0 c x0
+01 1
+10 1
+
+# x1 = b1 XOR c
+.names b1 c x1
+01 1
+10 1
+
+# y0 = a0 XOR x0 XOR c
+.names a0 x0 c y0
+001 1
+010 1
+100 1
+111 1
+
+# carry1 = majority(a0, x0, c)
+.names a0 x0 c carry1
+011 1
+101 1
+110 1
+111 1
+
+# y1 = a1 XOR x1 XOR carry1
+.names a1 x1 carry1 y1
+001 1
+010 1
+100 1
+111 1
+
+# carry2 = majority(a1, x1, carry1)
+.names a1 x1 carry1 carry2
+011 1
+101 1
+110 1
+111 1
+
+# y2 = carry2
+.names carry2 y2
+1 1
+
+.end

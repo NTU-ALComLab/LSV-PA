@@ -1,0 +1,255 @@
+// PA1 §4.1: k-l multi-output cut enumeration
+// File: src/ext-lsv/lsvCmdPa1.cpp
+
+#include "base/abc/abc.h"
+#include "base/main/main.h"
+#include "base/main/mainInt.h"
+
+#include <vector>
+#include <unordered_map>
+#include <string>
+#include <algorithm>
+#include <cstdio>
+
+// --------------------- Utilities / helpers ---------------------
+
+// Shorthand for object ID
+static inline int Id(Abc_Obj_t* o) { return Abc_ObjId(o); }
+
+// Treat as a *leaf* if the frontier stops here.
+// PA spec: consider all Primary Inputs and AND nodes; POs are ignored.
+static inline bool IsLeaf(Abc_Obj_t* o) {
+  return Abc_ObjIsCi(o) || Abc_ObjIsNode(o); // CI or AND node
+}
+
+// Merge two *sorted* leaf-sets (cuts) into their union; enforce size <= k.
+// Returns false if union exceeds k (prune).
+static inline bool MergeTwoCuts(const std::vector<int>& a,
+                                const std::vector<int>& b,
+                                int k,
+                                std::vector<int>& out) {
+  out.clear();
+  out.reserve(a.size() + b.size());
+  size_t i = 0, j = 0;
+  while (i < a.size() && j < b.size()) {
+    if (a[i] < b[j]) { out.push_back(a[i++]); }
+    else if (b[j] < a[i]) { out.push_back(b[j++]); }
+    else { out.push_back(a[i]); ++i; ++j; }
+    if ((int)out.size() > k) return false;
+  }
+  while (i < a.size()) { out.push_back(a[i++]); if ((int)out.size() > k) return false; }
+  while (j < b.size()) { out.push_back(b[j++]); if ((int)out.size() > k) return false; }
+  return (int)out.size() <= k;
+}
+
+// Remove duplicates and subset-dominated cuts (irredundancy).
+// If X ⊆ Y, drop Y. (Quadratic; fine for PA benchmarks.)
+static void ReduceCuts(std::vector<std::vector<int>>& cuts) {
+  // sort lexicographically & deduplicate exact matches
+  std::sort(cuts.begin(), cuts.end());
+  cuts.erase(std::unique(cuts.begin(), cuts.end()), cuts.end());
+
+  const size_t n = cuts.size();
+  std::vector<char> keep(n, 1);
+
+  for (size_t i = 0; i < n; ++i) if (keep[i]) {
+    for (size_t j = i + 1; j < n; ++j) if (keep[j]) {
+      // test cuts[i] ⊆ cuts[j]
+      size_t p = 0, q = 0, hit = 0;
+      while (p < cuts[i].size() && q < cuts[j].size()) {
+        if (cuts[i][p] == cuts[j][q]) { ++hit; ++p; ++q; }
+        else if (cuts[i][p] < cuts[j][q]) { ++p; }
+        else { ++q; }
+      }
+      if (hit == cuts[i].size()) { keep[j] = 0; continue; }
+
+      // test cuts[j] ⊆ cuts[i]
+      p = q = hit = 0;
+      while (p < cuts[j].size() && q < cuts[i].size()) {
+        if (cuts[j][p] == cuts[i][q]) { ++hit; ++p; ++q; }
+        else if (cuts[j][p] < cuts[i][q]) { ++p; }
+        else { ++q; }
+      }
+      if (hit == cuts[j].size()) { keep[i] = 0; break; }
+    }
+  }
+
+  std::vector<std::vector<int>> pruned;
+  pruned.reserve(n);
+  for (size_t i = 0; i < n; ++i) if (keep[i]) pruned.push_back(std::move(cuts[i]));
+  cuts.swap(pruned);
+}
+
+// Simple memoization cache: node id -> vector of cuts (each cut = sorted vector<int> of leaf IDs)
+struct CutCache {
+  std::unordered_map<int, std::vector<std::vector<int>>> memo;
+};
+
+// Enumerate k-feasible *leaf cuts* (over CIs and AND nodes) for node 'o'.
+// Returns a reference to a memoized vector of cuts (each cut sorted asc).
+static const std::vector<std::vector<int>>&
+EnumerateCuts(Abc_Obj_t* o, int k, CutCache& cache)
+{
+  const int id = Id(o);
+  auto it = cache.memo.find(id);
+  if (it != cache.memo.end()) return it->second;
+
+  auto& outCuts = cache.memo[id];
+  outCuts.clear();
+
+  // If frontier stops here, unit cut {id}
+  if (IsLeaf(o)) {
+    outCuts.push_back(std::vector<int>(1, id));
+    // Note: For CIs, we stop; for AND nodes used as leaves, this is how we allow internal leaves.
+    // Do NOT return early for AND nodes, because we also want composed cuts from fanins.
+    if (!Abc_ObjIsNode(o)) return outCuts; // CI: done
+  }
+
+  // If not a logic node (defensive): return unit cut {id}
+  if (!Abc_ObjIsNode(o)) {
+    if (outCuts.empty()) outCuts.push_back(std::vector<int>(1, id));
+    return outCuts;
+  }
+
+  // AIG node: combine fanin cuts
+  Abc_Obj_t* f0 = Abc_ObjFanin0(o);
+  Abc_Obj_t* f1 = Abc_ObjFanin1(o);
+
+  const auto& cuts0 = EnumerateCuts(f0, k, cache);
+  const auto& cuts1 = EnumerateCuts(f1, k, cache);
+
+  std::vector<int> merged;
+  for (const auto& c0 : cuts0) {
+    for (const auto& c1 : cuts1) {
+      if (MergeTwoCuts(c0, c1, k, merged))
+        outCuts.push_back(merged);
+    }
+  }
+
+  // Ensure irredundancy within this node's cut-set
+  ReduceCuts(outCuts);
+  return outCuts;
+}
+
+// Serialize a cut (sorted vector<int>) to a compact key for hashing/grouping
+static std::string KeyOfCut(const std::vector<int>& cut) {
+  // join with spaces (IDs are non-negative)
+  std::string s;
+  s.reserve(cut.size() * 6);
+  for (size_t i = 0; i < cut.size(); ++i) {
+    if (i) s.push_back(' ');
+    char buf[32];
+    std::snprintf(buf, sizeof(buf), "%d", cut[i]);
+    s += buf;
+  }
+  return s;
+}
+
+// --------------------- Command implementation ---------------------
+
+// lsv_printmocut <k> <l>
+// Pre: 3 ≤ k ≤ 6, 1 ≤ l ≤ 4
+// Prints each multi-output cut as:
+//   "<in1> <in2> ... : <out1> <out2> ..."
+// where outs are AND-node IDs for which this cut is k-feasible.
+// POs are ignored per spec.
+static int LsvPa1_CommandPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv) {
+  if (argc != 3) {
+    Abc_Print(-2, "usage: lsv_printmocut <k> <l>\n");
+    return 1;
+  }
+  const int k = std::max(0, atoi(argv[1]));
+  const int l = std::max(0, atoi(argv[2]));
+  if (k < 3 || k > 6) { Abc_Print(-1, "k must be in [3,6].\n"); return 1; }
+  if (l < 1 || l > 4) { Abc_Print(-1, "l must be in [1,4].\n"); return 1; }
+
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  if (!pNtk) { Abc_Print(-1, "Empty network.\n"); return 1; }
+  if (!Abc_NtkIsStrash(pNtk)) {
+    Abc_Print(-1, "Please run \"strash\" first (AIG required).\n");
+    return 1;
+  }
+
+  // For each AND node (output candidate), enumerate k-feasible cuts.
+  // Group identical cuts across outputs, then print only those with >= l outputs.
+  CutCache cache;
+
+  // Map: cut-key -> {cut-vector, vector<outIDs>}
+  struct Bundle { std::vector<int> cut; std::vector<int> outs; };
+  std::unordered_map<std::string, Bundle> groups;
+  groups.reserve(1024);
+
+  Abc_Obj_t* pObj;
+  int i;
+
+  Abc_NtkForEachNode(pNtk, pObj, i) {
+    const int outId = Id(pObj); // consider AND nodes as "outputs" per spec
+    const auto& cuts = EnumerateCuts(pObj, k, cache);
+    for (const auto& cut : cuts) {
+      // cuts already sorted asc; build key
+      const std::string key = KeyOfCut(cut);
+      auto it = groups.find(key);
+      if (it == groups.end()) {
+        Bundle b; b.cut = cut; b.outs = { outId };
+        groups.emplace(key, std::move(b));
+      } else {
+        it->second.outs.push_back(outId);
+      }
+    }
+  }
+
+  // Emit only those with |outs| >= l; sort & de-dup outs
+  std::vector<const Bundle*> results;
+  results.reserve(groups.size());
+  for (auto& kv : groups) {
+    auto& outs = kv.second.outs;
+    std::sort(outs.begin(), outs.end());
+    outs.erase(std::unique(outs.begin(), outs.end()), outs.end());
+    if ((int)outs.size() >= l)
+      results.push_back(&kv.second);
+  }
+
+  // Sort lines lexicographically by inputs (cuts), then by outputs
+  std::sort(results.begin(), results.end(),
+            [](const Bundle* a, const Bundle* b) {
+              if (a->cut != b->cut) return a->cut < b->cut;   // inputs lexicographic
+              return a->outs < b->outs;                       // outputs lexicographic
+            });
+
+  // Print each line
+  for (const Bundle* b : results) {
+    const auto& cut = b->cut;
+    const auto& outs = b->outs;
+
+    // inputs
+    for (size_t t = 0; t < cut.size(); ++t) {
+      if (t) std::printf(" ");
+      std::printf("%d", cut[t]);
+    }
+
+    // exact separator " : "
+    std::printf(" : ");
+
+    // outputs
+    for (size_t t = 0; t < outs.size(); ++t) {
+      if (t) std::printf(" ");
+      std::printf("%d", outs[t]);
+    }
+    std::printf("\n");
+  }
+
+  return 0;
+}
+
+// --------------------- Registration boilerplate (unique symbols) ---------------------
+
+static void LsvPa1_Init(Abc_Frame_t* pAbc) {
+  // Group label "LSV" for menu grouping; command name per spec:
+  //   lsv_printmocut <k> <l>
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", LsvPa1_CommandPrintMoCut, 0);
+}
+static void LsvPa1_Destroy(Abc_Frame_t* ) {}
+
+static Abc_FrameInitializer_t s_LsvPa1Initializer = { LsvPa1_Init, LsvPa1_Destroy };
+struct LsvPa1_Reg { LsvPa1_Reg() { Abc_FrameAddInitializer(&s_LsvPa1Initializer); } };
+static LsvPa1_Reg s_LsvPa1_Reg;
