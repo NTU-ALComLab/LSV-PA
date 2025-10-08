@@ -1,0 +1,26 @@
+# Benchmark "alu" written by ABC on Fri Sep 19 18:12:56 2025
+.model alu
+.inputs a1 a0 b1 b0 c
+.outputs y2 y1 y0
+.names b1 a1 a0 b0 c y2
+-0011 1
+-1110 1
+1-011 1
+1-110 1
+10--1 1
+11--0 1
+.names b0 c a0 b1 a1 y1
+-0001 1
+-0010 1
+-1101 1
+-1110 1
+0--01 1
+0--10 1
+10100 1
+10111 1
+11000 1
+11011 1
+.names a0 b0 y0
+01 1
+10 1
+.end
