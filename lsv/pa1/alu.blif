@@ -1,0 +1,51 @@
+.model alu
+.inputs a1 a0 b1 b0 c
+.outputs y2 y1 y0
+
+
+# b0x = b0 XOR c
+.names b0 c b0x
+01 1
+10 1
+
+# b1x = b1 XOR c
+.names b1 c b1x
+01 1
+10 1
+
+# y0 = a0 XOR b0x XOR c
+.names a0 b0x t0
+01 1
+10 1
+.names t0 c y0
+01 1
+10 1
+
+# c1 = majority(a0, b0x, c) = (a0&b0x) | (a0&c) | (b0x&c)
+.names a0 b0x c c1
+110 1
+101 1
+011 1
+111 1
+
+# y1 = a1 XOR b1x XOR c1
+.names a1 b1x t1
+01 1
+10 1
+.names t1 c1 y1
+01 1
+10 1
+
+# c2 = majority(a1, b1x, c1)
+.names a1 b1x c1 c2
+110 1
+101 1
+011 1
+111 1
+
+# y2 = c XOR c2  
+.names c c2 y2
+01 1
+10 1
+
+.end
