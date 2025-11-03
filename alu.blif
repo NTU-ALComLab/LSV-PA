@@ -1,0 +1,56 @@
+ .model alu
+.inputs a1 a0 b1 b0 c
+.outputs y2 y1 y0
+
+# Step 1: Compute B XOR c for subtraction
+.names b0 c b0_xor
+01 1
+10 1
+
+.names b1 c b1_xor
+01 1
+10 1
+
+# Step 2: LSB full adder (a0 + b0_xor + c)
+.names a0 b0_xor c s0
+001 1
+010 1
+100 1
+111 1
+
+# carry0
+.names a0 b0_xor c carry0
+011 1
+101 1
+110 1
+111 1
+
+# Step 3: MSB full adder (a1 + b1_xor + carry0)
+# sum1
+.names a1 b1_xor carry0 s1
+001 1
+010 1
+100 1
+111 1
+
+# carry1
+.names a1 b1_xor carry0 carry1
+011 1
+101 1
+110 1
+111 1
+
+# Step 4: Assign outputs
+# y0 = s0
+.names s0 y0
+1 1
+
+# y1 = s1
+.names s1 y1
+1 1
+
+# y2 = carry1
+.names carry1 y2
+1 1
+
+.end
