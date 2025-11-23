@@ -1,0 +1,3 @@
+read lsv/pa1/example1.blif
+clp
+pa2 0 0

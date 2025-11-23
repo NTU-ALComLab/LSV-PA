@@ -17,7 +17,7 @@ void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_bdd", Lsv_CommandUnateBdd, 0);
   Cmd_CommandAdd(pAbc, "LSV", "pa2_bdd", Lsv_CommandUnateBdd, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_sat", Lsv_CommandUnateSat, 0);
-  Cmd_CommandAdd(pAbc, "LSV", "pa2_sat", Lsv_CommandUnateSat, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "pa2", Lsv_CommandUnateSat, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -115,6 +115,10 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
     k = atoi(argv[globalUtilOptind]);
     i = atoi(argv[globalUtilOptind + 1]);
   
+  if(!Abc_NtkIsBddLogic(pNtk) ){
+    Abc_Print(-1, "The network is not in BDD form.\n");
+    return 1;
+  }
   // if(k < 0 || k >= Abc_NtkCoNum(pNtk)){
   //   // Abc_Print(-1, ("Input k is " + std::to_string(k) + " but should be between 0 and " + std::to_string(Abc_NtkCoNum(pNtk) - 1) + ".\n").c_str());
   //   goto usage;
