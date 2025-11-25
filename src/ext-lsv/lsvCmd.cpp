@@ -98,7 +98,7 @@ usage:
 
 int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
-  Abc_Obj_t* pNode;
+  // Abc_Obj_t* pNode;
   int c, k = -1, i = -1;
   Extra_UtilGetoptReset();
   while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
@@ -119,18 +119,18 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_Print(-1, "The network is not in BDD form.\n");
     return 1;
   }
-  // if(k < 0 || k >= Abc_NtkCoNum(pNtk)){
-  //   // Abc_Print(-1, ("Input k is " + std::to_string(k) + " but should be between 0 and " + std::to_string(Abc_NtkCoNum(pNtk) - 1) + ".\n").c_str());
-  //   goto usage;
-  // }
-  // else if(i < 0 || i >= Abc_NtkCiNum(pNtk)){
-  //   // Abc_Print(-1, ("Input i is " + std::to_string(i) + " but should be between 0 and " + std::to_string(Abc_NtkCiNum(pNtk) - 1) + ".\n").c_str());
-  //   goto usage;
-  // }
+  if(k < 0 || k >= Abc_NtkCoNum(pNtk)){
+    // Abc_Print(-1, ("Input k is " + std::to_string(k) + " but should be between 0 and " + std::to_string(Abc_NtkCoNum(pNtk) - 1) + ".\n").c_str());
+    goto usage;
+  }
+  else if(i < 0 || i >= Abc_NtkCiNum(pNtk)){
+    // Abc_Print(-1, ("Input i is " + std::to_string(i) + " but should be between 0 and " + std::to_string(Abc_NtkCiNum(pNtk) - 1) + ".\n").c_str());
+    goto usage;
+  }
   // else 
   // printf("Output %d is unate with respect to input %d.\n", k, i);
 
-  pNode = Abc_NtkObj(pNtk, k);
+  // pNode = Abc_NtkObj(pNtk, k);
   unate_bdd(pNtk, k, i);
 
   return 0;
@@ -163,15 +163,20 @@ int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
     k = atoi(argv[globalUtilOptind]);
     i = atoi(argv[globalUtilOptind + 1]);
   
-  if(k < 0 || k >= Abc_NtkCoNum(pNtk)){
-    // Abc_Print(-1, ("Input k is " + std::to_string(k) + " but should be between 0 and " + std::to_string(Abc_NtkCoNum(pNtk) - 1) + ".\n").c_str());
-    goto usage;
-  } /*goto usage;*/
-  else if(i < 0 || i >= Abc_NtkCiNum(pNtk)){
-    // Abc_Print(-1, ("Input i is " + std::to_string(i) + " but should be between 0 and " + std::to_string(Abc_NtkCiNum(pNtk) - 1) + ".\n").c_str());
-    goto usage;
-  } /*goto usage;*/
-  else printf("Output %d is unate with respect to input %d.\n", k, i);
+  if(!Abc_NtkIsStrash(pNtk)){
+    Abc_Print(-1, "Need to strash first.\n");
+    return 1;
+  }
+  unate_sat(pNtk, k, i);
+  // if(k < 0 || k >= Abc_NtkCoNum(pNtk)){
+  //   // Abc_Print(-1, ("Input k is " + std::to_string(k) + " but should be between 0 and " + std::to_string(Abc_NtkCoNum(pNtk) - 1) + ".\n").c_str());
+  //   goto usage;
+  // } /*goto usage;*/
+  // else if(i < 0 || i >= Abc_NtkCiNum(pNtk)){
+  //   // Abc_Print(-1, ("Input i is " + std::to_string(i) + " but should be between 0 and " + std::to_string(Abc_NtkCiNum(pNtk) - 1) + ".\n").c_str());
+  //   goto usage;
+  // } /*goto usage;*/
+  // else printf("Output %d is unate with respect to input %d.\n", k, i);
   return 0;
 
   usage:
