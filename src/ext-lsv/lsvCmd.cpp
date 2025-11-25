@@ -9,10 +9,12 @@
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_Unate_Bdd (Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
-  Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_CommandPrintMoCut, 0); 
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_CommandPrintMoCut, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_bdd", Lsv_Unate_Bdd, 0); 
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -174,3 +176,10 @@ int Lsv_CommandPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv) {
   Lsv_NtkPrintMoCuts(pNtk, k, l);
   return 0;
 }
+
+
+
+//For unate bdd
+
+
+
