@@ -1,18 +1,25 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "bdd/cudd/cudd.h"
 #include <vector>
 #include <set>
 #include <algorithm>
 #include <cstdlib>
 #include <unordered_map>
 #include <map>
+#include <string>
+
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandUnateBDD(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandUnateSAT(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_CommandPrintMoCut, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_bdd", Lsv_CommandUnateBDD, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_sat", Lsv_CommandUnateSAT, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -94,7 +101,6 @@ void Lsv_NtkPrintCut(Abc_Ntk_t* pNtk, int k, int l) {
       }
     }
   }
-  id_max +=10000;
   std::vector<std::vector<std::set<int>>> cuts(id_max+1);
   for(int id =0;id<id_max;id++){
     cuts[id].push_back(std::set<int>{id});
@@ -223,4 +229,111 @@ int Lsv_CommandPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv) {
   }
   Lsv_NtkPrintCut(pNtk, k, l);
   return 0;
+}
+
+int Lsv_CommandUnateBDD(Abc_Frame_t* pAbc, int argc, char** argv){
+    if (argc < 2){
+      Abc_Print(-2, "usage: lsv_unate_bdd <k> <i>\n");\
+      return 1;
+    }
+    int k = atoi(argv[1]);
+    int input_index = atoi(argv[2]);
+
+    Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+    int c;
+    Extra_UtilGetoptReset();
+    Abc_Obj_t* pPo = Abc_NtkPo(pNtk, k);
+    Abc_Obj_t* pRoot = Abc_ObjFanin0(pPo);
+    int ithPi = 0;
+    std::unordered_map<std::string,int> n2bddi;
+    std::unordered_map<int,std::string> abci2n;
+
+    DdManager* manager =  (DdManager *)pRoot->pNtk->pManFunc;
+    DdNode* cube = Cudd_ReadOne(manager);
+    Abc_Obj_t* pPi;
+    int ith = 0;
+    Abc_NtkForEachPi(pNtk, pPi, ithPi){
+        abci2n[ithPi] = Abc_ObjName(pPi);
+    }
+    char** bdd_names = (char**)Abc_NodeGetFaninNames(pRoot)->pArray;
+    const int bdd_num = Abc_ObjFaninNum(pRoot);
+    for(int i =0;i<bdd_num;i++){
+      n2bddi[bdd_names[i]]=i;
+    }
+
+    int n = Abc_NtkPiNum(pNtk);
+    for (int i = 0; i < n; ++i) {
+      DdNode* var = Cudd_bddIthVar(manager, i);
+      Cudd_Ref(var);
+      DdNode* new_cube = Cudd_bddAnd(manager, cube, var);
+      Cudd_Ref(new_cube);
+      Cudd_RecursiveDeref(manager, cube);
+      Cudd_RecursiveDeref(manager, var);
+      cube = new_cube;
+    }
+    DdNode* f = (DdNode*)pRoot->pData;
+    auto in_name = abci2n[input_index];
+    auto bdd_index = n2bddi[in_name];
+    DdNode* var = Cudd_bddIthVar(manager, bdd_index); 
+    Cudd_Ref(var);
+    auto f1 = Cudd_bddRestrict(manager, f, var); 
+    Cudd_Ref(f1);
+    auto f0 = Cudd_bddRestrict(manager, f, Cudd_Not(var));
+    Cudd_Ref(f0);
+    if(f0==f1){
+      Abc_Print(-2, "independent\n");
+    }
+    else if(Cudd_bddLeq(manager, f0, f1)) {
+       Abc_Print(-2, "positive unate\n");
+    }
+    else if(Cudd_bddLeq(manager, f1, f0)){
+      Abc_Print(-2, "negative unate\n");
+
+    }
+    else {
+      Abc_Print(-2, "binate\n");
+      DdNode* pos = Cudd_bddAnd(manager, Cudd_Not(f0), f1);
+      Cudd_Ref(pos);
+      char* cube_vals = ABC_ALLOC(char, manager->size);
+      if (cube_vals && Cudd_bddPickOneCube(manager, pos, cube_vals)) {
+        cube_vals[bdd_index] = 1;
+        for (int j = 0; j < bdd_num; ++j) {
+          int trans_index = n2bddi[abci2n[j]];
+          if (cube_vals[trans_index] == 2) continue;
+          if( bdd_names[trans_index] != in_name) Abc_Print(-2, "%d", cube_vals[trans_index]);
+          else Abc_Print(-2, "-");
+        }
+        Abc_Print(-2, "\n");
+      }
+      ABC_FREE(cube_vals);
+      Cudd_RecursiveDeref(manager, pos);
+      DdNode* neg = Cudd_bddAnd(manager, f0, Cudd_Not(f1));
+      Cudd_Ref(neg);
+      char* cube_vals_neg = ABC_ALLOC(char, manager->size);
+      if (cube_vals_neg && Cudd_bddPickOneCube(manager, neg, cube_vals_neg)) {
+        cube_vals_neg[bdd_index] = 0;
+        for (int j = 0; j < bdd_num; ++j) {
+          int trans_index = n2bddi[abci2n[j]];
+          if (cube_vals_neg[trans_index] == 2) continue;
+          if( bdd_names[trans_index] != in_name) Abc_Print(-2, "%d", cube_vals_neg[trans_index]);
+          else Abc_Print(-2, "-");
+        }
+        Abc_Print(-2, "\n");
+      }
+      ABC_FREE(cube_vals_neg);
+      Cudd_RecursiveDeref(manager, neg);
+    }
+
+
+    return 0;
+}
+
+int Lsv_CommandUnateSAT(Abc_Frame_t* pAbc, int argc, char** argv){
+    if (argc < 2){
+      Abc_Print(-2, "usage: lsv_unate_sat <k> <i>\n");
+      return 1;
+    }
+    int k = atoi(argv[1]);
+    int input_index = atoi(argv[2]);
+
 }

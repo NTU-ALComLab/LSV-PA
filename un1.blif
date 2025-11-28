@@ -1,0 +1,15 @@
+.model alu
+.inputs a b c
+.outputs y
+.names a b y0
+01 1
+10 1
+
+
+.names y0 c y
+10 1
+01 1
+11 1
+
+
+.end
