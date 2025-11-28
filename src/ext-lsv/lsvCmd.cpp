@@ -27,7 +27,7 @@ void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pObj;
   int i;
   Abc_NtkForEachNode(pNtk, pObj, i) {
-    ////printf("Object Id = %d, name = %s\n", Abc_ObjId(pObj), Abc_ObjName(pObj));
+    printf("Object Id = %d, name = %s\n", Abc_ObjId(pObj), Abc_ObjName(pObj));
     Abc_Obj_t* pFanin;
     int j;
     Abc_ObjForEachFanin(pObj, pFanin, j) {
@@ -94,8 +94,9 @@ void Lsv_NtkPrintCut(Abc_Ntk_t* pNtk, int k, int l) {
       }
     }
   }
+  id_max +=10000;
   std::vector<std::vector<std::set<int>>> cuts(id_max+1);
-  for(int id =0;id<id_max+1;id++){
+  for(int id =0;id<id_max;id++){
     cuts[id].push_back(std::set<int>{id});
   }
   for (int cur_level = 0; cur_level <= level_max; ++cur_level) {
