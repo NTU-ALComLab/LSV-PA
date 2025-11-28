@@ -1,0 +1,54 @@
+.model complex_tests
+.inputs a b c d e
+.outputs y_pos y_neg y_ind y_bin_simple y_bin_hard
+
+# 1. y_pos: 對 a 為 Positive Unate
+# 邏輯: y = a + (b * c)
+# 無論 b, c 為何，a 從 0 變 1，y 只會維持或變大，不會變小
+.names a b c y_pos
+1-- 1
+-11 1
+
+# 2. y_neg: 對 a 為 Negative Unate
+# 邏輯: y = (!a * b) + (!a * c) = !a * (b + c)
+# 只要 b 或 c 有一個是 1，a=0 -> y=1, a=1 -> y=0 (下降)
+# 若 b=0, c=0，則 y 恆為 0 (平)
+.names a b c y_neg
+01- 1
+0-1 1
+
+# 3. y_ind: 對 a 為 Independent (結構上有依賴，但功能無關)
+# 邏輯: y = (a * b) + (!a * b)  <-- 簡化後其實就是 b
+# 許多初學者的程式會只檢查 Support Set，如果沒有正確 collapse BDD，可能會誤判
+.names a b temp1
+11 1
+.names a b temp2
+01 1
+.names temp1 temp2 y_ind
+1- 1
+-1 1
+
+# 4. y_bin_simple: 對 a 為 Binate (簡單 XOR)
+# 邏輯: y = a XOR b
+# 若 b=0 -> y=a (Positive)
+# 若 b=1 -> y=!a (Negative)
+.names a b y_bin_simple
+10 1
+01 1
+
+# 5. y_bin_hard: 對 a 為 Binate (複雜混合邏輯)
+# 這是最難的測試點。
+# 邏輯: y = (a * b * c) + (!a * d * e)
+# 也就是：
+# - 當 (b=1, c=1, d=0) 時 -> y = a (Positive Pattern)
+# - 當 (b=0, d=1, e=1) 時 -> y = !a (Negative Pattern)
+# 這個測試確保你的程式能找到 Specific Cube，而不僅僅是全 1 或全 0
+.names a b c term1
+111 1
+.names a d e term2
+011 1
+.names term1 term2 y_bin_hard
+1- 1
+-1 1
+
+.end

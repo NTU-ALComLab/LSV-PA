@@ -255,6 +255,7 @@ int Lsv_CommandUnateBDD(Abc_Frame_t* pAbc, int argc, char** argv){
     Abc_NtkForEachPi(pNtk, pPi, ithPi){
         abci2n[ithPi] = Abc_ObjName(pPi);
     }
+
     char** bdd_names = (char**)Abc_NodeGetFaninNames(pRoot)->pArray;
     const int bdd_num = Abc_ObjFaninNum(pRoot);
     for(int i =0;i<bdd_num;i++){
@@ -273,6 +274,11 @@ int Lsv_CommandUnateBDD(Abc_Frame_t* pAbc, int argc, char** argv){
     }
     DdNode* f = (DdNode*)pRoot->pData;
     auto in_name = abci2n[input_index];
+    
+    if( n2bddi.find(in_name)== n2bddi.end()){
+      Abc_Print(-2, "independent\n");
+      return 0;
+    }
     auto bdd_index = n2bddi[in_name];
     DdNode* var = Cudd_bddIthVar(manager, bdd_index); 
     Cudd_Ref(var);
@@ -280,10 +286,7 @@ int Lsv_CommandUnateBDD(Abc_Frame_t* pAbc, int argc, char** argv){
     Cudd_Ref(f1);
     auto f0 = Cudd_bddRestrict(manager, f, Cudd_Not(var));
     Cudd_Ref(f0);
-    if(f0==f1){
-      Abc_Print(-2, "independent\n");
-    }
-    else if(Cudd_bddLeq(manager, f0, f1)) {
+    if(Cudd_bddLeq(manager, f0, f1)) {
        Abc_Print(-2, "positive unate\n");
     }
     else if(Cudd_bddLeq(manager, f1, f0)){
@@ -297,8 +300,14 @@ int Lsv_CommandUnateBDD(Abc_Frame_t* pAbc, int argc, char** argv){
       char* cube_vals = ABC_ALLOC(char, manager->size);
       if (cube_vals && Cudd_bddPickOneCube(manager, pos, cube_vals)) {
         cube_vals[bdd_index] = 1;
-        for (int j = 0; j < bdd_num; ++j) {
-          int trans_index = n2bddi[abci2n[j]];
+        for (int j = 0; j < Abc_NtkPiNum(pNtk); ++j) {
+          std::string name = abci2n[j];
+          auto it = n2bddi.find(name);
+          if(it == n2bddi.end()){
+             Abc_Print(-2, "0");
+             continue;
+          }
+          int trans_index = n2bddi[name];
           if (cube_vals[trans_index] == 2) continue;
           if( bdd_names[trans_index] != in_name) Abc_Print(-2, "%d", cube_vals[trans_index]);
           else Abc_Print(-2, "-");
@@ -312,8 +321,14 @@ int Lsv_CommandUnateBDD(Abc_Frame_t* pAbc, int argc, char** argv){
       char* cube_vals_neg = ABC_ALLOC(char, manager->size);
       if (cube_vals_neg && Cudd_bddPickOneCube(manager, neg, cube_vals_neg)) {
         cube_vals_neg[bdd_index] = 0;
-        for (int j = 0; j < bdd_num; ++j) {
-          int trans_index = n2bddi[abci2n[j]];
+        for (int j = 0; j < Abc_NtkPiNum(pNtk); ++j) {
+          std::string name = abci2n[j];
+          auto it = n2bddi.find(name);
+          if(it == n2bddi.end()){
+             Abc_Print(-2, "0");
+             continue;
+          }
+          int trans_index = n2bddi[name];
           if (cube_vals_neg[trans_index] == 2) continue;
           if( bdd_names[trans_index] != in_name) Abc_Print(-2, "%d", cube_vals_neg[trans_index]);
           else Abc_Print(-2, "-");
