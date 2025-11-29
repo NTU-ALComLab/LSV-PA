@@ -13,8 +13,7 @@
 #include <map>
 #include <unordered_map>
 
-void Lsv_CommandUnateBDDUsage()
-{
+void Lsv_CommandUnateBDDUsage(){
     Abc_Print(-2, "Usage: lsv_unate_bdd <out_index> <in_index>\n");
     Abc_Print(-2, "\tchecks unate property of a BDD output with respect to an input\n");
     Abc_Print(-2, "\t<out_index>     : the index of the output to be checked\n");
@@ -22,14 +21,12 @@ void Lsv_CommandUnateBDDUsage()
 }
 
 // Determine if the BDD node is the constant 0 node
-inline bool isNodeZero(DdManager *dd, DdNode *node)
-{
+inline bool isNodeZero(DdManager *dd, DdNode *node){
     return (node == DD_ZERO(dd)) || (node == Cudd_Not(DD_ONE(dd)));
 }
 
 // Determine if the BDD node is the constant 1 node
-inline bool isNodeOne(DdManager *dd, DdNode *node)
-{
+inline bool isNodeOne(DdManager *dd, DdNode *node){
     return (node == DD_ONE(dd)) || (node == Cudd_Not(DD_ZERO(dd)));
 }
 
@@ -163,14 +160,12 @@ void Lsv_UnateBDD_DFS(DdManager *dd, DdNode *node,
     Lsv_UnateBDD_DFS(dd, one_child, current_path, bottom_level_index, all_paths, visited_nodes, visit_type_current, positive_witness, negative_witness, positive_witness_first);
 }
 
-int Lsv_CommandUnateBDD(Abc_Frame_t *pAbc, int argc, char **argv)
-{
+int Lsv_CommandUnateBDD(Abc_Frame_t *pAbc, int argc, char **argv){
     // printf("LSV Command lsv_unate_bdd is called.\n");
 
     // Step 1: Argument parsing and checking
     // =======================================================
-    if (argc != 3)
-    {
+    if (argc != 3){
         Lsv_CommandUnateBDDUsage();
         return 0;
     }
@@ -180,8 +175,7 @@ int Lsv_CommandUnateBDD(Abc_Frame_t *pAbc, int argc, char **argv)
 
     Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
 
-    if (!Abc_NtkIsBddLogic(pNtk))
-    {
+    if (!Abc_NtkIsBddLogic(pNtk)){
         Abc_Print(-1, "The network is not in BDD logic representation. Should perform \"collapse\" after reading the design.\n");
         return 0;
     }
@@ -189,14 +183,12 @@ int Lsv_CommandUnateBDD(Abc_Frame_t *pAbc, int argc, char **argv)
     const int pi_num = Abc_NtkPiNum(pNtk);
     const int po_num = Abc_NtkPoNum(pNtk);
 
-    if (in_index >= pi_num)
-    {
+    if (in_index >= pi_num){
         Abc_Print(-1, "input index exceeds the number of PIs.\n");
         return 0;
     }
 
-    if (out_index >= po_num)
-    {
+    if (out_index >= po_num){
         Abc_Print(-1, "output index exceeds the number of POs.\n");
         return 0;
     }
@@ -392,8 +384,7 @@ int Lsv_CommandUnateBDD(Abc_Frame_t *pAbc, int argc, char **argv)
     return 0;
 }
 
-int Lsv_CommandUnateSAT(Abc_Frame_t *pAbc, int argc, char **argv)
-{
+int Lsv_CommandUnateSAT(Abc_Frame_t *pAbc, int argc, char **argv){
     printf("LSV Command lsv_unate_sat is called.\n");
     return 0;
 }
