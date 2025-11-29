@@ -1,0 +1,66 @@
+UC Berkeley, ABC 1.01 (compiled Oct  5 2025 21:00:09)
+================== Command history ==================
+lsv_unate_bdd 1 0
+lsv_unate_bdd 1 1
+lsv_unate_bdd 1 2
+lsv_unate_bdd 1 3
+lsv_unate_bdd 1 4
+lsv_unate_bdd 2 0
+lsv_unate_bdd 2 1
+lsv_unate_bdd 2 2
+lsv_unate_bdd 2 3
+lsv_unate_bdd 2 4
+=====================================================
+abc 01> read ./lsv/pa1/alu.blif
+abc 02> strash
+abc 03> lsv_unate_sat 0 0
+positive unate
+abc 03> lsv_unate_sat 0 1
+positive unate
+abc 03> lsv_unate_sat 0 2
+binate
+01-10
+00-01
+abc 03> lsv_unate_sat 0 3
+binate
+011-0
+000-1
+abc 03> lsv_unate_sat 0 4
+binate
+0101-
+0111-
+abc 03> lsv_unate_sat 1 0
+binate
+-0000
+-0100
+abc 03> lsv_unate_sat 1 1
+binate
+1-110
+0-110
+abc 03> lsv_unate_sat 1 2
+binate
+00-00
+10-00
+abc 03> lsv_unate_sat 1 3
+binate
+010-0
+110-0
+abc 03> lsv_unate_sat 1 4
+binate
+1011-
+0011-
+abc 03> lsv_unate_sat 2 0
+independent
+abc 03> lsv_unate_sat 2 1
+binate
+0-000
+0-010
+abc 03> lsv_unate_sat 2 2
+independent
+abc 03> lsv_unate_sat 2 3
+binate
+000-0
+010-0
+abc 03> lsv_unate_sat 2 4
+independent
+abc 03> quit
