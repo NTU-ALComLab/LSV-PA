@@ -1,0 +1,43 @@
+.model alu
+.inputs a1 a0 b1 b0 c
+.outputs y2 y1 y0
+
+# --- Flip B or not ---
+.names b0 c b0_x
+01 1
+10 1
+
+.names b1 c b1_x
+01 1
+10 1
+
+# --- FA for bit 0 ---
+.names a0 b0_x c y0
+001 1
+010 1
+100 1
+111 1
+
+.names a0 b0_x c c0
+011 1
+101 1
+110 1
+111 1
+
+# --- FA for bit 1 ---
+.names a1 b1_x c0 y1
+001 1
+010 1
+100 1
+111 1
+
+.names a1 b1_x c0 c1
+011 1
+101 1
+110 1
+111 1
+
+.names c1 y2
+1 1
+
+.end
