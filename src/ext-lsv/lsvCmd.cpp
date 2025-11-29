@@ -1,19 +1,28 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#ifdef ABC_USE_CUDD
+#include "bdd/cudd/cudd.h"
+#endif
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 #include <string>
-
+#include <cstring>
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintMocut(Abc_Frame_t* pAbc, int argc, char** argv);
+#ifdef ABC_USE_CUDD
+static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv);
+#endif
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_CommandPrintMocut, 0);
+#ifdef ABC_USE_CUDD
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_bdd", Lsv_CommandUnateBdd, 0);
+#endif
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -293,3 +302,299 @@ static int Lsv_CommandPrintMocut(Abc_Frame_t* pAbc, int argc, char** argv) {
   Vec_PtrFree(vDfs);
   return 0;
 }
+
+// -----------------------------------------------------------------------------
+// Unateness Checking with BDD
+// -----------------------------------------------------------------------------
+
+#ifdef ABC_USE_CUDD
+
+/**Function*************************************************************
+  Synopsis    [Detects unate variables using BDD for a single output and input.]
+  Description [Checks if output yk is unate in input xi using BDD.]
+  SideEffects []
+  SeeAlso     []
+***********************************************************************/
+static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
+  Abc_Ntk_t* pNtk;
+  Abc_Obj_t* pCo;
+  DdManager* dd;
+  DdNode* func;
+  DdNode* bVar;
+  DdNode* f1, * f0;
+  DdNode* posDiff, * negDiff;
+  char* pattern;
+  int k, i;
+  int nPis, nVars;
+  int c;
+  int hasPosViol, hasNegViol;
+  int isPosUnate, isNegUnate;
+
+  // Parse arguments
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    switch (c) {
+      case 'h':
+        Abc_Print(-2, "usage: lsv_unate_bdd <k> <i>\n");
+        Abc_Print(-2, "\t        checks if output k is unate in input i using BDD\n");
+        Abc_Print(-2, "\t-k    : output index (0-based)\n");
+        Abc_Print(-2, "\t-i    : input index (0-based)\n");
+        return 1;
+      default:
+        Abc_Print(-2, "usage: lsv_unate_bdd <k> <i>\n");
+        return 1;
+    }
+  }
+  if (argc < 3) {
+    Abc_Print(-2, "usage: lsv_unate_bdd <k> <i>\n");
+    return 1;
+  }
+
+  // Get current network
+  pNtk = Abc_FrameReadNtk(pAbc);
+  if (pNtk == NULL) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+
+  // Parse k and i
+  k = atoi(argv[1]);
+  i = atoi(argv[2]);
+  if (k < 0 || k >= Abc_NtkCoNum(pNtk) || i < 0 || i >= Abc_NtkCiNum(pNtk)) {
+    Abc_Print(-1, "Index out of range.\n");
+    return 1;
+  }
+
+  // Check if network is already in BDD format (from collapse command)
+  int fNeedFree = 0;
+  if (Abc_NtkIsBddLogic(pNtk)) {
+    // Network is already in BDD format, use existing BDD manager
+    dd = (DdManager*)pNtk->pManFunc;
+    pCo = Abc_NtkCo(pNtk, k);
+    func = (DdNode*)Abc_ObjFanin0(pCo)->pData;
+    if (func == NULL) {
+      Abc_Print(-1, "The selected output has no BDD.\n");
+      return 1;
+    }
+    Cudd_Ref(func);
+  } else {
+    // Network is not in BDD format, build global BDDs
+    // Note: This requires the network to be in AIG format (strash)
+    if (!Abc_NtkIsStrash(pNtk)) {
+      Abc_Print(-1, "Network must be in AIG format (strash) or BDD format (collapse).\n");
+      return 1;
+    }
+    dd = (DdManager*)Abc_NtkBuildGlobalBdds(pNtk, 10000000, 1, 1, 0, 0);
+    if (dd == NULL) {
+      Abc_Print(-1, "Failed to build global BDDs.\n");
+      return 1;
+    }
+    fNeedFree = 1;
+    pCo = Abc_NtkCo(pNtk, k);
+    func = (DdNode*)Abc_ObjGlobalBdd(pCo);
+    if (func == NULL) {
+      Abc_Print(-1, "The selected output has no BDD.\n");
+      Abc_NtkFreeGlobalBdds(pNtk, 1);
+      return 1;
+    }
+    Cudd_Ref(func);
+  }
+
+  nPis = Abc_NtkCiNum(pNtk);
+  nVars = Cudd_ReadSize(dd);
+  
+  // Get the BDD variable for input i
+  // Following the symmetry check approach: use Abc_NodeGetFaninNames to get BDD variable names
+  // Then match by name to find the BDD level index (more reliable than invperm)
+  Abc_Obj_t* pCi = Abc_NtkCi(pNtk, i);
+  const char* piName = Abc_ObjName(pCi);
+  
+  if (Abc_NtkIsBddLogic(pNtk)) {
+    // In BDD network: use Abc_NodeGetFaninNames to get BDD variable names
+    // The order of names corresponds to BDD level order (like in Lsv_SymBdd)
+    Abc_Obj_t* pRoot = Abc_ObjFanin0(pCo);
+    Vec_Ptr_t* vFaninNames = Abc_NodeGetFaninNames(pRoot);
+    char** bdd2name_arr = (char**)vFaninNames->pArray;
+    int bdd_num = Abc_ObjFaninNum(pRoot);
+    
+    // Find BDD level index by matching PI name
+    int bddLevel = -1;
+    for (int j = 0; j < bdd_num; j++) {
+      if (strcmp(bdd2name_arr[j], piName) == 0) {
+        bddLevel = j;
+        break;
+      }
+    }
+    Abc_NodeFreeNames(vFaninNames);
+    
+    if (bddLevel < 0) {
+      Abc_Print(-1, "Cannot find BDD variable for PI %d (%s). Variable may not be in support.\n", i, piName);
+      Cudd_RecursiveDeref(dd, func);
+      return 1;
+    }
+    // Use Cudd_bddIthVar exactly like ABC's Extra_bddCheckUnateNaive and Lsv_SymBdd
+    bVar = Cudd_bddIthVar(dd, bddLevel);
+  } else {
+    // In global BDDs: get from CI's global BDD
+    bVar = (DdNode*)Abc_ObjGlobalBdd(pCi);
+    if (bVar == NULL) {
+      Abc_Print(-1, "Input %d has no BDD.\n", i);
+      Cudd_RecursiveDeref(dd, func);
+      Abc_NtkFreeGlobalBdds(pNtk, 1);
+      return 1;
+    }
+  }
+  Cudd_Ref(bVar);
+
+  // Step 2: Compute cofactors (standard BDD unateness checking)
+  // f0 = f|xi=0, f1 = f|xi=1
+  // Standard: f0 = Cudd_Cofactor(dd, f, NOT(xi_bdd))
+  //           f1 = Cudd_Cofactor(dd, f, xi_bdd)
+  f0 = Cudd_Cofactor(dd, func, Cudd_Not(bVar));  // f|xi=0
+  f1 = Cudd_Cofactor(dd, func, bVar);             // f|xi=1
+  Cudd_Ref(f0);
+  Cudd_Ref(f1);
+
+  // Step 3: Check unateness using implication (Cudd_bddLeq)
+  // Positive unate: f0 <= f1 (f0 → f1, when xi: 0→1, f doesn't decrease)
+  // Negative unate: f1 <= f0 (f1 → f0, when xi: 0→1, f doesn't increase)
+  // Standard: pos = Cudd_bddLeq(dd, f0, f1)
+  //           neg = Cudd_bddLeq(dd, f1, f0)
+  isPosUnate = Cudd_bddLeq(dd, f0, f1);
+  isNegUnate = Cudd_bddLeq(dd, f1, f0);
+
+  // For binate case, we need to find witness patterns
+  // posDiff = f0 & !f1 (cases where f0=1 but f1=0, violating positive unate)
+  // negDiff = f1 & !f0 (cases where f1=1 but f0=0, violating negative unate)
+  posDiff = Cudd_bddAnd(dd, f0, Cudd_Not(f1));
+  negDiff = Cudd_bddAnd(dd, f1, Cudd_Not(f0));
+  Cudd_Ref(posDiff);
+  Cudd_Ref(negDiff);
+
+  hasPosViol = (posDiff != Cudd_ReadLogicZero(dd));
+  hasNegViol = (negDiff != Cudd_ReadLogicZero(dd));
+
+  // Output results according to standard BDD unateness checking
+  // pos==1 && neg==1 → independent (f0 == f1)
+  // pos==1 && neg==0 → positive unate (f0 <= f1)
+  // pos==0 && neg==1 → negative unate (f1 <= f0)
+  // pos==0 && neg==0 → binate (neither holds)
+  if (isPosUnate && isNegUnate) {
+    // f0 == f1, independent of xi
+    printf("independent\n");
+  } else if (isPosUnate) {
+    // f0 <= f1, positive unate
+    printf("positive unate\n");
+  } else if (isNegUnate) {
+    // f1 <= f0, negative unate
+    printf("negative unate\n");
+  } else {
+    // Both violations exist, it's binate
+    printf("binate\n");
+
+    // Build mapping from BDD variable level to original PI index
+    std::vector<int> bddLevelToPi(nVars, -1);
+    if (Abc_NtkIsBddLogic(pNtk)) {
+      // In BDD network: use Abc_NodeGetFaninNames to get BDD variable names
+      Abc_Obj_t* pRoot = Abc_ObjFanin0(pCo);
+      Vec_Ptr_t* vFaninNames = Abc_NodeGetFaninNames(pRoot);
+      char** bdd2name_arr = (char**)vFaninNames->pArray;
+      int bdd_num = Abc_ObjFaninNum(pRoot);
+      
+      // Build mapping: for each BDD level, find corresponding original PI
+      for (int bddLevel = 0; bddLevel < bdd_num; bddLevel++) {
+        const char* bddName = bdd2name_arr[bddLevel];
+        // Find original PI with this name
+        Abc_Obj_t* pPi;
+        int piIdx;
+        Abc_NtkForEachPi(pNtk, pPi, piIdx) {
+          if (strcmp(Abc_ObjName(pPi), bddName) == 0) {
+            bddLevelToPi[bddLevel] = piIdx;
+            break;
+          }
+        }
+      }
+      Abc_NodeFreeNames(vFaninNames);
+    } else {
+      // In global BDDs: BDD variable order matches PI order
+      for (int t = 0; t < nPis && t < nVars; t++) {
+        bddLevelToPi[t] = t;
+      }
+    }
+
+    // Extract witness patterns
+    pattern = ABC_ALLOC(char, nVars);
+    
+    // Pattern 1: from negDiff (corresponds to xi case)
+    if (Cudd_bddPickOneCube(dd, negDiff, pattern)) {
+      // Convert pattern to string format
+      std::string pat1(nPis, '0');
+      for (int t = 0; t < nPis; t++) {
+        if (t == i) {
+          pat1[t] = '-';
+        } else {
+          // Find BDD level for this PI
+          int bddLevel = -1;
+          for (int j = 0; j < nVars; j++) {
+            if (bddLevelToPi[j] == t) {
+              bddLevel = j;
+              break;
+            }
+          }
+          if (bddLevel >= 0 && bddLevel < nVars) {
+            if (pattern[bddLevel] == 1) pat1[t] = '1';
+            else if (pattern[bddLevel] == 0) pat1[t] = '0';
+            else pat1[t] = '0';  // don't care -> 0
+          } else {
+            pat1[t] = '0';
+          }
+        }
+      }
+      printf("%s\n", pat1.c_str());
+    }
+
+    // Pattern 2: from posDiff (corresponds to !xi case)
+    if (Cudd_bddPickOneCube(dd, posDiff, pattern)) {
+      // Convert pattern to string format
+      std::string pat2(nPis, '0');
+      for (int t = 0; t < nPis; t++) {
+        if (t == i) {
+          pat2[t] = '-';
+        } else {
+          // Find BDD level for this PI
+          int bddLevel = -1;
+          for (int j = 0; j < nVars; j++) {
+            if (bddLevelToPi[j] == t) {
+              bddLevel = j;
+              break;
+            }
+          }
+          if (bddLevel >= 0 && bddLevel < nVars) {
+            if (pattern[bddLevel] == 1) pat2[t] = '1';
+            else if (pattern[bddLevel] == 0) pat2[t] = '0';
+            else pat2[t] = '0';  // don't care -> 0
+          } else {
+            pat2[t] = '0';
+          }
+        }
+      }
+      printf("%s\n", pat2.c_str());
+    }
+
+    ABC_FREE(pattern);
+  }
+
+  // Cleanup BDD references
+  Cudd_RecursiveDeref(dd, posDiff);
+  Cudd_RecursiveDeref(dd, negDiff);
+  Cudd_RecursiveDeref(dd, f0);
+  Cudd_RecursiveDeref(dd, f1);
+  Cudd_RecursiveDeref(dd, bVar);
+  Cudd_RecursiveDeref(dd, func);
+  if (fNeedFree) {
+    Abc_NtkFreeGlobalBdds(pNtk, 1);
+  }
+  return 0;
+}
+
+#endif  // ABC_USE_CUDD
