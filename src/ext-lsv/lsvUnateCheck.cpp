@@ -4,6 +4,11 @@
 #include "bdd/cudd/cudd.h"
 #include "bdd/cudd/cuddInt.h"
 
+#include "sat/cnf/cnf.h"
+extern "C"{
+    Aig_Man_t* Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+}
+
 #include <string>
 
 // STL related
@@ -13,6 +18,9 @@
 #include <map>
 #include <unordered_map>
 
+
+// Problem 1: Unateness check on BDD
+// =============================================================================
 void Lsv_CommandUnateBDDUsage(){
     Abc_Print(-2, "Usage: lsv_unate_bdd <out_index> <in_index>\n");
     Abc_Print(-2, "\tchecks unate property of a BDD output with respect to an input\n");
@@ -256,9 +264,10 @@ int Lsv_CommandUnateBDD(Abc_Frame_t *pAbc, int argc, char **argv){
     // Step 4: Shuffle the input variable to the bottom
     // =======================================================
     // printf("Support size: %d\n", support_f_size);
-    int *perm = (int *)malloc(sizeof(int) * support_f_size);
+    int n = Cudd_ReadSize(dd);
+    int *perm = (int*)malloc(sizeof(int) * n);
 
-    for (int level = 0; level < support_f_size; level++){
+    for (int level = 0; level < n; level++){
         perm[level] = level;
     }
 
@@ -384,7 +393,53 @@ int Lsv_CommandUnateBDD(Abc_Frame_t *pAbc, int argc, char **argv){
     return 0;
 }
 
+
+
+// Problem 2: Unateness check on BDD
+// =============================================================================
+
+void Lsv_CommandUnateSATUsage(){
+    Abc_Print(-2, "Usage: lsv_unate_sat <out_index> <in_index>\n");
+    Abc_Print(-2, "\tchecks unate property of a AIG output with respect to an input\n");
+    Abc_Print(-2, "\t<out_index>     : the index of the output to be checked\n");
+    Abc_Print(-2, "\t<in_index>      : the index of the input to be checked\n");
+}
+
 int Lsv_CommandUnateSAT(Abc_Frame_t *pAbc, int argc, char **argv){
-    printf("LSV Command lsv_unate_sat is called.\n");
+    // printf("LSV Command lsv_unate_sat is called.\n");
+
+    // Step 1: Argument parsing and checking
+    // =======================================================
+    if (argc != 3){
+        Lsv_CommandUnateSATUsage();
+        return 0;
+    }
+
+    const int out_index = std::stoi(argv[1]);
+    const int in_index = std::stoi(argv[2]);
+
+    Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
+
+    if (!Abc_NtkIsAigLogic(pNtk)){
+        Abc_Print(-1, "The network is not in AIG logic representation. Should perform \"strash\" after reading the design.\n");
+        return 0;
+    }
+
+    const int pi_num = Abc_NtkPiNum(pNtk);
+    const int po_num = Abc_NtkPoNum(pNtk);
+
+    if (in_index >= pi_num){
+        Abc_Print(-1, "input index exceeds the number of PIs.\n");
+        return 0;
+    }
+
+    if (out_index >= po_num){
+        Abc_Print(-1, "output index exceeds the number of POs.\n");
+        return 0;
+    }
+
+
+    // Step 2: TODO: Implement unate check using SAT
+
     return 0;
 }
