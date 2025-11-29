@@ -420,7 +420,7 @@ int Lsv_CommandUnateSAT(Abc_Frame_t *pAbc, int argc, char **argv){
 
     Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
 
-    if (!Abc_NtkIsAigLogic(pNtk)){
+    if (!Abc_NtkIsStrash(pNtk)){
         Abc_Print(-1, "The network is not in AIG logic representation. Should perform \"strash\" after reading the design.\n");
         return 0;
     }
@@ -439,7 +439,179 @@ int Lsv_CommandUnateSAT(Abc_Frame_t *pAbc, int argc, char **argv){
     }
 
 
-    // Step 2: TODO: Implement unate check using SAT
+    // Step 2: Extract desired output cone
+    // =======================================================
+    
+    // Extract the cone
+    Abc_Obj_t* output_obj = Abc_NtkPo(pNtk, out_index);
+    Abc_Ntk_t* cone = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(output_obj), Abc_ObjName(output_obj), 1);
+
+    // DEBUG for SOOOO LONGGGG
+    // I don't know what the xxxx ?????
+    // when extracting cone, make sure whether it is complmemented.
+    int _isCompl = Abc_ObjFaninC0(output_obj);
+    bool isCompl = (_isCompl == 1) ? true : false;
+
+    // Transform cone to AIG
+    Aig_Man_t* pAig = Abc_NtkToDar(cone, 0, 1);
+    
+    // Transfer AIG to CNF
+    Cnf_Dat_t* pCnf = Cnf_Derive(pAig, 1);         // 1: the number of outputs
+
+
+    // Step 3: Build the SAT solver instance and solve the result
+    // =======================================================
+    bool find_postive_instance_successful, find_negative_instance_successful;
+    find_postive_instance_successful = false;
+    find_negative_instance_successful = false;
+
+    std::vector<int> positive_instance(pi_num, 0);
+    std::vector<int> negative_instance(pi_num, 0);
+
+    for (int sat_solve_cnt = 0; sat_solve_cnt < 2; sat_solve_cnt++){
+
+        sat_solver* pSat = sat_solver_new();
+        
+        // When sat_solve_cnt == 0, we are finding positive instance (input changes from 0 to 1 makes output change from 0 to 1)
+        // When sat_solve_cnt == 1, we are finding negative instance (input changes from 0 to 1 makes output change from 1 to 0)
+        bool find_postive_instance;
+        find_postive_instance = (sat_solve_cnt == 0) ? true : false;
+
+        // Step 3-1: Add the circuit into the CNF
+        // =======================================================
+        // Add two copies (A, B) of the circuit into the SAT solver
+        // vA(0, 1, ..., n-1)
+        pSat = (sat_solver *) Cnf_DataWriteIntoSolverInt(pSat, pCnf, 1, 0);
+        Cnf_DataLift(pCnf, pCnf -> nVars);
+        // vB(0, 1, ..., n-1)
+        pSat = (sat_solver *) Cnf_DataWriteIntoSolverInt(pSat, pCnf, 2, 0);
+        Cnf_DataLift(pCnf, -1 * pCnf -> nVars);
+        // pSat = (sat_solver *) Cnf_DataWriteIntoSolverInt(pSat, pCnf, 2, 0);
+
+        
+        // Step 3-2 Adding other constraint to the SAT solver
+        // =======================================================
+        int clause[2];
+        
+        Aig_Obj_t* pObj;
+        int index;
+        
+        // Set all variable to be equal in two cases, except the designated input
+        Aig_ManForEachCi(pAig, pObj, index){
+            if (index != in_index){
+                // Add vA(i) == vB(i) => (vA(i) + vB(i)') and (vA(i)' + vB(i))
+                clause[0] = toLitCond(pCnf -> pVarNums[pObj -> Id], 0);
+                clause[1] = toLitCond(pCnf -> pVarNums[pObj -> Id] + pCnf -> nVars, 1);
+                sat_solver_addclause(pSat, clause, clause + 2);
+
+                clause[0] = toLitCond(pCnf -> pVarNums[pObj -> Id], 1);
+                clause[1] = toLitCond(pCnf -> pVarNums[pObj -> Id] + pCnf -> nVars, 0);
+                sat_solver_addclause(pSat, clause, clause + 2);
+            }
+            else {
+                // vA(in_index) = 0 (vA(in_index)')
+                clause[0] = toLitCond(pCnf -> pVarNums[pObj -> Id], 1);
+                sat_solver_addclause(pSat, clause, clause + 1);
+                
+                // vB(in_index) = 1 (vB(in_index))
+                clause[0] = toLitCond(pCnf -> pVarNums[pObj -> Id] + pCnf -> nVars, 0);
+                sat_solver_addclause(pSat, clause, clause + 1);
+            }
+        }
+
+        // Set the output condition
+        Aig_ManForEachCo(pAig, pObj, index){
+            if (find_postive_instance){
+                // Positive instance: vA(output) = 0, vB(output) = 1
+                // vA(output)' 
+                clause[0] = toLitCond(pCnf -> pVarNums[pObj -> Id], isCompl ? 0 : 1);
+                sat_solver_addclause(pSat, clause, clause + 1);
+
+                // vB(output)
+                clause[0] = toLitCond(pCnf -> pVarNums[pObj -> Id] + pCnf -> nVars, isCompl ? 1 : 0);
+                sat_solver_addclause(pSat, clause, clause + 1);
+            }
+            else{
+                // Negative instance: vA(output) = 1, vB(output) = 0
+                // vA(output)
+                clause[0] = toLitCond(pCnf -> pVarNums[pObj -> Id], isCompl ? 1 : 0);
+                sat_solver_addclause(pSat, clause, clause + 1);
+
+                // vB(output)'
+                clause[0] = toLitCond(pCnf -> pVarNums[pObj -> Id] + pCnf -> nVars, isCompl ? 0 : 1);
+                sat_solver_addclause(pSat, clause, clause + 1);
+            }
+        }
+
+
+        // Step 3-3: Solve SAT
+        // =======================================================
+        int status = sat_solver_solve(pSat, NULL, NULL, 0, 0, 0, 0);
+
+        if (status == l_Undef){
+            Abc_Print(-1, "SAT cannot solve it!\n");
+            return 0;
+        }
+        else if (status == l_False){ // UNSAT
+            // printf("UNSAT\n");
+            // Do nothing
+        }
+        else if (status == l_True){     // SAT
+            if (find_postive_instance){
+                find_postive_instance_successful = true;
+
+                // Extract the positive instance
+                Aig_ManForEachCi(pAig, pObj, index){
+                    positive_instance[index] = sat_solver_var_value(pSat, pCnf -> pVarNums[pObj -> Id]);
+                    negative_instance[index] = sat_solver_var_value(pSat, pCnf -> pVarNums[pObj -> Id] + pCnf -> nVars);
+                }
+            }
+            else{
+                find_negative_instance_successful = true;
+
+                // Extract the negative instance
+                Aig_ManForEachCi(pAig, pObj, index){
+                    negative_instance[index] = sat_solver_var_value(pSat, pCnf -> pVarNums[pObj -> Id]);
+                }
+            }
+        }
+    }
+
+
+    // Step 4: Output the result
+    // =======================================================
+    if (!find_postive_instance_successful && !find_negative_instance_successful){
+        printf("independent\n");
+    }
+    else if (find_postive_instance_successful && !find_negative_instance_successful){
+        printf("positive unate\n");
+    }
+    else if (!find_postive_instance_successful && find_negative_instance_successful){
+        printf("negative unate\n");
+    }
+    else{
+        printf("binate\n");
+
+        for (int i = 0; i < pi_num; i++){
+            if (i == in_index){
+                printf("-");   // don't care
+            }
+            else{
+                printf("%d", positive_instance[i]);
+            }
+        }
+        printf("\n");
+
+        for (int i = 0; i < pi_num; i++){
+            if (i == in_index){
+                printf("-");   // don't care
+            }
+            else{
+                printf("%d", negative_instance[i]);
+            }
+        }
+        printf("\n");
+    }
 
     return 0;
 }
