@@ -11,10 +11,12 @@
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
-  Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_CommandPrintMoCut , 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_CommandPrintMoCut, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_bdd", Lsv_CommandUnateBdd, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -198,6 +200,153 @@ void Lsv_NtkPrintMoCut(Abc_Ntk_t* pNtk, unsigned int k, unsigned int l) {
   Lsv_CutMapPrintMoCut(cut_map, l);
 }
 
+/* Searches depth-first for a `DdNode` with variable `i`. Requires `f` to be regular */
+bool Lsv_BddCheckInSupport(DdNode* f, unsigned int i) {
+  if (cuddIsConstant(f) || Cudd_IsComplement(f->next)) {
+    // printf("%d visited\n", f->Id);
+    return false;
+  }
+  if (Cudd_NodeReadIndex(f) == i) {
+    // printf("%d controlled by %d\n", f->Id, i);
+    return true;
+  }
+  f->next = Cudd_Not(f->next);
+  if (Lsv_BddCheckInSupport(cuddT(f), i)) {
+    // printf("%d's then child supported by %d\n", f->Id, i);
+    return true;
+  }
+  return Lsv_BddCheckInSupport(Cudd_Regular(cuddE(f)), i);
+}
+
+/* Resets depth-first search flag bit. Requires `f` to be regular */
+void Lsv_BddCleanFlag(DdNode* f) {
+  if (cuddIsConstant(f) || !Cudd_IsComplement(f->next)) return;
+  f->next = Cudd_Regular(f->next);
+
+  Lsv_BddCleanFlag(cuddT(f));
+  Lsv_BddCleanFlag(Cudd_Regular(cuddE(f)));
+}
+
+/* Finds an on-set cube if `f & !g` is not constant 0 */
+DdNode* Lsv_BddPickCubeInDiff(DdManager* dd, DdNode* f, DdNode* g, DdNode** vars, int n) {
+  DdNode* diff = Cudd_bddAnd(dd, f, Cudd_Not(g));
+  if (diff == Cudd_ReadLogicZero(dd)) return diff;
+  Cudd_Ref(diff);
+  DdNode* cube = Cudd_bddPickOneMinterm(dd, diff, vars, n);
+  Cudd_RecursiveDeref(dd, diff);
+  assert(cube);
+  return cube;
+}
+
+std::string Lsv_BddCubeToPattern(unsigned ci_num, DdManager* dd, DdNode* cube, unsigned int i,
+  const std::vector<int>& ib_to_ic) {
+  std::string pattern(ci_num, '0');
+  DdNode* head = cube;
+  while (Cudd_IsNonConstant(head)) {
+    if (Cudd_IsComplement(head)) {
+      head = Cudd_Regular(head);
+      if (Cudd_IsComplement(Cudd_E(head))) {
+        assert(Cudd_T(head) == Cudd_ReadOne(dd));
+        pattern[ib_to_ic[head->index]] = '0';
+        head = Cudd_Regular(Cudd_E(head));
+      }
+      else if (Cudd_T(head) == Cudd_ReadOne(dd)) {
+        pattern[ib_to_ic[head->index]] = '0';
+        head = Cudd_Not(Cudd_E(head));
+      }
+      else {
+        pattern[ib_to_ic[head->index]] = '1';
+        head = Cudd_Not(Cudd_T(head));
+      }
+    }
+    else {
+      assert(Cudd_IsConstant(Cudd_E(head)));
+      pattern[ib_to_ic[head->index]] = '1';
+      head = Cudd_T(head);
+    }
+  }
+  pattern[i] = '-';
+  return pattern;
+}
+
+void Lsv_UnateBdd(Abc_Ntk_t* pNtk, unsigned int k, unsigned int i) {
+  DdManager* dd = (DdManager*)pNtk->pManFunc;
+  assert(dd);
+  Abc_Obj_t* pNode = Abc_ObjFanin0(Abc_NtkCo(pNtk, k));
+  DdNode* f = (DdNode*)pNode->pData;
+  assert(f);
+  Cudd_Ref(f);
+
+  std::vector<int> ib_to_ic(Abc_NtkCiNum(pNtk), -1), ic_to_ib(Abc_NtkCiNum(pNtk), -1);
+  Vec_Ptr_t* bv_names = Abc_NodeGetFaninNames(pNode);
+  Abc_Obj_t* pCi; size_t m;
+  Abc_NtkForEachCi(pNtk, pCi, m) {
+    char* m_name = Abc_ObjName(pCi);
+    for (size_t n = 0; n < bv_names->nSize; n++) {
+      if (strcmp(m_name, ((char**)bv_names->pArray)[n]) == 0) {
+        ic_to_ib[m] = n; ib_to_ic[n] = m;
+        break;
+      }
+    }
+  }
+  Abc_NodeFreeNames(bv_names);
+  if (ic_to_ib[i] == -1) {
+    Cudd_RecursiveDeref(dd, f);
+    printf("independent\n");
+    return;
+  }
+
+  bool is_in_support = Lsv_BddCheckInSupport(Cudd_Regular(f), ic_to_ib[i]);
+  Lsv_BddCleanFlag(Cudd_Regular(f));
+  if (!is_in_support) {
+    Cudd_RecursiveDeref(dd, f);
+    printf("independent\n");
+    return;
+  }
+
+  DdNode* var = Cudd_bddIthVar(dd, ic_to_ib[i]);
+  Cudd_Ref(var);
+  assert(var->index == ic_to_ib[i]);
+  DdNode* f_co_0 = Cudd_Cofactor(dd, f, Cudd_Not(var));
+  Cudd_Ref(f_co_0);
+  DdNode* f_co_1 = Cudd_Cofactor(dd, f, var);
+  Cudd_Ref(f_co_1);
+  std::vector<DdNode*> var_list;
+  for (int ib: ic_to_ib) if (ib != -1 && ib != ic_to_ib[i]) {
+    DdNode* var_ib = Cudd_bddIthVar(dd, ib);
+    Cudd_Ref(var_ib);
+    var_list.push_back(var_ib);
+  }
+  DdNode* cube_co_0_n1 = Lsv_BddPickCubeInDiff(dd, f_co_0, f_co_1, var_list.data(), var_list.size());
+  Cudd_Ref(cube_co_0_n1);
+  if (cube_co_0_n1 == Cudd_ReadLogicZero(dd)) {
+    printf("positive unate\n");
+  }
+
+  else {
+    DdNode* cube_co_1_n0 = Lsv_BddPickCubeInDiff(dd, f_co_1, f_co_0, var_list.data(), var_list.size());
+    Cudd_Ref(cube_co_1_n0);
+    if (cube_co_1_n0 == Cudd_ReadLogicZero(dd)) {
+      printf("negative unate\n");
+    }
+    else {
+      printf("binate\n");
+      std::string pos_pattern = Lsv_BddCubeToPattern(Abc_NtkCiNum(pNtk), dd, cube_co_1_n0, i, ib_to_ic);
+      printf("%s\n", pos_pattern.data());
+      std::string neg_pattern = Lsv_BddCubeToPattern(Abc_NtkCiNum(pNtk), dd, cube_co_0_n1, i, ib_to_ic);
+      printf("%s\n", neg_pattern.data());
+    }
+    Cudd_RecursiveDeref(dd, cube_co_1_n0);
+  }
+
+  Cudd_RecursiveDeref(dd, cube_co_0_n1);
+  for (DdNode* var_ib: var_list) Cudd_RecursiveDeref(dd, var_ib);
+  Cudd_RecursiveDeref(dd, f_co_1);
+  Cudd_RecursiveDeref(dd, f_co_0);
+  Cudd_RecursiveDeref(dd, var);
+  Cudd_RecursiveDeref(dd, f);
+}
+
 int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   int c;
@@ -268,5 +417,52 @@ usage:
   Abc_Print(-2, "\t-h    : print the command usage\n");
   Abc_Print(-2, "\t<k>   : the max number of nodes in a cut (3~6)\n");
   Abc_Print(-2, "\t<l>   : the min number of output nodes for a cut (1~4)\n");
+  return 1;
+}
+
+int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  unsigned int k, i;
+  int c;
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    switch (c) {
+      case 'h':
+        goto usage;
+      default:
+        goto usage;
+    }
+  }
+  if (!pNtk) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  if (!Abc_NtkIsBddLogic(pNtk)) {
+    Abc_Print(-1, "The network is not a BDD.\n");
+    return 1;
+  }
+  if (argc != globalUtilOptind + 2) {
+    Abc_Print(-1, "Wrong number of auguments.\n");
+    goto usage;
+  }
+  k = std::stoi(argv[globalUtilOptind]);
+  if (k < 0 || k >= Abc_NtkCoNum(pNtk)) {
+    Abc_Print(-1, "Primary output index %d out of bound.\n", k);
+    return 1;
+  }
+  i = std::stoi(argv[globalUtilOptind + 1]);
+  if (i < 0 || i >= Abc_NtkCiNum(pNtk)) {
+    Abc_Print(-1, "Primary input index %d out of bound.\n", i);
+    return 1;
+  }
+  Lsv_UnateBdd(pNtk, k, i);
+  return 0;
+
+usage:
+  Abc_Print(-2, "usage: lsv_unate_bdd [-h] <k> <i>\n");
+  Abc_Print(-2, "\t        check whether the k-th primary output of a BDD is unate in the i-th primary input\n");
+  Abc_Print(-2, "\t-h    : print the command usage\n");
+  Abc_Print(-2, "\t<k>   : the primary output index starting from 0\n");
+  Abc_Print(-2, "\t<i>   : the primary input index starting from 0\n");
   return 1;
 }
