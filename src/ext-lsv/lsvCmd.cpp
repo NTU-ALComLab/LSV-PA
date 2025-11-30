@@ -440,71 +440,81 @@
          return 0;
      }
  
-     // 4. Derive CNF
-     Cnf_Dat_t* pCnf = Cnf_Derive(pAig, 1);
- 
-     // Identify Target Variable in CNF
-     Aig_Obj_t* pTargetAigPi = (Aig_Obj_t*)pTargetConePi->pCopy;
-     int targetCnfVar = pCnf->pVarNums[pTargetAigPi->Id];
-     
-     // Double check for valid CNF var (should be valid if present in AIG)
-     if (targetCnfVar == -1) {
-          printf("independent\n");
-          Cnf_DataFree(pCnf);
-          Aig_ManStop(pAig);
-          Abc_NtkDelete(pCone);
-          return 0;
-     }
- 
-     // 5. Initialize SAT Solver (Instance A)
-     sat_solver* pSat = sat_solver_new();
-     Cnf_DataWriteIntoSolverInt(pSat, pCnf, 1, 0);
-     
-     // 6. Lift and Add Instance B
-     int nVars = pCnf->nVars;
-     Cnf_DataLift(pCnf, nVars); 
+    // 4. Derive CNF
+    Cnf_Dat_t* pCnf = Cnf_Derive(pAig, 1);
+
+    // Identify Target Variable in CNF (save before lift)
+    Aig_Obj_t* pTargetAigPi = (Aig_Obj_t*)pTargetConePi->pCopy;
+    int targetCnfVar = pCnf->pVarNums[pTargetAigPi->Id];
+    
+    // Double check for valid CNF var (should be valid if present in AIG)
+    if (targetCnfVar == -1) {
+         printf("independent\n");
+         Cnf_DataFree(pCnf);
+         Aig_ManStop(pAig);
+         Abc_NtkDelete(pCone);
+         return 0;
+    }
+
+    // Save original variable mappings for instance A (before lift)
+    int nVars = pCnf->nVars;
+    std::vector<int> origVarNums(Aig_ManObjNumMax(pAig), -1);
+    Aig_Obj_t* pObj;
+    int i;
+    Aig_ManForEachObj(pAig, pObj, i) {
+        if (pCnf->pVarNums[pObj->Id] != -1) {
+            origVarNums[pObj->Id] = pCnf->pVarNums[pObj->Id];
+        }
+    }
+
+    // 5. Initialize SAT Solver (Instance A)
+    sat_solver* pSat = sat_solver_new();
+    Cnf_DataWriteIntoSolverInt(pSat, pCnf, 1, 0);
+    
+    // 6. Lift and Add Instance B
+    Cnf_DataLift(pCnf, nVars);
      
      sat_solver_setnvars(pSat, 2 * nVars + 16); // Manual Resize
      Cnf_DataWriteIntoSolverInt(pSat, pCnf, 1, 0);
      
-     // 7. Equality Constraints
-     // Iterate over ALL Original PIs. 
-     // If a PI is in the Cone (and not target), constrain it.
-     // If a PI is NOT in the Cone, ignore it (it doesn't affect output).
-     int nPis = Abc_NtkPiNum(pNtk);
-     for (int j = 0; j < nPis; j++) {
-         if (j == inIndex) continue;
-         
-         Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
-         char* pName = Abc_ObjName(pOriginalPi);
-         Abc_Obj_t* pConePi = Abc_NtkFindCi(pCone, pName);
-         
-         if (!pConePi) continue; // Not in Cone -> Independent -> No constraint needed
-         
-         Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConePi->pCopy;
-         if (!pAigPi) continue;
-         
-         int varA = pCnf->pVarNums[pAigPi->Id];
-         if (varA == -1) continue;
-         
-         int varB = varA + nVars;
-         if (varB >= sat_solver_nvars(pSat)) sat_solver_setnvars(pSat, varB + 16);
-         
-         // Add Equality Clause (A XNOR B)
-         lit lits[2];
-         lits[0] = toLitCond(varA, 1); lits[1] = toLitCond(varB, 0); 
-         sat_solver_addclause(pSat, lits, lits + 2);
-         lits[0] = toLitCond(varA, 0); lits[1] = toLitCond(varB, 1); 
-         sat_solver_addclause(pSat, lits, lits + 2);
-     }
- 
-     // Setup Target Variables
-     int varInA = targetCnfVar;
-     int varInB = varInA + nVars;
-     
-     int outId = Aig_ObjFanin0(Aig_ManCo(pAig, 0))->Id;
-     int varOutA = pCnf->pVarNums[outId];
-     int varOutB = varOutA + nVars;
+    // 7. Equality Constraints
+    // Iterate over ALL Original PIs. 
+    // If a PI is in the Cone (and not target), constrain it.
+    // If a PI is NOT in the Cone, ignore it (it doesn't affect output).
+    int nPis = Abc_NtkPiNum(pNtk);
+    for (int j = 0; j < nPis; j++) {
+        if (j == inIndex) continue;
+        
+        Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
+        char* pName = Abc_ObjName(pOriginalPi);
+        Abc_Obj_t* pConePi = Abc_NtkFindCi(pCone, pName);
+        
+        if (!pConePi) continue; // Not in Cone -> Independent -> No constraint needed
+        
+        Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConePi->pCopy;
+        if (!pAigPi) continue;
+        
+        int varA = origVarNums[pAigPi->Id];
+        if (varA == -1) continue;
+        
+        int varB = varA + nVars;
+        if (varB >= sat_solver_nvars(pSat)) sat_solver_setnvars(pSat, varB + 16);
+        
+        // Add Equality Clause (A XNOR B)
+        lit lits[2];
+        lits[0] = toLitCond(varA, 1); lits[1] = toLitCond(varB, 0); 
+        sat_solver_addclause(pSat, lits, lits + 2);
+        lits[0] = toLitCond(varA, 0); lits[1] = toLitCond(varB, 1); 
+        sat_solver_addclause(pSat, lits, lits + 2);
+    }
+
+    // Setup Target Variables
+    int varInA = targetCnfVar;
+    int varInB = varInA + nVars;
+    
+    int outId = Aig_ObjFanin0(Aig_ManCo(pAig, 0))->Id;
+    int varOutA = origVarNums[outId];
+    int varOutB = varOutA + nVars;
      int outCompl = Aig_ObjFaninC0(Aig_ManCo(pAig, 0));
  
      // --- Check 1: Positive Behavior ---
@@ -522,25 +532,25 @@
      int status1 = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
      bool hasPosBehavior = (status1 == l_True); 
      
-     std::vector<int> pattern1; 
-     if (hasPosBehavior) {
-         for (int j = 0; j < nPis; j++) {
-             if (j == inIndex) pattern1.push_back(2); 
-             else {
-                 Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
-                 char* pName = Abc_ObjName(pOriginalPi);
-                 Abc_Obj_t* pConePi = Abc_NtkFindCi(pCone, pName);
-                 int val = 0;
-                 if (pConePi) {
-                     Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConePi->pCopy;
-                     if (pAigPi && pCnf->pVarNums[pAigPi->Id] != -1) {
-                         val = sat_solver_var_value(pSat, pCnf->pVarNums[pAigPi->Id]);
-                     }
-                 }
-                 pattern1.push_back(val);
-             }
-         }
-     }
+    std::vector<int> pattern1; 
+    if (hasPosBehavior) {
+        for (int j = 0; j < nPis; j++) {
+            if (j == inIndex) pattern1.push_back(2); 
+            else {
+                Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
+                char* pName = Abc_ObjName(pOriginalPi);
+                Abc_Obj_t* pConePi = Abc_NtkFindCi(pCone, pName);
+                int val = 0;
+                if (pConePi) {
+                    Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConePi->pCopy;
+                    if (pAigPi && origVarNums[pAigPi->Id] != -1) {
+                        val = sat_solver_var_value(pSat, origVarNums[pAigPi->Id]);
+                    }
+                }
+                pattern1.push_back(val);
+            }
+        }
+    }
  
      // --- Check 2: Negative Behavior ---
      valYA = 1; valYB = 0;
@@ -553,25 +563,25 @@
      int status2 = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
      bool hasNegBehavior = (status2 == l_True);
  
-     std::vector<int> pattern2;
-     if (hasNegBehavior) {
-         for (int j = 0; j < nPis; j++) {
-             if (j == inIndex) pattern2.push_back(2);
-             else {
-                 Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
-                 char* pName = Abc_ObjName(pOriginalPi);
-                 Abc_Obj_t* pConePi = Abc_NtkFindCi(pCone, pName);
-                 int val = 0;
-                 if (pConePi) {
-                     Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConePi->pCopy;
-                     if (pAigPi && pCnf->pVarNums[pAigPi->Id] != -1) {
-                         val = sat_solver_var_value(pSat, pCnf->pVarNums[pAigPi->Id]);
-                     }
-                 }
-                 pattern2.push_back(val);
-             }
-         }
-     }
+    std::vector<int> pattern2;
+    if (hasNegBehavior) {
+        for (int j = 0; j < nPis; j++) {
+            if (j == inIndex) pattern2.push_back(2);
+            else {
+                Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
+                char* pName = Abc_ObjName(pOriginalPi);
+                Abc_Obj_t* pConePi = Abc_NtkFindCi(pCone, pName);
+                int val = 0;
+                if (pConePi) {
+                    Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConePi->pCopy;
+                    if (pAigPi && origVarNums[pAigPi->Id] != -1) {
+                        val = sat_solver_var_value(pSat, origVarNums[pAigPi->Id]);
+                    }
+                }
+                pattern2.push_back(val);
+            }
+        }
+    }
  
      // Output Results
      if (!hasPosBehavior && !hasNegBehavior) {
