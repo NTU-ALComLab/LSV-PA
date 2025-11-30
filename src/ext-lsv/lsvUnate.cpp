@@ -1,11 +1,10 @@
 /**
  * @file lsvUnate.cpp
- * @brief Implementation of BDD unateness checking for LSV PA2.
+ * @brief BDD Unateness checking with Debug Prints
  */
 
-// 1. Force definition of missing CUDD types immediately
-//    These are standard types used in ABC's CUDD implementation.
 #include <cstdint>
+// Define pointer types if missing
 #ifndef ptruint
   typedef uintptr_t ptruint;
 #endif
@@ -13,124 +12,119 @@
   typedef intptr_t ptrint;
 #endif
 
-// 2. Include ABC headers
 #include "base/abc/abc.h"
 #include "base/main/main.h"
-
-// 3. Include CUDD header
 #include "bdd/cudd/cudd.h"
-
-// 4. Include local header
 #include "lsv.h"
 
 // -----------------------------------------------------------------------------
-// Helper Function
+// Helper: Print Pattern
 // -----------------------------------------------------------------------------
 
-/**
- * @brief Prints the input pattern based on the cube array filled by CUDD.
- * @param dd The CUDD manager.
- * @param cubeVals The char array filled by Cudd_bddPickOneCube.
- * cubeVals[i] is 0 (false), 1 (true), or 2 (don't care).
- * @param pNtk The ABC network.
- * @param inputIdx The index of the primary input x_i being tested.
- */
 void Lsv_PrintPattern(DdManager * dd, char * cubeVals, Abc_Ntk_t * pNtk, int inputIdx) {
     int nInputs = Abc_NtkCiNum(pNtk);
     for (int j = 0; j < nInputs; j++) {
-        // For the specific variable x_i being tested, we must print "-"
         if (j == inputIdx) {
             printf("-");
             continue;
         }
 
-        // Get the BDD variable index corresponding to the j-th PI
         Abc_Obj_t * pVarObj = Abc_NtkCi(pNtk, j);
         DdNode * pVar = (DdNode *)pVarObj->pData;
         
-        // Cudd_Regular is needed because pVar might be a complemented pointer
+        // Safety: If pVar is missing (should not happen in collapsed BDD), print 0
+        if (!pVar) { printf("0"); continue; }
+
+        // Get the index used in the BDD manager
         int bddVarIdx = Cudd_Regular(pVar)->index;
         
-        // Check the value in the cube array
-        int val = (int)cubeVals[bddVarIdx];
-        
-        if (val == 0) {
-            printf("0");
-        } else if (val == 1) {
-            printf("1");
-        } else {
-            // val == 2 means Don't Care. Default to 0.
-            printf("0");
+        // Safety: Prevent array out-of-bounds
+        if (bddVarIdx < 0 || bddVarIdx >= Cudd_ReadSize(dd)) {
+            printf("0"); 
+            continue;
         }
+
+        // 0=False, 1=True, 2=DontCare
+        int val = (int)cubeVals[bddVarIdx];
+        if (val == 1) printf("1");
+        else printf("0"); // Treat 0 and DontCare as 0
     }
     printf("\n");
 }
 
 // -----------------------------------------------------------------------------
-// Main Function
+// Main Logic
 // -----------------------------------------------------------------------------
 
 void Lsv_NtkUnateBdd(Abc_Ntk_t * pNtk, int outIdx, int inIdx) {
+    // Debug 1: Manager
     DdManager * dd = (DdManager *)pNtk->pManFunc;
-    
-    // Get BDD for input x_i
+    if (!dd) { printf("Error: BDD Manager is NULL. Run 'collapse'?\n"); return; }
+
+    // Debug 2: Input BDD
     Abc_Obj_t * pCi = Abc_NtkCi(pNtk, inIdx);
     DdNode * pVar = (DdNode *)pCi->pData;
-    
-    // Get BDD for output y_k
+    if (!pVar) { printf("Error: Input %d has no BDD data.\n", inIdx); return; }
+
+    // Debug 3: Output BDD (Using GlobalBdd helper)
     Abc_Obj_t * pCo = Abc_NtkCo(pNtk, outIdx);
-    Abc_Obj_t * pDriver = Abc_ObjFanin0(pCo);
-    DdNode * pFunc = (DdNode *)pDriver->pData;
+    // Abc_ObjGlobalBdd safely handles phase (negation) and driver lookup
+    DdNode * pFunc = (DdNode *)Abc_ObjGlobalBdd(pCo); 
     
-    // Adjust for complement pointer if the edge to CO is inverted
-    if (Abc_ObjFaninC0(pCo)) {
-        pFunc = Cudd_Not(pFunc);
-    }
-    
-    // Compute Cofactors: f1 (x_i=1) and f0 (x_i=0)
-    // Cudd_Ref is critical here to prevent garbage collection
+    if (!pFunc) { printf("Error: Output %d has no Global BDD.\n", outIdx); return; }
+
+    // Debug 4: Computation
+    // Calculate Cofactors: f1 = f | x=1; f0 = f | x=0
     DdNode * f1 = Cudd_Cofactor(dd, pFunc, pVar);       Cudd_Ref(f1);
     DdNode * f0 = Cudd_Cofactor(dd, pFunc, Cudd_Not(pVar)); Cudd_Ref(f0);
-    
-    // Check Relations
+
+    // Debug 5: Comparisons
     if (f1 == f0) {
         printf("independent\n");
-    }
+    } 
     else if (Cudd_bddLeq(dd, f0, f1)) {
         printf("positive unate\n");
-    }
+    } 
     else if (Cudd_bddLeq(dd, f1, f0)) {
         printf("negative unate\n");
-    }
+    } 
     else {
         printf("binate\n");
         
-        // Allocate buffer for Cudd_bddPickOneCube
+        // Debug 6: Pattern Generation
+        // Allocate array for cube values
         char * cubeVals = new char[Cudd_ReadSize(dd)];
-
-        // --- Pattern 1: f1=1, f0=0 ---
-        // We need a cube inside the set difference (f1 & !f0)
+        
+        // Pattern 1: Need (f1=1, f0=0) -> diff1 = f1 & !f0
         DdNode * diff1 = Cudd_bddAnd(dd, f1, Cudd_Not(f0)); Cudd_Ref(diff1);
         
-        if (Cudd_bddPickOneCube(dd, diff1, cubeVals)) {
-            Lsv_PrintPattern(dd, cubeVals, pNtk, inIdx);
+        // Check if diff1 is empty (should not be, if binate)
+        if (diff1 != Cudd_ReadLogicZero(dd)) {
+             if (Cudd_bddPickOneCube(dd, diff1, cubeVals)) {
+                 Lsv_PrintPattern(dd, cubeVals, pNtk, inIdx);
+             }
         }
         Cudd_RecursiveDeref(dd, diff1);
         
-        // --- Pattern 2: f1=0, f0=1 ---
-        // We need a cube inside the set difference (!f1 & f0)
+        // Pattern 2: Need (f1=0, f0=1) -> diff2 = !f1 & f0
         DdNode * diff2 = Cudd_bddAnd(dd, Cudd_Not(f1), f0); Cudd_Ref(diff2);
         
-        if (Cudd_bddPickOneCube(dd, diff2, cubeVals)) {
-            Lsv_PrintPattern(dd, cubeVals, pNtk, inIdx);
+        if (diff2 != Cudd_ReadLogicZero(dd)) {
+             if (Cudd_bddPickOneCube(dd, diff2, cubeVals)) {
+                 Lsv_PrintPattern(dd, cubeVals, pNtk, inIdx);
+             }
         }
         Cudd_RecursiveDeref(dd, diff2);
         
         delete [] cubeVals;
     }
-    
+
+    // Cleanup
     Cudd_RecursiveDeref(dd, f1);
     Cudd_RecursiveDeref(dd, f0);
+    
+    // Flush to ensure output appears before any subsequent crash
+    fflush(stdout); 
 }
 
 int Lsv_CommandUnateBdd(Abc_Frame_t * pAbc, int argc, char ** argv) {
@@ -143,22 +137,23 @@ int Lsv_CommandUnateBdd(Abc_Frame_t * pAbc, int argc, char ** argv) {
     int inIdx = atoi(argv[2]);
     
     Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
-    if (pNtk == NULL) {
-        printf("Error: Empty network.\n");
-        return 1;
+    if (!pNtk) { 
+        printf("Error: Empty network.\n"); 
+        return 1; 
     }
     
-    if (!Abc_NtkIsBddLogic(pNtk)) {
-        printf("Error: Network is not in BDD format. Run 'collapse' first.\n");
-        return 1;
+    if (!Abc_NtkIsBddLogic(pNtk)) { 
+        printf("Error: Network not in BDD format. Run 'collapse' first.\n"); 
+        return 1; 
     }
     
+    // Bounds Checking
     if (outIdx < 0 || outIdx >= Abc_NtkCoNum(pNtk)) {
-        printf("Error: Invalid output index.\n");
+        printf("Error: Invalid output index %d.\n", outIdx);
         return 1;
     }
     if (inIdx < 0 || inIdx >= Abc_NtkCiNum(pNtk)) {
-        printf("Error: Invalid input index.\n");
+        printf("Error: Invalid input index %d.\n", inIdx);
         return 1;
     }
     
