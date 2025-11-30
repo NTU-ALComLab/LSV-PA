@@ -120,9 +120,9 @@ static void Lsv_NtkUnateSatCore(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
     // Use AIG CI/CO order directly; no pCopy dependence.
 
     // Output: poIdx-th CO in AIG
-    Aig_Obj_t* pAigCo  = Aig_ManCo(pAig, poIdx);
-    Aig_Obj_t* pLitOut = Aig_ObjChild0(pAigCo);        // literal for function
-    int        fOutCompl = Aig_IsComplement(pLitOut);  // 1 if complemented at PO
+    Aig_Obj_t* pAigCo    = Aig_ManCo(pAig, poIdx);
+    Aig_Obj_t* pLitOut   = Aig_ObjChild0(pAigCo);        // literal for function
+    int        fOutCompl = Aig_IsComplement(pLitOut);    // 1 if complemented at PO
     Aig_Obj_t* pOutReg   = Aig_Regular(pLitOut);
 
     int varY  = pCnf->pVarNums[Aig_ObjId(pOutReg)];
@@ -192,8 +192,47 @@ static void Lsv_NtkUnateSatCore(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
 
     bool canViolateNeg = SolveSAT(assumpsNotNeg);
 
-    // Print classification (no patterns needed for SAT part)
+    // Print classification first
     PrintUnateResult(canViolatePos, canViolateNeg);
+
+    // === If binate, also print two counterexample patterns (like Exercise 1) ===
+    if ( canViolatePos && canViolateNeg )
+    {
+        // Pattern 1: from a model of "not positive unate"
+        if ( SolveSAT(assumpsNotPos) ) {
+            for (int i = 0; i < nCi; ++i) {
+                if (i == piIdx) {
+                    // tested input gets '-'
+                    printf("-");
+                    continue;
+                }
+                Aig_Obj_t* pCi2    = Aig_ManCi(pAig, i);
+                Aig_Obj_t* pCi2Reg = Aig_Regular(pCi2);
+                int varZ  = pCnf->pVarNums[Aig_ObjId(pCi2Reg)];
+                int varZA = varZ; // copy A
+                int val   = sat_solver_var_value(pSat, varZA); // 0/1
+                printf("%d", val ? 1 : 0);
+            }
+            printf("\n");
+        }
+
+        // Pattern 2: from a model of "not negative unate"
+        if ( SolveSAT(assumpsNotNeg) ) {
+            for (int i = 0; i < nCi; ++i) {
+                if (i == piIdx) {
+                    printf("-");
+                    continue;
+                }
+                Aig_Obj_t* pCi2    = Aig_ManCi(pAig, i);
+                Aig_Obj_t* pCi2Reg = Aig_Regular(pCi2);
+                int varZ  = pCnf->pVarNums[Aig_ObjId(pCi2Reg)];
+                int varZA = varZ; // copy A
+                int val   = sat_solver_var_value(pSat, varZA);
+                printf("%d", val ? 1 : 0);
+            }
+            printf("\n");
+        }
+    }
 
     // Clean up
     Cnf_DataFree(pCnf);
