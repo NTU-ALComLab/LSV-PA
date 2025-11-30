@@ -215,7 +215,7 @@ extern "C" void Lsv_Init(Abc_Frame_t* pAbc) {
     Cmd_CommandAdd( pAbc, "LSV", "lsv_unate_bdd", Lsv_CommandUnateBdd, 0 );
     
     // 3. Keep the placeholder
-    Cmd_CommandAdd( pAbc, "LSV", "lsv",          nullptr,             0 );
+    // Cmd_CommandAdd( pAbc, "LSV", "lsv",          nullptr,             0 );
 }
 
 extern "C" void Lsv_End(Abc_Frame_t* pAbc) {
@@ -234,3 +234,4 @@ struct LsvAutoRegistrar {
     }
 } _lsv_auto_registrar;
 } // namespace
+
