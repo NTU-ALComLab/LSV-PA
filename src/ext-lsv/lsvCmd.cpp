@@ -437,7 +437,7 @@ static void Lsv_NtkUnateBdd( Abc_Ntk_t* pNtk, int k, int i )
     pCo = Abc_NtkCo( pNtk, k );
 
     // 建立 global BDD
-    dd = Abc_NtkBuildGlobalBdds( pNtk, 10000000, 1, 1, 0 );
+    dd = Abc_NtkBuildGlobalBdds( pNtk, 10000000, 1, 1, 0, 0 );
     if ( dd == NULL ) {
         Abc_Print( -1, "Error: cannot build global BDDs.\n" );
         return;
@@ -690,6 +690,16 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t* pNtk, int k, int iPi )
 
     Vec_IntFree( vId2Pi );
 
+    Aig_Obj_t* pAigPo = NULL;
+    int varYA = 0;
+    int varYB = 0;
+    int varXiA = 0;
+    int varXiB = 0;
+    int badNegSat = 0;
+    int badPosSat = 0;
+    char* pat1 = NULL;
+    char* pat2 = NULL;
+
     // xi 不在 cone 裡 ⇒ 一定 independent
     if ( piVarA[iPi] == -1 ) {
         Abc_Print( 1, "independent\n" );
@@ -738,7 +748,7 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t* pNtk, int k, int iPi )
     assump[1] = Abc_Var2Lit( varXiB, 0 );
     assump[2] = Abc_Var2Lit( varYA,   1 );
     assump[3] = Abc_Var2Lit( varYB,   0 );
-    status = sat_solver_solve( pSat, assump, assump + 4, 0, 0, 0 );
+    status = sat_solver_solve( pSat, assump, assump + 4, 0, 0, 0, 0 );
     if ( status == l_True ) {
         badNegSat = 1;
         pat1 = Lsv_SatPatternFromModel( pSat, piVarA, nPisOrig, iPi );
@@ -749,7 +759,7 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t* pNtk, int k, int iPi )
     assump[1] = Abc_Var2Lit( varXiB, 0 );
     assump[2] = Abc_Var2Lit( varYA,   0 );
     assump[3] = Abc_Var2Lit( varYB,   1 );
-    status = sat_solver_solve( pSat, assump, assump + 4, 0, 0, 0 );
+    status = sat_solver_solve( pSat, assump, assump + 4, 0, 0, 0, 0 );
     if ( status == l_True ) {
         badPosSat = 1;
         pat2 = Lsv_SatPatternFromModel( pSat, piVarA, nPisOrig, iPi );
