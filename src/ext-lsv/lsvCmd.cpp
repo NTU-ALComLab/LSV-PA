@@ -426,6 +426,10 @@ static char* Lsv_BddPickPattern( DdManager* dd, DdNode* bFunc,
 
 static void Lsv_NtkUnateBdd( Abc_Ntk_t* pNtk, int k, int i )
 {
+    // Make sure network is AIG before building global BDDs
+    if ( !Abc_NtkIsStrash(pNtk) ) {
+        pNtk = Abc_NtkStrash( pNtk );
+    }
     Abc_Obj_t* pCo;
     DdManager* dd = NULL;
     DdNode *f, *var, *f0, *f1;
