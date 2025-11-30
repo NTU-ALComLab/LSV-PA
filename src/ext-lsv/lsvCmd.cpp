@@ -659,7 +659,7 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int k, int iPi )
         return;
     }
     Abc_Obj_t * pRoot = Abc_ObjFanin0( pCo ); // IMPORTANT: use fanin0
-    if ( pRoot == NULL || !Abc_ObjIsNode(pRoot) && !Abc_ObjIsCi(pRoot) ) {
+    if ( pRoot == NULL || (!Abc_ObjIsNode(pRoot) && !Abc_ObjIsCi(pRoot)) ) {
         Abc_Print( -1, "Error: CO %d has no valid fanin root\n", k );
         return;
     }
@@ -736,7 +736,7 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int k, int iPi )
     Abc_NtkForEachPi( pConeAig, pPi, j ) {
         // In many ABC flows, pPi->pCopy contains the corresponding AIG object id (Aig_Obj_t*), but easier:
         // find its original PI index by name or Id: assume the cone PI came from original network CI and retains Id.
-        int origId = Abc_ObjOriginalId( pPi ); // if not available, try pPi->Id
+        //int origId = Abc_ObjOriginalId( pPi ); // if not available, try pPi->Id
         // Fallback: use pPi->Id and hope original CI Id matches; if not, user may need to customize mapping.
         int origIdx = -1;
         // Try to get original PI index by scanning original network PIs by Id
