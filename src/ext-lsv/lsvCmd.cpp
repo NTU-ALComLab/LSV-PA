@@ -728,20 +728,20 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t* pNtk, int k, int iPi )
     }
 
     // 找 output 在 A/B 的 CNF 變數
-    Aig_Obj_t* pAigPo = Aig_ManCo( pAig, 0 ); // cone 只有一個 PO
-    int varYA = pCnfA->pVarNums[ pAigPo->Id ];
-    int varYB = pCnfB->pVarNums[ pAigPo->Id ];
+    pAigPo = Aig_ManCo( pAig, 0 ); // cone 只有一個 PO
+    varYA = pCnfA->pVarNums[ pAigPo->Id ];
+    varYB = pCnfB->pVarNums[ pAigPo->Id ];
 
-    int varXiA = piVarA[iPi];
-    int varXiB = piVarB[iPi];
+    varXiA = piVarA[iPi];
+    varXiB = piVarB[iPi];
 
     // === 8. badNeg: f(0,a)=0, f(1,a)=1 ===
     lit assump[4];
     lbool status;
-    int badNegSat = 0;
-    int badPosSat = 0;
-    char* pat1 = NULL;
-    char* pat2 = NULL;
+    badNegSat = 0;
+    badPosSat = 0;
+    pat1 = NULL;
+    pat2 = NULL;
 
     // xiA = 0, xiB = 1, yA = 0, yB = 1
     assump[0] = Abc_Var2Lit( varXiA, 1 );
