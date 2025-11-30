@@ -529,28 +529,42 @@
      Lits[2] = toLitCond(varOutA, !driverValA);
      Lits[3] = toLitCond(varOutB, !driverValB);
  
-     int status1 = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
-     bool hasPosBehavior = (status1 == l_True); 
-     
-    std::vector<int> pattern1; 
-    if (hasPosBehavior) {
-        for (int j = 0; j < nPis; j++) {
-            if (j == inIndex) pattern1.push_back(2); 
-            else {
-                Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
-                char* pName = Abc_ObjName(pOriginalPi);
-                Abc_Obj_t* pConePi = Abc_NtkFindCi(pCone, pName);
-                int val = 0;
-                if (pConePi) {
-                    Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConePi->pCopy;
-                    if (pAigPi && origVarNums[pAigPi->Id] != -1) {
-                        val = sat_solver_var_value(pSat, origVarNums[pAigPi->Id]);
-                    }
-                }
-                pattern1.push_back(val);
-            }
-        }
-    }
+    int status1 = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
+    bool hasPosBehavior = (status1 == l_True); 
+    
+   // Build name-to-value mapping from SAT solution
+   std::unordered_map<std::string, int> nameToVal;
+   if (hasPosBehavior) {
+       Abc_Obj_t* pConeCi;
+       int k;
+       Abc_NtkForEachCi(pCone, pConeCi, k) {
+           char* pName = Abc_ObjName(pConeCi);
+           Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConeCi->pCopy;
+           if (pAigPi && origVarNums[pAigPi->Id] != -1) {
+               int val = sat_solver_var_value(pSat, origVarNums[pAigPi->Id]);
+               nameToVal[std::string(pName)] = val;
+           }
+       }
+   }
+   
+   // Build pattern1 in original network PI order
+   std::vector<int> pattern1; 
+   if (hasPosBehavior) {
+       for (int j = 0; j < nPis; j++) {
+           if (j == inIndex) {
+               pattern1.push_back(2); 
+           } else {
+               Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
+               char* pName = Abc_ObjName(pOriginalPi);
+               auto it = nameToVal.find(std::string(pName));
+               if (it != nameToVal.end()) {
+                   pattern1.push_back(it->second);
+               } else {
+                   pattern1.push_back(0); // Not in cone, default to 0
+               }
+           }
+       }
+   }
  
      // --- Check 2: Negative Behavior ---
      valYA = 1; valYB = 0;
@@ -560,28 +574,42 @@
      Lits[2] = toLitCond(varOutA, !driverValA);
      Lits[3] = toLitCond(varOutB, !driverValB);
      
-     int status2 = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
-     bool hasNegBehavior = (status2 == l_True);
- 
-    std::vector<int> pattern2;
-    if (hasNegBehavior) {
-        for (int j = 0; j < nPis; j++) {
-            if (j == inIndex) pattern2.push_back(2);
-            else {
-                Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
-                char* pName = Abc_ObjName(pOriginalPi);
-                Abc_Obj_t* pConePi = Abc_NtkFindCi(pCone, pName);
-                int val = 0;
-                if (pConePi) {
-                    Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConePi->pCopy;
-                    if (pAigPi && origVarNums[pAigPi->Id] != -1) {
-                        val = sat_solver_var_value(pSat, origVarNums[pAigPi->Id]);
-                    }
-                }
-                pattern2.push_back(val);
-            }
-        }
-    }
+    int status2 = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
+    bool hasNegBehavior = (status2 == l_True);
+
+   // Build name-to-value mapping from SAT solution
+   std::unordered_map<std::string, int> nameToVal2;
+   if (hasNegBehavior) {
+       Abc_Obj_t* pConeCi;
+       int k;
+       Abc_NtkForEachCi(pCone, pConeCi, k) {
+           char* pName = Abc_ObjName(pConeCi);
+           Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConeCi->pCopy;
+           if (pAigPi && origVarNums[pAigPi->Id] != -1) {
+               int val = sat_solver_var_value(pSat, origVarNums[pAigPi->Id]);
+               nameToVal2[std::string(pName)] = val;
+           }
+       }
+   }
+   
+   // Build pattern2 in original network PI order
+   std::vector<int> pattern2;
+   if (hasNegBehavior) {
+       for (int j = 0; j < nPis; j++) {
+           if (j == inIndex) {
+               pattern2.push_back(2);
+           } else {
+               Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
+               char* pName = Abc_ObjName(pOriginalPi);
+               auto it = nameToVal2.find(std::string(pName));
+               if (it != nameToVal2.end()) {
+                   pattern2.push_back(it->second);
+               } else {
+                   pattern2.push_back(0); // Not in cone, default to 0
+               }
+           }
+       }
+   }
  
      // Output Results
      if (!hasPosBehavior && !hasNegBehavior) {
