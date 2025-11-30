@@ -13,11 +13,16 @@ extern "C" {
 
 #include "lsv.h"
 
+// Abc_NtkToDar is implemented but not declared in headers for this PA.
 extern "C"{
 Aig_Man_t* Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
 }
 
-// Tiny helper: build equality clauses (a == b)
+// -----------------------------------------------------------------------------
+// Small helpers
+// -----------------------------------------------------------------------------
+
+// Add clauses enforcing varA == varB
 static void AddEquality( sat_solver * pSat, int varA, int varB )
 {
     // (¬a ∨ b)
@@ -36,63 +41,70 @@ static void AddEquality( sat_solver * pSat, int varA, int varB )
     }
 }
 
-// helper: add CNF to solver, both copies
+// Add CNF into solver
 static void AddCnfToSolver( sat_solver * pSat, Cnf_Dat_t * pCnf )
 {
-    // Standard ABC utility – if the signature differs slightly in your
-    // version, adjust according to cnf.h / satSolver.h.
+    // If your ABC version has a slightly different signature, adjust the last args.
     Cnf_DataWriteIntoSolverInt( pSat, pCnf, 1, 0 );
 }
 
-// Check SAT with a list of assumptions (var,value pairs)
-static int SolveWithAssumps( sat_solver * pSat,
-                             const std::vector<std::pair<int,int>> & assumps )
-{
+// SAT solve with assumptions (var, value)
+static int SolveWithAssumps(
+    sat_solver * pSat,
+    const std::vector<std::pair<int,int>> & assumps
+){
     std::vector<lit> vec;
     vec.reserve( assumps.size() );
     for ( auto [var, val] : assumps ) {
-        vec.push_back( toLitCond( var, val ? 0 : 1 ) ); // val=1 ⇒ positive literal
+        // val = 1 => positive literal; val = 0 => negated literal
+        vec.push_back( toLitCond( var, val ? 0 : 1 ) );
     }
-    // Signature may differ; adjust extra parms if needed.
-    return sat_solver_solve( pSat,
-                             vec.data(), vec.data() + vec.size(),
-                             0, 0, 0, 0 );
+    return sat_solver_solve(
+        pSat,
+        vec.data(), vec.data() + vec.size(),
+        0, 0, 0, 0
+    );
 }
 
-// Main SAT-based unateness check on AIG
+// -----------------------------------------------------------------------------
+// Main SAT-based unateness on AIG
+// -----------------------------------------------------------------------------
+
 static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
 {
-    // 0. Preconditions: AIG network
+    // Require AIG/strash network
     if ( !Abc_NtkIsStrash( pNtk ) || !Abc_NtkHasAig( pNtk ) ) {
         printf( "Error: network is not AIG. Run 'strash' first.\n" );
         return;
     }
 
-    // 1. Build cone of the selected output (optional but matches the hint).
+    // Output CO in the original network
     Abc_Obj_t * pCo = Abc_NtkCo( pNtk, outIdx );
     if ( !pCo ) {
         printf( "Error: invalid output index.\n" );
         return;
     }
 
-    // last parameter = 1 so that input IDs match originals (Hint 3)
-    // Signature of Abc_NtkCreateCone may take 4 args in your ABC:
-    //   Abc_Ntk_t * Abc_NtkCreateCone( Abc_Ntk_t * pNtk,
-    //                                  Abc_Obj_t * pRoot,
-    //                                  char * pName,
-    //                                  int fIncludeAllPis );
+    // Root node for the cone must be a node / CI / const, NOT a CO.
+    Abc_Obj_t * pRoot = Abc_ObjFanin0( pCo );
+    if ( !pRoot ) {
+        printf( "Error: CO has no fanin.\n" );
+        return;
+    }
+
+    // Build cone of pRoot; last arg = 1 so input IDs match original net (Hint 3)
     Abc_Ntk_t * pCone = Abc_NtkCreateCone(
         pNtk,
-        pCo,
+        pRoot,
         Abc_ObjName( pCo ),
-        1 // include all PIs (IDs match)
+        1
     );
     if ( !pCone ) {
         printf( "Error: cannot create cone.\n" );
         return;
     }
 
-    // 2. Convert cone to AIG
+    // Convert cone to AIG
     Aig_Man_t * pAig = Abc_NtkToDar( pCone, 0, 0 );
     if ( !pAig ) {
         printf( "Error: Abc_NtkToDar failed.\n" );
@@ -100,7 +112,7 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
         return;
     }
 
-    // 3. Derive CNF for copy A
+    // Derive CNF for copy A
     Cnf_Dat_t * pCnfA = Cnf_Derive( pAig, 1 );
     if ( !pCnfA ) {
         printf( "Error: Cnf_Derive (A) failed.\n" );
@@ -109,7 +121,7 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
         return;
     }
 
-    // 4. Copy B: same CNF, but variables lifted by +nVars(A)
+    // Derive CNF for copy B and lift variables by +nVars(A)
     Cnf_Dat_t * pCnfB = Cnf_Derive( pAig, 1 );
     if ( !pCnfB ) {
         printf( "Error: Cnf_Derive (B) failed.\n" );
@@ -118,18 +130,16 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
         Abc_NtkDelete( pCone );
         return;
     }
-    Cnf_DataLift( pCnfB, pCnfA->nVars ); // B-vars = A-vars + nVars(A)
+    Cnf_DataLift( pCnfB, pCnfA->nVars );
 
-    // 5. Initialize SAT solver and add both CNFs
+    // SAT solver
     sat_solver * pSat = sat_solver_new();
     AddCnfToSolver( pSat, pCnfA );
     AddCnfToSolver( pSat, pCnfB );
 
-    // 6. Map inputs and outputs to CNF var indices
-
-    // Get cone CI pointers (these correspond to AIG inputs)
-    int nInputs = Abc_NtkCiNum( pCone );
-    if ( inIdx < 0 || inIdx >= nInputs ) {
+    // Map tested input i via original network -> cone -> AIG -> CNF
+    int nInputsOrig = Abc_NtkCiNum( pNtk );
+    if ( inIdx < 0 || inIdx >= nInputsOrig ) {
         printf( "Error: invalid input index %d.\n", inIdx );
         sat_solver_delete( pSat );
         Cnf_DataFree( pCnfA );
@@ -139,38 +149,62 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
         return;
     }
 
-    // CI i (in cone) -> AIG object -> CNF var A/B
-    Abc_Obj_t * pCiCone = Abc_NtkCi( pCone, inIdx );
-    Aig_Obj_t * pAigCi  = (Aig_Obj_t *)pCiCone->pCopy;
+    // Original CI i
+    Abc_Obj_t * pCiOrig = Abc_NtkCi( pNtk, inIdx );
+    Abc_Obj_t * pCiCone = (Abc_Obj_t *)pCiOrig->pCopy;
+    if ( !pCiCone ) {
+        printf( "Error: CI %d not found in cone.\n", inIdx );
+        sat_solver_delete( pSat );
+        Cnf_DataFree( pCnfA );
+        Cnf_DataFree( pCnfB );
+        Aig_ManStop( pAig );
+        Abc_NtkDelete( pCone );
+        return;
+    }
+    Aig_Obj_t * pAigCi = (Aig_Obj_t *)pCiCone->pCopy;
+    if ( !pAigCi ) {
+        printf( "Error: CI %d has no AIG copy.\n", inIdx );
+        sat_solver_delete( pSat );
+        Cnf_DataFree( pCnfA );
+        Cnf_DataFree( pCnfB );
+        Aig_ManStop( pAig );
+        Abc_NtkDelete( pCone );
+        return;
+    }
 
     int varXA = pCnfA->pVarNums[ Aig_ObjId( pAigCi ) ];
     int varXB = pCnfB->pVarNums[ Aig_ObjId( pAigCi ) ];
 
-    // Output y (only one PO in cone)
-    // AIG PO is Aig_ManCo(pAig, 0), but the actual driver is its fanin.
+    // Output y: cone has exactly one PO, but in AIG we look at its driver
     Aig_Obj_t * pAigCo = Aig_ManCo( pAig, 0 );
     Aig_Obj_t * pAigF  = Aig_ObjFanin0( pAigCo );
 
     int varYA = pCnfA->pVarNums[ Aig_ObjId( pAigF ) ];
     int varYB = pCnfB->pVarNums[ Aig_ObjId( pAigF ) ];
 
-    // 7. For each CI t != i, add equality (x_t^A == x_t^B)
+    // Enforce x_t^A == x_t^B for all inputs t ≠ i
     Abc_Obj_t * pCi; int t;
-    Abc_NtkForEachCi( pCone, pCi, t ) {
+    Abc_NtkForEachCi( pNtk, pCi, t ) {
         if ( t == inIdx ) continue;
-        Aig_Obj_t * pAigCiT = (Aig_Obj_t *)pCi->pCopy;
+
+        Abc_Obj_t * pCiConeT = (Abc_Obj_t *)pCi->pCopy;
+        if ( !pCiConeT ) continue; // not in cone (shouldn't happen with last=1)
+
+        Aig_Obj_t * pAigCiT = (Aig_Obj_t *)pCiConeT->pCopy;
+        if ( !pAigCiT ) continue;
+
         int varTA = pCnfA->pVarNums[ Aig_ObjId( pAigCiT ) ];
         int varTB = pCnfB->pVarNums[ Aig_ObjId( pAigCiT ) ];
         AddEquality( pSat, varTA, varTB );
     }
 
-    // ----------------------------------------------------------------------
+    // --------------------------------------------------------------
     // SAT queries:
-    //  - Violation of positive unate: f(0, X) = 1 and f(1, X) = 0
-    //  - Violation of negative unate: f(0, X) = 0 and f(1, X) = 1
-    // ----------------------------------------------------------------------
+    //  - not positive unate: ∃ (0,1) s.t. yA=1, yB=0
+    //  - not negative unate: ∃ (0,1) s.t. yA=0, yB=1
+    // --------------------------------------------------------------
 
-    // Check "not positive unate" (exists (0->1,1->0))
+    // Violate positive unate
     std::vector<std::pair<int,int>> assumpsPos;
     assumpsPos.push_back( { varXA, 0 } ); // xA = 0
     assumpsPos.push_back( { varXB, 1 } ); // xB = 1
@@ -179,7 +213,7 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
 
     int sat_not_pos = SolveWithAssumps( pSat, assumpsPos );
 
-    // Check "not negative unate" (exists (0->0,1->1))
+    // Violate negative unate
     std::vector<std::pair<int,int>> assumpsNeg;
     assumpsNeg.push_back( { varXA, 0 } ); // xA = 0
     assumpsNeg.push_back( { varXB, 1 } ); // xB = 1
@@ -188,11 +222,6 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
 
     int sat_not_neg = SolveWithAssumps( pSat, assumpsNeg );
 
-    // Classification:
-    //   if both violations UNSAT ⇒ independent
-    //   else if only not_pos UNSAT ⇒ positive unate
-    //   else if only not_neg UNSAT ⇒ negative unate
-    //   else ⇒ binate (both violations SAT)
     bool can_violate_pos = (sat_not_pos == l_True);
     bool can_violate_neg = (sat_not_neg == l_True);
 
@@ -206,46 +235,46 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
         printf( "negative unate\n" );
     }
     else {
-        // binate: need to print two patterns
+        // binate: both violations SAT – we also need to print patterns
         printf( "binate\n" );
 
-        // Pattern 1 from violation of positive unate (0,1, yA=1,yB=0)
+        int nCisCone = Abc_NtkCiNum( pCone );
+
+        // Pattern 1: use model from "not positive unate" assumptions
         if ( can_violate_pos ) {
             SolveWithAssumps( pSat, assumpsPos );
-            // back-annotate from SAT model
-            // collect input assignment (use model values of CI vars)
-            int nCis = Abc_NtkCiNum( pCone );
-            for ( int j = 0; j < nCis; ++j ) {
-                if ( j == inIdx ) {
+            for ( int j = 0; j < nCisCone; ++j ) {
+                // We need to print *cone* inputs in order, but skip the tested one.
+                Abc_Obj_t * pCiConeJ = Abc_NtkCi( pCone, j );
+                // Figure out its original CI index by following back to pNtk
+                Abc_Obj_t * pOrig = (Abc_Obj_t *)pCiConeJ->pCopy; // wrong direction? skip that — simpler:
+
+                // Simpler: compare IDs; the tested CI had the same ID as pCiOrig
+                if ( Abc_ObjId( pCiConeJ ) == Abc_ObjId( pCiCone ) ) {
                     printf( "-" );
                     continue;
                 }
-                Abc_Obj_t * pCiJ    = Abc_NtkCi( pCone, j );
-                Aig_Obj_t * pAigCiJ = (Aig_Obj_t *)pCiJ->pCopy;
 
+                Aig_Obj_t * pAigCiJ = (Aig_Obj_t *)pCiConeJ->pCopy;
                 int varJ = pCnfA->pVarNums[ Aig_ObjId( pAigCiJ ) ];
-                int valJ = sat_solver_var_value( pSat, varJ ); // 0/1
-
+                int valJ = sat_solver_var_value( pSat, varJ );
                 printf( valJ ? "1" : "0" );
             }
             printf( "\n" );
         }
 
-        // Pattern 2 from violation of negative unate (0,1, yA=0,yB=1)
+        // Pattern 2: use model from "not negative unate" assumptions
         if ( can_violate_neg ) {
             SolveWithAssumps( pSat, assumpsNeg );
-            int nCis = Abc_NtkCiNum( pCone );
-            for ( int j = 0; j < nCis; ++j ) {
-                if ( j == inIdx ) {
+            for ( int j = 0; j < nCisCone; ++j ) {
+                Abc_Obj_t * pCiConeJ = Abc_NtkCi( pCone, j );
+                if ( Abc_ObjId( pCiConeJ ) == Abc_ObjId( pCiCone ) ) {
                     printf( "-" );
                     continue;
                 }
-                Abc_Obj_t * pCiJ    = Abc_NtkCi( pCone, j );
-                Aig_Obj_t * pAigCiJ = (Aig_Obj_t *)pCiJ->pCopy;
-
+                Aig_Obj_t * pAigCiJ = (Aig_Obj_t *)pCiConeJ->pCopy;
                 int varJ = pCnfA->pVarNums[ Aig_ObjId( pAigCiJ ) ];
                 int valJ = sat_solver_var_value( pSat, varJ );
-
                 printf( valJ ? "1" : "0" );
             }
             printf( "\n" );
@@ -264,6 +293,7 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
 // ABC command wrapper
 // -----------------------------------------------------------------------------
 
+extern "C"
 int Lsv_CommandUnateSat( Abc_Frame_t * pAbc, int argc, char ** argv )
 {
     if ( argc != 3 ) {
