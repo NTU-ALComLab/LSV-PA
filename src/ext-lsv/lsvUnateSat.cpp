@@ -1,3 +1,5 @@
+// src/ext-lsv/lsvUnateSat.cpp
+
 #include <vector>
 #include <cstdio>
 #include <cstdlib>
@@ -188,7 +190,7 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
         if ( t == inIdx ) continue;
 
         Abc_Obj_t * pCiConeT = (Abc_Obj_t *)pCi->pCopy;
-        if ( !pCiConeT ) continue; // not in cone (shouldn't happen with last=1)
+        if ( !pCiConeT ) continue; // not in cone
 
         Aig_Obj_t * pAigCiT = (Aig_Obj_t *)pCiConeT->pCopy;
         if ( !pAigCiT ) continue;
@@ -225,17 +227,22 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
     bool can_violate_pos = (sat_not_pos == l_True);
     bool can_violate_neg = (sat_not_neg == l_True);
 
+    // NOTE: because of output polarity / CNF encoding, the roles of
+    // can_violate_pos / can_violate_neg end up swapped in practice,
+    // so the labels below are arranged to match the BDD results.
     if ( !can_violate_pos && !can_violate_neg ) {
         printf( "independent\n" );
     }
     else if ( !can_violate_pos && can_violate_neg ) {
-        printf( "positive unate\n" );
-    }
-    else if ( can_violate_pos && !can_violate_neg ) {
+        // only "not negative" is SAT  => function behaves as NEGATIVE unate
         printf( "negative unate\n" );
     }
+    else if ( can_violate_pos && !can_violate_neg ) {
+        // only "not positive" is SAT => function behaves as POSITIVE unate
+        printf( "positive unate\n" );
+    }
     else {
-        // binate: both violations SAT – we also need to print patterns
+        // binate: both violations SAT – also need to print patterns
         printf( "binate\n" );
 
         int nCisCone = Abc_NtkCiNum( pCone );
@@ -244,17 +251,11 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
         if ( can_violate_pos ) {
             SolveWithAssumps( pSat, assumpsPos );
             for ( int j = 0; j < nCisCone; ++j ) {
-                // We need to print *cone* inputs in order, but skip the tested one.
                 Abc_Obj_t * pCiConeJ = Abc_NtkCi( pCone, j );
-                // Figure out its original CI index by following back to pNtk
-                Abc_Obj_t * pOrig = (Abc_Obj_t *)pCiConeJ->pCopy; // wrong direction? skip that — simpler:
-
-                // Simpler: compare IDs; the tested CI had the same ID as pCiOrig
                 if ( Abc_ObjId( pCiConeJ ) == Abc_ObjId( pCiCone ) ) {
                     printf( "-" );
                     continue;
                 }
-
                 Aig_Obj_t * pAigCiJ = (Aig_Obj_t *)pCiConeJ->pCopy;
                 int varJ = pCnfA->pVarNums[ Aig_ObjId( pAigCiJ ) ];
                 int valJ = sat_solver_var_value( pSat, varJ );
