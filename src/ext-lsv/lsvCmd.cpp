@@ -412,6 +412,7 @@ static int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
       }
       printf("\n");
   }
+  
 
   Cnf_DataFree(pCnf);
   sat_solver_delete(pSat);
