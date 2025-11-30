@@ -1,26 +1,25 @@
 /**
  * @file lsvUnate.cpp
- * @brief Implementation of BDD and SAT unateness checking for LSV PA2.
+ * @brief Implementation of BDD unateness checking for LSV PA2.
  */
 
 #include "lsv.h"
 #include "base/abc/abc.h"
-#include "base/main/main.h"
-#include "base/main/mainInt.h"
 #include "bdd/cudd/cudd.h"
 
 // -----------------------------------------------------------------------------
-// BDD Unateness Checker Implementation
+// Helper Function
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Helper to print a specific input pattern based on a BDD cube.
+ * @brief Prints the input pattern based on the cube array filled by CUDD.
  * * @param dd The CUDD manager.
- * @param cube The BDD node representing the cube (one path in the BDD).
+ * @param cubeVals The char array filled by Cudd_bddPickOneCube. 
+ * cubeVals[i] is 0 (false), 1 (true), or 2 (don't care).
  * @param pNtk The ABC network.
  * @param inputIdx The index of the primary input x_i being tested.
  */
-void Lsv_PrintPattern(DdManager * dd, DdNode * cube, Abc_Ntk_t * pNtk, int inputIdx) {
+void Lsv_PrintPattern(DdManager * dd, char * cubeVals, Abc_Ntk_t * pNtk, int inputIdx) {
     int nInputs = Abc_NtkCiNum(pNtk);
     for (int j = 0; j < nInputs; j++) {
         // For the specific variable x_i being tested, we must print "-"
@@ -29,27 +28,30 @@ void Lsv_PrintPattern(DdManager * dd, DdNode * cube, Abc_Ntk_t * pNtk, int input
             continue;
         }
 
-        // Get the BDD variable corresponding to the j-th PI
+        // Get the BDD variable index corresponding to the j-th PI
         Abc_Obj_t * pVarObj = Abc_NtkCi(pNtk, j);
-        DdNode * pVar = (DdNode *)pVarObj->pData; 
+        DdNode * pVar = (DdNode *)pVarObj->pData;
+        int bddVarIdx = Cudd_Regular(pVar)->index;
         
-        // Check if the variable j exists in the cube
-        if (Cudd_bddLeq(dd, cube, pVar)) {
-            // If cube implies var, then var must be 1
-            printf("1");
-        } 
-        else if (Cudd_bddLeq(dd, cube, Cudd_Not(pVar))) {
-            // If cube implies !var, then var must be 0
+        // Check the value in the cube array
+        int val = (int)cubeVals[bddVarIdx];
+        
+        if (val == 0) {
             printf("0");
-        } 
-        else {
-            // Variable is not in the cube (Don't Care).
-            // The prompt requires specific assignments (0 or 1), so we default to 0.
+        } else if (val == 1) {
+            printf("1");
+        } else {
+            // val == 2 means Don't Care.
+            // The assignment asks for a concrete assignment (0 or 1). We pick 0.
             printf("0");
         }
     }
     printf("\n");
 }
+
+// -----------------------------------------------------------------------------
+// Main Function
+// -----------------------------------------------------------------------------
 
 void Lsv_NtkUnateBdd(Abc_Ntk_t * pNtk, int outIdx, int inIdx) {
     DdManager * dd = (DdManager *)pNtk->pManFunc;
@@ -60,7 +62,6 @@ void Lsv_NtkUnateBdd(Abc_Ntk_t * pNtk, int outIdx, int inIdx) {
     
     // Get BDD for output y_k
     Abc_Obj_t * pCo = Abc_NtkCo(pNtk, outIdx);
-    // In collapsed BDD networks, the driver of the CO holds the function
     Abc_Obj_t * pDriver = Abc_ObjFanin0(pCo);
     DdNode * pFunc = (DdNode *)pDriver->pData;
     
@@ -86,19 +87,33 @@ void Lsv_NtkUnateBdd(Abc_Ntk_t * pNtk, int outIdx, int inIdx) {
     else {
         printf("binate\n");
         
-        // Pattern 1: f1=1, f0=0. Find cube in (f1 & !f0)
+        // Allocate buffer for Cudd_bddPickOneCube
+        // The size must be equal to the number of BDD variables in the manager
+        char * cubeVals = new char[Cudd_ReadSize(dd)];
+
+        // --- Pattern 1: f1=1, f0=0 ---
+        // We need a cube inside the set difference (f1 & !f0)
         DdNode * diff1 = Cudd_bddAnd(dd, f1, Cudd_Not(f0)); Cudd_Ref(diff1);
-        DdNode * cube1 = Cudd_bddPickOneCube(dd, diff1);    Cudd_Ref(cube1);
-        Lsv_PrintPattern(dd, cube1, pNtk, inIdx);
-        Cudd_RecursiveDeref(dd, diff1);
-        Cudd_RecursiveDeref(dd, cube1);
         
-        // Pattern 2: f1=0, f0=1. Find cube in (!f1 & f0)
+        // Pick one cube from diff1. 
+        // Note: The function returns 1 on success, 0 on failure. It fills cubeVals.
+        if (Cudd_bddPickOneCube(dd, diff1, cubeVals)) {
+            Lsv_PrintPattern(dd, cubeVals, pNtk, inIdx);
+        }
+        Cudd_RecursiveDeref(dd, diff1);
+        
+        // --- Pattern 2: f1=0, f0=1 ---
+        // We need a cube inside the set difference (!f1 & f0)
         DdNode * diff2 = Cudd_bddAnd(dd, Cudd_Not(f1), f0); Cudd_Ref(diff2);
-        DdNode * cube2 = Cudd_bddPickOneCube(dd, diff2);    Cudd_Ref(cube2);
-        Lsv_PrintPattern(dd, cube2, pNtk, inIdx);
+        
+        // Pick one cube from diff2
+        if (Cudd_bddPickOneCube(dd, diff2, cubeVals)) {
+            Lsv_PrintPattern(dd, cubeVals, pNtk, inIdx);
+        }
         Cudd_RecursiveDeref(dd, diff2);
-        Cudd_RecursiveDeref(dd, cube2);
+        
+        // Clean up memory
+        delete [] cubeVals;
     }
     
     Cudd_RecursiveDeref(dd, f1);
@@ -120,7 +135,6 @@ int Lsv_CommandUnateBdd(Abc_Frame_t * pAbc, int argc, char ** argv) {
         return 1;
     }
     
-    // Sanity Checks
     if (!Abc_NtkIsBddLogic(pNtk)) {
         printf("Error: Network is not in BDD format. Run 'collapse' first.\n");
         return 1;
