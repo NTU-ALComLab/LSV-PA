@@ -428,7 +428,7 @@ static void Lsv_NtkUnateBdd( Abc_Ntk_t* pNtk, int k, int i )
 {
     // Make sure network is AIG before building global BDDs
     if ( !Abc_NtkIsStrash(pNtk) ) {
-        pNtk = Abc_NtkStrash( pNtk );
+        pNtk = Abc_NtkStrash( pNtk, 1, 1, 0 );
     }
     Abc_Obj_t* pCo;
     DdManager* dd = NULL;
