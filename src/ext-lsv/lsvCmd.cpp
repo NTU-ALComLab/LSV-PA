@@ -373,10 +373,10 @@ static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
     return 1;
   }
 
-  // Check if network is already in BDD format (from collapse command)
+  // Build or get BDDs (support both AIG and BDD formats)
   int fNeedFree = 0;
   if (Abc_NtkIsBddLogic(pNtk)) {
-    // Network is already in BDD format, use existing BDD manager
+    // Network is already in BDD format (from collapse command), use existing BDD manager
     dd = (DdManager*)pNtk->pManFunc;
     pCo = Abc_NtkCo(pNtk, k);
     func = (DdNode*)Abc_ObjFanin0(pCo)->pData;
@@ -386,13 +386,12 @@ static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
     }
     Cudd_Ref(func);
   } else {
-    // Network is not in BDD format, build global BDDs
-    // Note: This requires the network to be in AIG format (strash)
+    // Network is in AIG format, build global BDDs
     if (!Abc_NtkIsStrash(pNtk)) {
-      Abc_Print(-1, "Network must be in AIG format (strash) or BDD format (collapse).\n");
+      Abc_Print(-1, "Network must be in AIG format (run \"strash\") or BDD format (run \"collapse\").\n");
       return 1;
     }
-    dd = (DdManager*)Abc_NtkBuildGlobalBdds(pNtk, 10000000, 1, 1, 0, 0);
+    dd = (DdManager*)Abc_NtkBuildGlobalBdds(pNtk, 10000000, 0, 1, 0, 0);
     if (dd == NULL) {
       Abc_Print(-1, "Failed to build global BDDs.\n");
       return 1;
@@ -412,20 +411,16 @@ static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
   nVars = Cudd_ReadSize(dd);
   
   // Get the BDD variable for input i
-  // Following the symmetry check approach: use Abc_NodeGetFaninNames to get BDD variable names
-  // Then match by name to find the BDD level index (more reliable than invperm)
-  Abc_Obj_t* pCi = Abc_NtkCi(pNtk, i);
-  const char* piName = Abc_ObjName(pCi);
-  
+  // If PI is not in the support of the output function, it's independent
+  Abc_Obj_t* pPiObj = Abc_NtkPi(pNtk, i);
   if (Abc_NtkIsBddLogic(pNtk)) {
-    // In BDD network: use Abc_NodeGetFaninNames to get BDD variable names
-    // The order of names corresponds to BDD level order (like in Lsv_SymBdd)
+    // In BDD format: use Abc_NodeGetFaninNames to find BDD variable
     Abc_Obj_t* pRoot = Abc_ObjFanin0(pCo);
     Vec_Ptr_t* vFaninNames = Abc_NodeGetFaninNames(pRoot);
     char** bdd2name_arr = (char**)vFaninNames->pArray;
     int bdd_num = Abc_ObjFaninNum(pRoot);
+    const char* piName = Abc_ObjName(pPiObj);
     
-    // Find BDD level index by matching PI name
     int bddLevel = -1;
     for (int j = 0; j < bdd_num; j++) {
       if (strcmp(bdd2name_arr[j], piName) == 0) {
@@ -436,20 +431,21 @@ static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_NodeFreeNames(vFaninNames);
     
     if (bddLevel < 0) {
-      Abc_Print(-1, "Cannot find BDD variable for PI %d (%s). Variable may not be in support.\n", i, piName);
+      // PI is not in the support, output is independent of this input
+      printf("independent\n");
       Cudd_RecursiveDeref(dd, func);
-      return 1;
+      return 0;
     }
-    // Use Cudd_bddIthVar exactly like ABC's Extra_bddCheckUnateNaive and Lsv_SymBdd
     bVar = Cudd_bddIthVar(dd, bddLevel);
   } else {
-    // In global BDDs: get from CI's global BDD
-    bVar = (DdNode*)Abc_ObjGlobalBdd(pCi);
+    // In AIG format: use Abc_ObjGlobalBdd
+    bVar = (DdNode*)Abc_ObjGlobalBdd(pPiObj);
     if (bVar == NULL) {
-      Abc_Print(-1, "Input %d has no BDD.\n", i);
+      // PI is not in the support, output is independent of this input
+      printf("independent\n");
       Cudd_RecursiveDeref(dd, func);
       Abc_NtkFreeGlobalBdds(pNtk, 1);
-      return 1;
+      return 0;
     }
   }
   Cudd_Ref(bVar);
