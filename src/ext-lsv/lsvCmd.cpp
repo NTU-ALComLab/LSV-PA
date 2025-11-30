@@ -333,7 +333,6 @@ void Lsv_PrintSatPattern(sat_solver* pSat, int nPis, int* pVarNumsA, int targetI
 }
 
 int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
-    // 1. Validation
     if (argc != 3) {
         Abc_Print(-1, "Usage: lsv_unate_sat <output_index> <input_index>\n");
         return 1;
@@ -348,82 +347,62 @@ int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
         return 1;
     }
     
-    // 2. Setup Cone and AIG
     Abc_Obj_t* pPo = Abc_NtkPo(pNtk, outIdx);
     Abc_Obj_t* pRoot = Abc_ObjFanin0(pPo);
-    // Determine if output is inverted (logic bubble on edge)
     int isInv = Abc_ObjFaninC0(pPo);
 
-    // Extract cone. fAllPis=1 preserves all PI ordering/count
+    // Create cone
     Abc_Ntk_t* pNtkCone = Abc_NtkCreateCone(pNtk, pRoot, Abc_ObjName(pRoot), 1);
     Aig_Man_t* pAig = Abc_NtkToDar(pNtkCone, 0, 1);
-
-    // 3. Derive CNF (Formula A)
-    // 1 output (the root)
     Cnf_Dat_t* pCnf = Cnf_Derive(pAig, 1); 
 
-    // 4. Setup SAT Solver
     sat_solver* pSat = sat_solver_new();
-    // Allocate space for 2 copies (A and B)
     sat_solver_setnvars(pSat, pCnf->nVars * 2);
 
-    // Add Formula A
     Cnf_DataWriteIntoSolverInt(pSat, pCnf, 1, 0);
 
-    // Map Vars for Formula A
-    // We need to map pNtk PIs -> AIG PIs -> CNF Vars
     int nPis = Abc_NtkPiNum(pNtk);
     int* pVarNumsA = new int[nPis];
     Aig_Obj_t* pObjAig;
     int k;
     
-    // Aig PIs iterate in the same order as pNtkCone PIs (which match pNtk PIs)
     Aig_ManForEachCi(pAig, pObjAig, k) {
         pVarNumsA[k] = pCnf->pVarNums[pObjAig->Id];
     }
 
-    // Get Output Var A
     Aig_Obj_t* pObjPo = Aig_ManCo(pAig, 0); 
-    int varOutA = pCnf->pVarNums[pObjPo->Id];
+    int varOutA = pCnf->pVarNums[pObjPo->Id]; // map variable for output
 
-    // 5. Lift and Add Formula B
-    int offset = pCnf->nVars; // Remember the shift amount
+    int offset = pCnf->nVars; // shift amount
     Cnf_DataLift(pCnf, offset); // Adjust IDs in pCnf
-    Cnf_DataWriteIntoSolverInt(pSat, pCnf, 1, 0); // Write Formula B
+    Cnf_DataWriteIntoSolverInt(pSat, pCnf, 1, 0);
 
-    // 6. Add Equality Clauses (vA == vB for all inputs except target)
     for (int j = 0; j < nPis; j++) {
         if (j == inIdx) continue;
         int vA = pVarNumsA[j];
         int vB = vA + offset;
         
         // Add constraint: vA == vB
-        // Clause 1: (!vA + vB) -> xA=1 => xB=1
-        // Clause 2: (vA + !vB) -> xA=0 => xB=0
         lit Lits[2];
 
-        // Clause 1: (!vA + vB)  <==> (vA implies vB)
-        Lits[0] = toLitCond(vA, 1); // 1 means compliment (Not vA)
-        Lits[1] = toLitCond(vB, 0); // 0 means regular (vB)
+        // (!vA + vB)
+        Lits[0] = toLitCond(vA, 1);
+        Lits[1] = toLitCond(vB, 0);
         sat_solver_addclause(pSat, Lits, Lits + 2);
 
-        // Clause 2: (vA + !vB)  <==> (vB implies vA)
-        Lits[0] = toLitCond(vA, 0); // vA
-        Lits[1] = toLitCond(vB, 1); // Not vB
+        // (vA + !vB)
+        Lits[0] = toLitCond(vA, 0);
+        Lits[1] = toLitCond(vB, 1);
         sat_solver_addclause(pSat, Lits, Lits + 2);
     }
 
-    // 7. Solve
-    // Control Variables
     int vInA = pVarNumsA[inIdx];
     int vInB = vInA + offset;
     int vOutB = varOutA + offset;
 
-    // We assume xA=0 and xB=1 for the target input in both checks
+    // assume xA=0 and xB=1 for the target input in both checks
     lit Lits[4];
 
-    // --- CHECK 1: Positive Behavior (Can it Rise? 0->1) ---
-    // Assumptions: xA=0, xB=1, yA=0, yB=1
     // Note: If isInv is true, logic_node=1 means y=0.
     Lits[0] = toLitCond(vInA, 1);              // xA=0
     Lits[1] = toLitCond(vInB, 0);              // xB=1
@@ -432,7 +411,6 @@ int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
     
     int statusPos = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
 
-    // --- CHECK 2: Negative Behavior (Can it Fall? 1->0) ---
     // Assumptions: xA=0, xB=1, yA=1, yB=0
     Lits[0] = toLitCond(vInA, 1);              // xA=0
     Lits[1] = toLitCond(vInB, 0);              // xB=1
@@ -441,7 +419,6 @@ int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
     
     int statusNeg = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
 
-    // 8. Output Results
     if (statusPos == l_False && statusNeg == l_False) {
         printf("independent\n");
     } else if (statusPos == l_True && statusNeg == l_False) {
@@ -453,8 +430,6 @@ int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
     } else {
         printf("binate\n");
         // Print Pattern 1 (Positive Witness: x=0 -> y=0, x=1 -> y=1)
-        // We need to recover the satisfying assignment for statusPos
-        // Since statusNeg was run last, we must re-solve for Pos to get the model
         Lits[0] = toLitCond(vInA, 1);
         Lits[1] = toLitCond(vInB, 0);
         Lits[2] = toLitCond(varOutA, !isInv); 
@@ -463,7 +438,7 @@ int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
         Lsv_PrintSatPattern(pSat, nPis, pVarNumsA, inIdx);
 
         // Print Pattern 2 (Negative Witness: x=0 -> y=1, x=1 -> y=0)
-        // Now re-solve for Neg
+        // re-solve for Neg
         Lits[0] = toLitCond(vInA, 1);
         Lits[1] = toLitCond(vInB, 0);
         Lits[2] = toLitCond(varOutA, isInv); 
@@ -472,7 +447,6 @@ int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
         Lsv_PrintSatPattern(pSat, nPis, pVarNumsA, inIdx);
     }
 
-    // Cleanup
     delete [] pVarNumsA;
     Abc_NtkDelete(pNtkCone);
     Cnf_DataFree(pCnf);
