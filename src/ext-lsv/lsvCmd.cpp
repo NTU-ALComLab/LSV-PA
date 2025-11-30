@@ -352,8 +352,9 @@ int Lsv_CommandUnateBDD(Abc_Frame_t* pAbc, int argc, char** argv){
              continue;
           }
           int trans_index = n2bddi[name];
-          if (cube_vals[trans_index] == 2) continue;
-          if( bdd_names[trans_index] != in_name) Abc_Print(-2, "%d", cube_vals[trans_index]);
+          int v = cube_vals[trans_index];
+          if (v == 2) v = 0; // don't-care -> print 0 for alignment
+          if( bdd_names[trans_index] != in_name) Abc_Print(-2, "%d", v);
           else Abc_Print(-2, "-");
         }
         Abc_Print(-2, "\n");
@@ -373,8 +374,9 @@ int Lsv_CommandUnateBDD(Abc_Frame_t* pAbc, int argc, char** argv){
              continue;
           }
           int trans_index = n2bddi[name];
-          if (cube_vals_neg[trans_index] == 2) continue;
-          if( bdd_names[trans_index] != in_name) Abc_Print(-2, "%d", cube_vals_neg[trans_index]);
+          int v = cube_vals_neg[trans_index];
+          if (v == 2) v = 0; // don't-care -> print 0 for alignment
+          if( bdd_names[trans_index] != in_name) Abc_Print(-2, "%d", v);
           else Abc_Print(-2, "-");
         }
         Abc_Print(-2, "\n");
