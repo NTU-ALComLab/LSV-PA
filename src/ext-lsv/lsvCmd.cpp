@@ -301,24 +301,6 @@
  // PA2 Implementation (lsv_unate_bdd & lsv_unate_sat)
  // ===========================================================================
  
- // Helper to print BDD patterns
- void Lsv_PrintBddPattern(DdManager * dd, DdNode * node, int nPis, int targetPiIndex) {
-     int nVars = Cudd_ReadSize(dd);
-     char * cube = new char[nVars]; 
-     
-     Cudd_bddPickOneCube(dd, node, cube);
-     
-     for (int i = 0; i < nPis; i++) {
-         if (i == targetPiIndex) {
-             printf("-");
-         } else {
-             printf("%d", (cube[i] == 1) ? 1 : 0); 
-         }
-     }
-     printf("\n");
-     delete[] cube;
- }
- 
  int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
      Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
      int outIndex, inIndex;
@@ -347,26 +329,59 @@
      }
  
      Abc_Obj_t* pPo = Abc_NtkPo(pNtk, outIndex);
-     
      Abc_Obj_t* pDriver = Abc_ObjFanin0(pPo);
-     DdManager * dd = (DdManager *)pNtk->pManFunc;
      
+     Abc_Obj_t* pTargetPi = Abc_NtkPi(pNtk, inIndex);
+     int isCompl = Abc_ObjFaninC0(pPo);
+ 
+     // Case 1: Driver is PI (Buffer/Inverter)
+     if (Abc_ObjIsPi(pDriver)) {
+         if (pDriver == pTargetPi) {
+             if (isCompl) printf("negative unate\n");
+             else printf("positive unate\n");
+         } else {
+             printf("independent\n");
+         }
+         return 0;
+     }
+ 
+     // Case 2: Driver is Const or other
+     if (!Abc_ObjIsNode(pDriver)) {
+         printf("independent\n");
+         return 0;
+     }
+ 
+     // Case 3: Logic Node
+     DdManager * dd = (DdManager *)pNtk->pManFunc;
      DdNode * func = (DdNode *)pDriver->pData;
-     if (Abc_ObjFaninC0(pPo)) {
+     if (isCompl) {
          func = Cudd_Not(func);
      }
-     
-     DdNode * var = Cudd_bddIthVar(dd, inIndex);
-     Cudd_Ref(var);
  
-     // Compute Cofactors
+     // Find correct BDD variable by matching Fanins
+     int bddVarIndex = -1;
+     Abc_Obj_t* pFanin;
+     int k;
+     Abc_ObjForEachFanin(pDriver, pFanin, k) {
+         if (pFanin == pTargetPi) {
+             bddVarIndex = k;
+             break;
+         }
+     }
+ 
+     if (bddVarIndex == -1) {
+         printf("independent\n");
+         return 0;
+     }
+ 
+     DdNode * var = Cudd_bddIthVar(dd, bddVarIndex);
+     Cudd_Ref(var); 
+ 
      DdNode * cof1 = Cudd_Cofactor(dd, func, var);
      DdNode * cof0 = Cudd_Cofactor(dd, func, Cudd_Not(var));
- 
      Cudd_Ref(cof1);
      Cudd_Ref(cof0);
  
-     // Check Unateness
      int isPosUnate = Cudd_bddLeq(dd, cof0, cof1);
      int isNegUnate = Cudd_bddLeq(dd, cof1, cof0);
  
@@ -379,16 +394,47 @@
      } else {
          printf("binate\n");
          
-         // Pattern 1: Positive behavior (Counter-example for Negative Unate)
+         auto printPattern = [&](DdNode* diffNode) {
+             int nVars = Cudd_ReadSize(dd);
+             char * cube = new char[nVars]; 
+             Cudd_bddPickOneCube(dd, diffNode, cube);
+             
+             int nPis = Abc_NtkPiNum(pNtk);
+             for(int i=0; i<nPis; ++i) {
+                 if(i == inIndex) {
+                     printf("-");
+                     continue;
+                 }
+                 
+                 Abc_Obj_t* pThisPi = Abc_NtkPi(pNtk, i);
+                 int faninIdx = -1;
+                 Abc_Obj_t* pFi; 
+                 int m;
+                 Abc_ObjForEachFanin(pDriver, pFi, m) {
+                     if(pFi == pThisPi) {
+                         faninIdx = m;
+                         break;
+                     }
+                 }
+                 
+                 if(faninIdx != -1) {
+                     printf("%d", (cube[faninIdx] == 1) ? 1 : 0);
+                 } else {
+                     printf("0"); 
+                 }
+             }
+             printf("\n");
+             delete[] cube;
+         };
+ 
          DdNode * diff1 = Cudd_bddAnd(dd, cof1, Cudd_Not(cof0));
          Cudd_Ref(diff1);
-         Lsv_PrintBddPattern(dd, diff1, Abc_NtkPiNum(pNtk), inIndex);
+         printPattern(diff1);
          Cudd_RecursiveDeref(dd, diff1);
  
-         // Pattern 2: Negative behavior (Counter-example for Positive Unate)
          DdNode * diff2 = Cudd_bddAnd(dd, cof0, Cudd_Not(cof1));
          Cudd_Ref(diff2);
-         Lsv_PrintBddPattern(dd, diff2, Abc_NtkPiNum(pNtk), inIndex);
+         printPattern(diff2);
          Cudd_RecursiveDeref(dd, diff2);
      }
  
@@ -415,49 +461,41 @@
  
      Abc_Obj_t* pPo = Abc_NtkPo(pNtk, outIndex);
      
-     // 1. Extract Cone with fUseAllCis = 0
-     // [IMPORTANT] This is the key fix. Only include PIs that physically drive the output logic.
-     // Any PI NOT in this cone is structurally independent.
-     Abc_Ntk_t* pCone = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 0);
-     if (Abc_ObjFaninC0(pPo)) {
-         Abc_ObjXorFaninC(Abc_NtkPo(pCone, 0), 0);
-     }
- 
-     // 2. Convert to AIG
+     // UseAllCis = 1 ensures all PIs are included in Cone
+     Abc_Ntk_t* pCone = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pPo), Abc_ObjName(pPo), 1);
+     
      Aig_Man_t* pAig = Abc_NtkToDar(pCone, 0, 0);
      
-     // 3. Check if Target Input exists in the Cone
-     // Using Name Mapping is the most reliable way.
+     // [FIX] Map by Name instead of pCopy
+     // This is safer because CreateCone might create duplicate PI objects for UseAllCis
+     std::unordered_map<std::string, int> nameToAigId;
+     {
+         Abc_Obj_t* pObjConeCi;
+         Aig_Obj_t* pObjAigCi;
+         int k;
+         int iAig = 0;
+         Abc_NtkForEachCi(pCone, pObjConeCi, k) {
+             pObjAigCi = Aig_ManCi(pAig, iAig++);
+             nameToAigId[std::string(Abc_ObjName(pObjConeCi))] = pObjAigCi->Id;
+         }
+     }
+ 
      Abc_Obj_t* pTargetPi = Abc_NtkPi(pNtk, inIndex);
-     char* pTargetName = Abc_ObjName(pTargetPi);
-     Abc_Obj_t* pTargetConePi = Abc_NtkFindCi(pCone, pTargetName);
+     std::string targetName(Abc_ObjName(pTargetPi));
      
-     // If input is not in Cone, it implies Independence.
-     if (!pTargetConePi) {
+     if (nameToAigId.find(targetName) == nameToAigId.end()) {
          printf("independent\n");
          Aig_ManStop(pAig);
          Abc_NtkDelete(pCone);
          return 0;
      }
  
-    // 4. Derive CNF
     Cnf_Dat_t* pCnf = Cnf_Derive(pAig, 1);
-
-    // Identify Target Variable in CNF (save before lift)
-    Aig_Obj_t* pTargetAigPi = (Aig_Obj_t*)pTargetConePi->pCopy;
-    int targetCnfVar = pCnf->pVarNums[pTargetAigPi->Id];
     
-    // Double check for valid CNF var (should be valid if present in AIG)
-    if (targetCnfVar == -1) {
-         printf("independent\n");
-         Cnf_DataFree(pCnf);
-         Aig_ManStop(pAig);
-         Abc_NtkDelete(pCone);
-         return 0;
-    }
-
-    // Save original variable mappings for instance A (before lift)
+    int targetAigId = nameToAigId[targetName];
     int nVars = pCnf->nVars;
+    
+    // Save original variable mappings before lift
     std::vector<int> origVarNums(Aig_ManObjNumMax(pAig), -1);
     Aig_Obj_t* pObj;
     int i;
@@ -466,173 +504,141 @@
             origVarNums[pObj->Id] = pCnf->pVarNums[pObj->Id];
         }
     }
-
-    // 5. Initialize SAT Solver (Instance A)
+    
     sat_solver* pSat = sat_solver_new();
+    
     Cnf_DataWriteIntoSolverInt(pSat, pCnf, 1, 0);
     
-    // 6. Lift and Add Instance B
-    Cnf_DataLift(pCnf, nVars);
-     
-     sat_solver_setnvars(pSat, 2 * nVars + 16); // Manual Resize
-     Cnf_DataWriteIntoSolverInt(pSat, pCnf, 1, 0);
-     
-    // 7. Equality Constraints
-    // Iterate over ALL Original PIs. 
-    // If a PI is in the Cone (and not target), constrain it.
-    // If a PI is NOT in the Cone, ignore it (it doesn't affect output).
+    Cnf_DataLift(pCnf, nVars); 
+    sat_solver_setnvars(pSat, 2 * nVars + 16);
+    Cnf_DataWriteIntoSolverInt(pSat, pCnf, 1, 0);
+    
     int nPis = Abc_NtkPiNum(pNtk);
     for (int j = 0; j < nPis; j++) {
         if (j == inIndex) continue;
         
         Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
-        char* pName = Abc_ObjName(pOriginalPi);
-        Abc_Obj_t* pConePi = Abc_NtkFindCi(pCone, pName);
+        std::string piName(Abc_ObjName(pOriginalPi));
         
-        if (!pConePi) continue; // Not in Cone -> Independent -> No constraint needed
-        
-        Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConePi->pCopy;
-        if (!pAigPi) continue;
-        
-        int varA = origVarNums[pAigPi->Id];
-        if (varA == -1) continue;
-        
-        int varB = varA + nVars;
-        if (varB >= sat_solver_nvars(pSat)) sat_solver_setnvars(pSat, varB + 16);
-        
-        // Add Equality Clause (A XNOR B)
-        lit lits[2];
-        lits[0] = toLitCond(varA, 1); lits[1] = toLitCond(varB, 0); 
-        sat_solver_addclause(pSat, lits, lits + 2);
-        lits[0] = toLitCond(varA, 0); lits[1] = toLitCond(varB, 1); 
-        sat_solver_addclause(pSat, lits, lits + 2);
+        // Find corresponding AIG ID by name
+        if (nameToAigId.count(piName)) {
+            int aigId = nameToAigId[piName];
+            int varA = origVarNums[aigId]; 
+            int varB = varA + nVars;
+            
+            if (varA >= 0) {
+                lit lits[2];
+                lits[0] = toLitCond(varA, 0); lits[1] = toLitCond(varB, 1); 
+                sat_solver_addclause(pSat, lits, lits + 2);
+                lits[0] = toLitCond(varA, 1); lits[1] = toLitCond(varB, 0); 
+                sat_solver_addclause(pSat, lits, lits + 2);
+            }
+        }
     }
 
-    // Setup Target Variables
-    int varInA = targetCnfVar;
-    int varInB = varInA + nVars;
+    int varInA = origVarNums[targetAigId];
+    int varInB = varInA + nVars; 
     
     int outId = Aig_ObjFanin0(Aig_ManCo(pAig, 0))->Id;
     int varOutA = origVarNums[outId];
     int varOutB = varOutA + nVars;
+     
      int outCompl = Aig_ObjFaninC0(Aig_ManCo(pAig, 0));
+     if(Abc_ObjFaninC0(pPo)) outCompl = !outCompl; 
  
-     // --- Check 1: Positive Behavior ---
+     // Check 1: Positive Behavior (Counter-Ex for Neg Unate)
      lit Lits[4];
      Lits[0] = toLitCond(varInA, 1); // xA=0
      Lits[1] = toLitCond(varInB, 0); // xB=1
      
-     int valYA = 0, valYB = 1;
-     int driverValA = outCompl ? !valYA : valYA;
-     int driverValB = outCompl ? !valYB : valYB;
-     
-     Lits[2] = toLitCond(varOutA, !driverValA);
-     Lits[3] = toLitCond(varOutB, !driverValB);
- 
-    int status1 = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
-    bool hasPosBehavior = (status1 == l_True); 
-    
-   // Build name-to-value mapping from SAT solution
-   std::unordered_map<std::string, int> nameToVal;
-   if (hasPosBehavior) {
-       Abc_Obj_t* pConeCi;
-       int k;
-       Abc_NtkForEachCi(pCone, pConeCi, k) {
-           char* pName = Abc_ObjName(pConeCi);
-           Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConeCi->pCopy;
-           if (pAigPi && origVarNums[pAigPi->Id] != -1) {
-               int val = sat_solver_var_value(pSat, origVarNums[pAigPi->Id]);
-               nameToVal[std::string(pName)] = val;
-           }
-       }
-   }
-   
-   // Build pattern1 in original network PI order
-   std::vector<int> pattern1; 
-   if (hasPosBehavior) {
-       for (int j = 0; j < nPis; j++) {
-           if (j == inIndex) {
-               pattern1.push_back(2); 
-           } else {
-               Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
-               char* pName = Abc_ObjName(pOriginalPi);
-               auto it = nameToVal.find(std::string(pName));
-               if (it != nameToVal.end()) {
-                   pattern1.push_back(it->second);
-               } else {
-                   pattern1.push_back(0); // Not in cone, default to 0
-               }
-           }
-       }
-   }
- 
-     // --- Check 2: Negative Behavior ---
-     valYA = 1; valYB = 0;
-     driverValA = outCompl ? !valYA : valYA;
-     driverValB = outCompl ? !valYB : valYB;
-     
-     Lits[2] = toLitCond(varOutA, !driverValA);
-     Lits[3] = toLitCond(varOutB, !driverValB);
-     
-    int status2 = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
-    bool hasNegBehavior = (status2 == l_True);
-
-   // Build name-to-value mapping from SAT solution
-   std::unordered_map<std::string, int> nameToVal2;
-   if (hasNegBehavior) {
-       Abc_Obj_t* pConeCi;
-       int k;
-       Abc_NtkForEachCi(pCone, pConeCi, k) {
-           char* pName = Abc_ObjName(pConeCi);
-           Aig_Obj_t* pAigPi = (Aig_Obj_t*)pConeCi->pCopy;
-           if (pAigPi && origVarNums[pAigPi->Id] != -1) {
-               int val = sat_solver_var_value(pSat, origVarNums[pAigPi->Id]);
-               nameToVal2[std::string(pName)] = val;
-           }
-       }
-   }
-   
-   // Build pattern2 in original network PI order
-   std::vector<int> pattern2;
-   if (hasNegBehavior) {
-       for (int j = 0; j < nPis; j++) {
-           if (j == inIndex) {
-               pattern2.push_back(2);
-           } else {
-               Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
-               char* pName = Abc_ObjName(pOriginalPi);
-               auto it = nameToVal2.find(std::string(pName));
-               if (it != nameToVal2.end()) {
-                   pattern2.push_back(it->second);
-               } else {
-                   pattern2.push_back(0); // Not in cone, default to 0
-               }
-           }
-       }
-   }
- 
-     // Output Results
-     if (!hasPosBehavior && !hasNegBehavior) {
-         printf("independent\n");
-     } else if (hasPosBehavior && !hasNegBehavior) {
-         printf("positive unate\n");
-     } else if (!hasPosBehavior && hasNegBehavior) {
-         printf("negative unate\n");
+     if (outCompl) {
+         Lits[2] = toLitCond(varOutA, 0); 
+         Lits[3] = toLitCond(varOutB, 1); 
      } else {
-         printf("binate\n");
-         for(int val : pattern1) {
-             if(val == 2) printf("-");
-             else printf("%d", val);
-         }
-         printf("\n");
-         for(int val : pattern2) {
-             if(val == 2) printf("-");
-             else printf("%d", val);
-         }
-         printf("\n");
+         Lits[2] = toLitCond(varOutA, 1); 
+         Lits[3] = toLitCond(varOutB, 0); 
      }
  
-     // Cleanup
+    int status1 = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
+    bool isNegUnate = (status1 == l_False); 
+    
+    std::vector<int> pattern2; 
+    if (!isNegUnate) {
+         for (int j = 0; j < nPis; j++) {
+            if (j == inIndex) {
+                pattern2.push_back(2); // Use 2 to represent '-'
+            } else {
+                Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
+                std::string piName(Abc_ObjName(pOriginalPi));
+                if (nameToAigId.count(piName)) {
+                    int aigId = nameToAigId[piName];
+                    int vA = origVarNums[aigId];
+                    if (vA >= 0) pattern2.push_back(sat_solver_var_value(pSat, vA));
+                    else pattern2.push_back(0);
+                } else pattern2.push_back(0);
+            }
+         }
+    }
+ 
+     // Check 2: Negative Behavior (Counter-Ex for Pos Unate)
+     Lits[0] = toLitCond(varInA, 1);
+     Lits[1] = toLitCond(varInB, 0);
+     if (outCompl) {
+         Lits[2] = toLitCond(varOutA, 1); 
+         Lits[3] = toLitCond(varOutB, 0); 
+     } else {
+         Lits[2] = toLitCond(varOutA, 0); 
+         Lits[3] = toLitCond(varOutB, 1); 
+     }
+ 
+    int status2 = sat_solver_solve(pSat, Lits, Lits + 4, 0, 0, 0, 0);
+    bool isPosUnate = (status2 == l_False);
+    
+    std::vector<int> pattern1; 
+    if (!isPosUnate) {
+         for (int j = 0; j < nPis; j++) {
+            if (j == inIndex) {
+                pattern1.push_back(2); // Use 2 to represent '-'
+            } else {
+                Abc_Obj_t* pOriginalPi = Abc_NtkPi(pNtk, j);
+                std::string piName(Abc_ObjName(pOriginalPi));
+                if (nameToAigId.count(piName)) {
+                    int aigId = nameToAigId[piName];
+                    int vA = origVarNums[aigId];
+                    if (vA >= 0) pattern1.push_back(sat_solver_var_value(pSat, vA));
+                    else pattern1.push_back(0);
+                } else pattern1.push_back(0);
+            }
+         }
+    }
+ 
+    if (isPosUnate && isNegUnate) printf("independent\n");
+    else if (isPosUnate) printf("positive unate\n");
+    else if (isNegUnate) printf("negative unate\n");
+    else {
+        printf("binate\n");
+        // Output pattern2 (counter-example for negative unate)
+        for (int j = 0; j < nPis; j++) {
+            if (j < (int)pattern2.size()) {
+                if (pattern2[j] == 2) printf("-");
+                else printf("%d", pattern2[j]);
+            } else {
+                printf("0");
+            }
+        }
+        printf("\n");
+        // Output pattern1 (counter-example for positive unate)
+        for (int j = 0; j < nPis; j++) {
+            if (j < (int)pattern1.size()) {
+                if (pattern1[j] == 2) printf("-");
+                else printf("%d", pattern1[j]);
+            } else {
+                printf("0");
+            }
+        }
+        printf("\n");
+    }
+ 
      sat_solver_delete(pSat);
      Cnf_DataFree(pCnf);
      Aig_ManStop(pAig); 
