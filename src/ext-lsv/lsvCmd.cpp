@@ -427,7 +427,7 @@ static char* Lsv_BddPickPattern( DdManager* dd, DdNode* bFunc,
 static void Lsv_NtkUnateBdd( Abc_Ntk_t* pNtk, int k, int i )
 {
     Abc_Obj_t* pCo;
-    DdManager* dd;
+    DdManager* dd = NULL;
     DdNode *f, *var, *f0, *f1;
     DdNode *badPos, *badNeg;
     DdNode* bZero = NULL;
@@ -437,7 +437,7 @@ static void Lsv_NtkUnateBdd( Abc_Ntk_t* pNtk, int k, int i )
     pCo = Abc_NtkCo( pNtk, k );
 
     // 建立 global BDD
-    dd = Abc_NtkBuildGlobalBdds( pNtk, 10000000, 1, 1, 0, 0 );
+    dd = (DdManager*) Abc_NtkBuildGlobalBdds( pNtk, 10000000, 1, 1, 0, 0 );
     if ( dd == NULL ) {
         Abc_Print( -1, "Error: cannot build global BDDs.\n" );
         return;
