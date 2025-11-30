@@ -4,6 +4,8 @@
 #ifdef ABC_USE_CUDD
 #include "bdd/cudd/cudd.h"
 #endif
+#include "sat/cnf/cnf.h"
+#include "sat/bsat/satSolver.h"
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
@@ -11,11 +13,16 @@
 #include <string>
 #include <cstring>
 
+extern "C" {
+  Aig_Man_t* Abc_NtkToDar(Abc_Ntk_t* pNtk, int fExors, int fRegisters);
+}
+
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintMocut(Abc_Frame_t* pAbc, int argc, char** argv);
 #ifdef ABC_USE_CUDD
 static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv);
 #endif
+static int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
@@ -23,6 +30,7 @@ void init(Abc_Frame_t* pAbc) {
 #ifdef ABC_USE_CUDD
   Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_bdd", Lsv_CommandUnateBdd, 0);
 #endif
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_sat", Lsv_CommandUnateSat, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -598,3 +606,171 @@ static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
 }
 
 #endif  // ABC_USE_CUDD
+
+// -----------------------------------------------------------------------------
+// Unateness Checking with SAT
+// -----------------------------------------------------------------------------
+
+/**Function*************************************************************
+  Synopsis    [Detects unate variables using SAT for a single output and input.]
+  Description [Checks if output yk is unate in input xi using SAT solver.]
+  SideEffects []
+  SeeAlso     []
+***********************************************************************/
+static int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
+  //#0 Readin
+  if (argc < 3) {
+    Abc_Print(-2, "usage: lsv_unate_sat <k> <i>\n");
+    Abc_Print(-2, "\t        checks if output k is unate in input i using SAT\n");
+    Abc_Print(-2, "\t-k    : output index (0-based)\n");
+    Abc_Print(-2, "\t-i    : input index (0-based)\n");
+    return 1;
+  }
+
+  const int k = atoi(argv[1]);
+  const int i = atoi(argv[2]);
+
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  if (pNtk == NULL) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  if (!Abc_NtkIsStrash(pNtk)) {
+    Abc_Print(-1, "The current network is not an AIG. Run 'strash' first.\n");
+    return 1;
+  }
+
+  const int out_num = Abc_NtkCoNum(pNtk);
+  const int inp_num = Abc_NtkCiNum(pNtk);
+  if (k < 0 || k >= out_num || i < 0 || i >= inp_num) {
+    Abc_Print(-1, "Index out of range.\n");
+    return 1;
+  }
+
+  //#1 Pre-process
+  Abc_Obj_t* output = Abc_NtkPo(pNtk, k);
+  Abc_Ntk_t* cone = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(output), Abc_ObjName(output), 1/*int fUseAllCis*/);
+
+  // Check if input i is in the cone
+  Abc_Obj_t* pCiOrig = Abc_NtkCi(pNtk, i);
+  Abc_Obj_t* pCiInCone = (Abc_Obj_t*)pCiOrig->pCopy;
+  if (pCiInCone == NULL) {
+    printf("independent\n");
+    Abc_NtkDelete(cone);
+    return 0;
+  }
+
+  Aig_Man_t* pAig = Abc_NtkToDar(cone, 0/*int fExors*/, 0/*int fRegisters*/);
+  sat_solver* pSat = sat_solver_new();
+  Cnf_Dat_t* pCnf = Cnf_Derive(pAig, Aig_ManCoNum(pAig));
+  pSat = (sat_solver*)Cnf_DataWriteIntoSolverInt(pSat, pCnf, 1/*int nFrames*/, 0/*int fInit*/);
+  Cnf_DataLift(pCnf, pCnf->nVars);
+  pSat = (sat_solver*)Cnf_DataWriteIntoSolverInt(pSat, pCnf, 2/*int nFrames*/, 0/*int fInit*/);
+  Cnf_DataLift(pCnf, -1 * pCnf->nVars/*-(nTimes-1) * pCnf->nVars*/);
+
+  //#2 add clauses for input (unateness checking)
+  int pLits[2];
+  Aig_Obj_t* pObj;
+  int iObj;
+  int varXiA = -1, varXiB = -1;
+  Aig_ManForEachCi(pAig, pObj, iObj) {
+    if (iObj == i) {
+      // Target input: don't add equivalence clauses, allow different values
+      varXiA = pCnf->pVarNums[pObj->Id];
+      varXiB = pCnf->pVarNums[pObj->Id] + pCnf->nVars;
+      continue;
+    }
+    // For other inputs: v_A(t) == v_B(t), v_A <-> v_B
+    // v_A + v_B'
+    pLits[0] = toLitCond(pCnf->pVarNums[pObj->Id], 0/*conjugate*/);
+    pLits[1] = toLitCond(pCnf->pVarNums[pObj->Id] + pCnf->nVars, 1/*conjugate*/);
+    sat_solver_addclause(pSat, pLits, pLits + 2);
+    // v_A' + v_B
+    pLits[0] = toLitCond(pCnf->pVarNums[pObj->Id], 1/*conjugate*/);
+    pLits[1] = toLitCond(pCnf->pVarNums[pObj->Id] + pCnf->nVars, 0/*conjugate*/);
+    sat_solver_addclause(pSat, pLits, pLits + 2);
+  }
+
+  //#3 add clauses for output (unateness checking)
+  // Get output variables
+  Aig_Obj_t* pPoAig = Aig_ManCo(pAig, 0);
+  int varFA = pCnf->pVarNums[pPoAig->Id];
+  int varFB = pCnf->pVarNums[pPoAig->Id] + pCnf->nVars;
+  int litFA1 = toLitCond(varFA, 0);  // fA = 1
+  int litFA0 = toLitCond(varFA, 1);   // fA = 0
+  int litFB1 = toLitCond(varFB, 0);   // fB = 1
+  int litFB0 = toLitCond(varFB, 1);   // fB = 0
+
+  //#4 solve by SAT
+// Negative-unate violation: xiA=0, xiB=1, fA=0, fB=1
+int assumptionsNeg[4];
+assumptionsNeg[0] = toLitCond(varXiA, 1);   // xiA = 0
+assumptionsNeg[1] = toLitCond(varXiB, 0);   // xiB = 1
+assumptionsNeg[2] = litFA0;                 // fA = 0
+assumptionsNeg[3] = litFB1;                 // fB = 1
+int statusNeg = sat_solver_solve(pSat, assumptionsNeg, assumptionsNeg+4, 0,0,0,0);
+
+// Positive-unate violation: xiA=0, xiB=1, fA=1, fB=0
+int assumptionsPos[4];
+assumptionsPos[0] = toLitCond(varXiA, 1);   // xiA = 0
+assumptionsPos[1] = toLitCond(varXiB, 0);   // xiB = 1
+assumptionsPos[2] = litFA1;                 // fA = 1
+assumptionsPos[3] = litFB0;                 // fB = 0
+int statusPos = sat_solver_solve(pSat, assumptionsPos, assumptionsPos+4, 0,0,0,0);
+
+
+  //#5 Output results
+  if (statusNeg != l_True && statusPos != l_True) {
+    printf("independent\n");
+  } else if (statusPos != l_True && statusNeg == l_True) {
+    printf("negative unate\n");
+  } else if (statusNeg != l_True && statusPos == l_True) {
+    printf("positive unate\n");
+  } else {
+    // Both violations exist, it's binate
+    printf("binate\n");
+
+    // Extract counterexample patterns
+    std::string patNeg, patPos;
+    patNeg.assign(inp_num, '0');
+    patPos.assign(inp_num, '0');
+
+    // For negative violation pattern
+    if (statusNeg == l_True) {
+      sat_solver_solve(pSat, assumptionsNeg, assumptionsNeg + 4, 0, 0, 0, 0);
+      Aig_ManForEachCi(pAig, pObj, iObj) {
+        if (iObj == i) {
+          patNeg[iObj] = '-';
+        } else {
+          int val = sat_solver_var_value(pSat, pCnf->pVarNums[pObj->Id]);
+          patNeg[iObj] = val ? '1' : '0';
+        }
+      }
+    }
+
+    // For positive violation pattern
+    if (statusPos == l_True) {
+      sat_solver_solve(pSat, assumptionsPos, assumptionsPos + 4, 0, 0, 0, 0);
+      Aig_ManForEachCi(pAig, pObj, iObj) {
+        if (iObj == i) {
+          patPos[iObj] = '-';
+        } else {
+          int val = sat_solver_var_value(pSat, pCnf->pVarNums[pObj->Id]);
+          patPos[iObj] = val ? '1' : '0';
+        }
+      }
+    }
+
+    // Pattern 1: cofactor equals x_i (positive unate violation)
+    // Pattern 2: cofactor equals ~x_i (negative unate violation)
+    printf("%s\n", patPos.c_str());
+    printf("%s\n", patNeg.c_str());
+  }
+
+  // Cleanup
+  Cnf_DataFree(pCnf);
+  sat_solver_delete(pSat);
+  Aig_ManStop(pAig);
+  Abc_NtkDelete(cone);
+  return 0;
+}
