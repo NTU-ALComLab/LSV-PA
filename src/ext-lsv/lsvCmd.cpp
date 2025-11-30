@@ -11,6 +11,7 @@ Aig_Man_t* Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
 #include "sat/cnf/cnf.h"
 #include <set>
 #include <map>
+#include <unordered_map>
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -291,86 +292,130 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
     return 1;
   }
 
-  Abc_Ntk_t* pStrash = Abc_NtkStrash(pNtk, 0, 0, 0);
-  if (!pStrash) {
-    Abc_Print(-1, "Failed to strash the network.\n");
+  Abc_Obj_t* pCoOrig = Abc_NtkCo(pNtk, k);
+  if (!pCoOrig) {
+    Abc_Print(-1, "Failed to access output %d.\n", k);
+    return 1;
+  }
+  Abc_Obj_t* pDriver = Abc_ObjFanin0(pCoOrig);
+  if (!pDriver) {
+    Abc_Print(-1, "Output %d has no driver.\n", k);
+    return 1;
+  }
+  int fOutputCompl = Abc_ObjFaninC0(pCoOrig);
+
+  Abc_NtkCleanCopy(pNtk);
+  const char* pCoName = Abc_ObjName(pCoOrig) ? Abc_ObjName(pCoOrig) : (char*)"cone";
+  Abc_Ntk_t* pCone = Abc_NtkCreateCone(pNtk, pDriver, (char*)pCoName, 0);
+  if (!pCone) {
+    Abc_NtkCleanCopy(pNtk);
+    Abc_Print(-1, "Failed to create cone for output %d.\n", k);
     return 1;
   }
 
-  DdManager* dd = (DdManager*)Abc_NtkBuildGlobalBdds(pStrash, 10000000, 1, 1, 0, 0);
+  std::unordered_map<Abc_Obj_t*, int> conePiToOrigIdx;
+  Abc_Obj_t* pObjPi;
+  int piIdx;
+  Abc_NtkForEachPi(pNtk, pObjPi, piIdx) {
+    Abc_Obj_t* pPiCone = (Abc_Obj_t*)pObjPi->pCopy;
+    if (pPiCone) conePiToOrigIdx[pPiCone] = piIdx;
+  }
+  Abc_NtkCleanCopy(pNtk);
+
+  Abc_NtkCleanCopy(pCone);
+  Abc_Ntk_t* pConeStrash = Abc_NtkStrash(pCone, 0, 0, 0);
+  if (!pConeStrash) {
+    Abc_NtkDelete(pCone);
+    Abc_Print(-1, "Failed to strash cone for output %d.\n", k);
+    return 1;
+  }
+
+  std::unordered_map<Abc_Obj_t*, int> strashPiToOrigIdx;
+  Abc_Obj_t* pPiCone;
+  int conePiIdx;
+  Abc_NtkForEachPi(pCone, pPiCone, conePiIdx) {
+    auto it = conePiToOrigIdx.find(pPiCone);
+    if (it == conePiToOrigIdx.end()) continue;
+    Abc_Obj_t* pPiStrash = (Abc_Obj_t*)pPiCone->pCopy;
+    if (pPiStrash) strashPiToOrigIdx[pPiStrash] = it->second;
+  }
+  Abc_NtkDelete(pCone);
+
+  DdManager* dd = (DdManager*)Abc_NtkBuildGlobalBdds(pConeStrash, 10000000, 1, 1, 0, 0);
   if (!dd) {
-    Abc_NtkDelete(pStrash);
-    Abc_Print(-1, "Failed to build global BDDs.\n");
+    Abc_NtkDelete(pConeStrash);
+    Abc_Print(-1, "Failed to build global BDDs for output %d.\n", k);
     return 1;
   }
 
-  if (Abc_NtkPiNum(pStrash) != nPisOrig) {
-    Abc_Print(-1, "Internal error: PI count mismatch after strashing.\n");
-    Abc_NtkFreeGlobalBdds(pStrash, 1);
-    Abc_NtkDelete(pStrash);
-    return 1;
+  std::vector<int> origVarIndex(nPisOrig, -1);
+  Abc_Obj_t* pPiStrash;
+  int varPos;
+  Abc_NtkForEachPi(pConeStrash, pPiStrash, varPos) {
+    auto it = strashPiToOrigIdx.find(pPiStrash);
+    if (it != strashPiToOrigIdx.end()) origVarIndex[it->second] = varPos;
   }
 
-  std::vector<int> origVarIndex(nPisOrig);
-  std::iota(origVarIndex.begin(), origVarIndex.end(), 0);
-
-  Abc_Obj_t* pCo = Abc_NtkCo(pStrash, k);
+  Abc_Obj_t* pCo = Abc_NtkCo(pConeStrash, 0);
   DdNode* bFunc = (DdNode*)Abc_ObjGlobalBdd(pCo);
   if (!bFunc) {
     Abc_Print(-1, "Output %d has no BDD representation.\n", k);
-    Abc_NtkFreeGlobalBdds(pStrash, 1);
-    Abc_NtkDelete(pStrash);
+    Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+    Abc_NtkDelete(pConeStrash);
     return 1;
   }
   Cudd_Ref(bFunc);
+  if (fOutputCompl) {
+    DdNode* bCompl = Cudd_Not(bFunc);
+    Cudd_Ref(bCompl);
+    Cudd_RecursiveDeref(dd, bFunc);
+    bFunc = bCompl;
+  }
+
+  int varIdx = origVarIndex[i];
+  if (varIdx < 0) {
+    printf("independent\n");
+    Cudd_RecursiveDeref(dd, bFunc);
+    Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+    Abc_NtkDelete(pConeStrash);
+    return 0;
+  }
 
   int nVars = Cudd_ReadSize(dd);
-  if (i >= nVars) {
-    Abc_Print(-1, "PI index %d exceeds BDD variable count %d.\n", i, nVars);
+  if (varIdx >= nVars) {
+    Abc_Print(-1, "PI index %d maps to invalid BDD variable %d (total %d).\n", i, varIdx, nVars);
     Cudd_RecursiveDeref(dd, bFunc);
-    Abc_NtkFreeGlobalBdds(pStrash, 1);
-    Abc_NtkDelete(pStrash);
+    Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+    Abc_NtkDelete(pConeStrash);
     return 1;
   }
-
-  DdNode* bVar = Cudd_bddIthVar(dd, i);
-  if (!bVar) {
-    Abc_Print(-1, "Unable to access BDD variable %d.\n", i);
-    Cudd_RecursiveDeref(dd, bFunc);
-    Abc_NtkFreeGlobalBdds(pStrash, 1);
-    Abc_NtkDelete(pStrash);
-    return 1;
-  }
-  Cudd_Ref(bVar);
 
   DdNode* bZero = Cudd_Not(Cudd_ReadOne(dd));
   Cudd_Ref(bZero);
   DdNode* bOne = Cudd_ReadOne(dd);
   Cudd_Ref(bOne);
 
-  DdNode* bCof0 = Cudd_bddCompose(dd, bFunc, bZero, i);
+  DdNode* bCof0 = Cudd_bddCompose(dd, bFunc, bZero, varIdx);
   if (!bCof0) {
     Abc_Print(-1, "Failed to compute cofactor for xi=0.\n");
     Cudd_RecursiveDeref(dd, bZero);
     Cudd_RecursiveDeref(dd, bOne);
-    Cudd_RecursiveDeref(dd, bVar);
     Cudd_RecursiveDeref(dd, bFunc);
-    Abc_NtkFreeGlobalBdds(pStrash, 1);
-    Abc_NtkDelete(pStrash);
+    Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+    Abc_NtkDelete(pConeStrash);
     return 1;
   }
   Cudd_Ref(bCof0);
 
-  DdNode* bCof1 = Cudd_bddCompose(dd, bFunc, bOne, i);
+  DdNode* bCof1 = Cudd_bddCompose(dd, bFunc, bOne, varIdx);
   if (!bCof1) {
     Abc_Print(-1, "Failed to compute cofactor for xi=1.\n");
     Cudd_RecursiveDeref(dd, bCof0);
     Cudd_RecursiveDeref(dd, bZero);
     Cudd_RecursiveDeref(dd, bOne);
-    Cudd_RecursiveDeref(dd, bVar);
     Cudd_RecursiveDeref(dd, bFunc);
-    Abc_NtkFreeGlobalBdds(pStrash, 1);
-    Abc_NtkDelete(pStrash);
+    Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+    Abc_NtkDelete(pConeStrash);
     return 1;
   }
   Cudd_Ref(bCof1);
@@ -394,10 +439,9 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
       Abc_Print(-1, "Failed to derive witness for xi leading to 1.\n");
       Cudd_RecursiveDeref(dd, bCof1);
       Cudd_RecursiveDeref(dd, bCof0);
-      Cudd_RecursiveDeref(dd, bVar);
       Cudd_RecursiveDeref(dd, bFunc);
-      Abc_NtkFreeGlobalBdds(pStrash, 1);
-      Abc_NtkDelete(pStrash);
+      Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+      Abc_NtkDelete(pConeStrash);
       return 1;
     }
     Cudd_Ref(bPatternRaise);
@@ -406,10 +450,9 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
       Cudd_RecursiveDeref(dd, bPatternRaise);
       Cudd_RecursiveDeref(dd, bCof1);
       Cudd_RecursiveDeref(dd, bCof0);
-      Cudd_RecursiveDeref(dd, bVar);
       Cudd_RecursiveDeref(dd, bFunc);
-      Abc_NtkFreeGlobalBdds(pStrash, 1);
-      Abc_NtkDelete(pStrash);
+      Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+      Abc_NtkDelete(pConeStrash);
       return 1;
     }
     Cudd_RecursiveDeref(dd, bPatternRaise);
@@ -419,10 +462,9 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
       Abc_Print(-1, "Failed to derive witness for ¬xi leading to 0.\n");
       Cudd_RecursiveDeref(dd, bCof1);
       Cudd_RecursiveDeref(dd, bCof0);
-      Cudd_RecursiveDeref(dd, bVar);
       Cudd_RecursiveDeref(dd, bFunc);
-      Abc_NtkFreeGlobalBdds(pStrash, 1);
-      Abc_NtkDelete(pStrash);
+      Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+      Abc_NtkDelete(pConeStrash);
       return 1;
     }
     Cudd_Ref(bPatternFall);
@@ -431,10 +473,9 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
       Cudd_RecursiveDeref(dd, bPatternFall);
       Cudd_RecursiveDeref(dd, bCof1);
       Cudd_RecursiveDeref(dd, bCof0);
-      Cudd_RecursiveDeref(dd, bVar);
       Cudd_RecursiveDeref(dd, bFunc);
-      Abc_NtkFreeGlobalBdds(pStrash, 1);
-      Abc_NtkDelete(pStrash);
+      Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+      Abc_NtkDelete(pConeStrash);
       return 1;
     }
     Cudd_RecursiveDeref(dd, bPatternFall);
@@ -442,11 +483,10 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
 
   Cudd_RecursiveDeref(dd, bCof1);
   Cudd_RecursiveDeref(dd, bCof0);
-  Cudd_RecursiveDeref(dd, bVar);
   Cudd_RecursiveDeref(dd, bFunc);
 
-  Abc_NtkFreeGlobalBdds(pStrash, 1);
-  Abc_NtkDelete(pStrash);
+  Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+  Abc_NtkDelete(pConeStrash);
   return 0;
 }
 
