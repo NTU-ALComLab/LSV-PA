@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <cstdint>
 
-// Define pointer types if missing in your environment
+// Define pointer types if missing in your environment (Safe for Colab/Linux)
 #ifndef ptruint
   typedef uintptr_t ptruint;
 #endif
@@ -24,44 +24,39 @@
 // -----------------------------------------------------------------------------
 // Helper: Print Pattern
 // -----------------------------------------------------------------------------
-
-// cubeVals: size = Cudd_ReadSize(dd), entries in {0,1,2} for each BDD var index.
-// We must map each primary input x_j to its BDD var index via Abc_ObjGlobalBdd.
-static void
-Lsv_PrintPattern( DdManager * dd,
-                  char * cubeVals,
-                  int nVars,
-                  Abc_Ntk_t * pNtk,
-                  int inputIdx )
-{
+//
+// cubeVals: length = Cudd_ReadSize(dd), entries in {0,1,2} (0 = false, 1 = true,
+// 2 = don't care) indexed by BDD variable index.  We assume that the BDD
+// variable index for CI j is exactly j, which is consistent with how the BDD
+// network is built from "collapse" in this assignment.
+//
+static void Lsv_PrintPattern(
+    DdManager * dd,
+    char      * cubeVals,
+    int         nVars,
+    Abc_Ntk_t * pNtk,
+    int         inputIdx
+){
     int nInputs = Abc_NtkCiNum( pNtk );
 
-    for ( int j = 0; j < nInputs; ++j )
-    {
-        // Tested input x_i is always printed as '-'
+    for ( int j = 0; j < nInputs; ++j ) {
+        // The tested input x_i is always printed as "-"
         if ( j == inputIdx ) {
             printf( "-" );
             continue;
         }
 
-        // Get the global BDD for CI j
-        Abc_Obj_t * pCi    = Abc_NtkCi( pNtk, j );
-        DdNode    * pVarCi = (DdNode *)Abc_ObjGlobalBdd( pCi );
+        // Map primary input j to BDD variable index j.
+        int bddVarIdx = j;
 
-        if ( pVarCi == nullptr ) {
-            // Fallback if something goes wrong
+        // Safety check: if there are fewer BDD vars than inputs, just print 0.
+        if ( bddVarIdx < 0 || bddVarIdx >= nVars ) {
             printf( "0" );
             continue;
         }
 
-        int varIdx = Cudd_NodeReadIndex( pVarCi );
-        if ( varIdx < 0 || varIdx >= nVars ) {
-            printf( "0" );
-            continue;
-        }
-
-        char v = cubeVals[ varIdx ];
-        // 0 = False, 1 = True, 2 = Don't Care (we print DC as 0)
+        char v = cubeVals[ bddVarIdx ];
+        // Treat don't care as 0 when printing.
         if ( v == 1 )
             printf( "1" );
         else
@@ -71,40 +66,43 @@ Lsv_PrintPattern( DdManager * dd,
 }
 
 // -----------------------------------------------------------------------------
-// Main Logic
+// Main BDD unateness checking
 // -----------------------------------------------------------------------------
 
 void Lsv_NtkUnateBdd( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
 {
-    // 1. Ensure global BDDs exist by asking for the Co's global BDD
-    Abc_Obj_t * pCo   = Abc_NtkCo( pNtk, outIdx );
-    DdNode    * pFunc = (DdNode *)Abc_ObjGlobalBdd( pCo );
-    if ( pFunc == nullptr ) {
-        printf( "Error: Output global BDD is NULL.\n" );
-        return;
-    }
-
-    // 2. Get BDD manager from the network
+    // 1. Get BDD manager from the network
     DdManager * dd = (DdManager *)pNtk->pManFunc;
     if ( dd == nullptr ) {
-        printf( "Error: BDD manager (pManFunc) is NULL.\n" );
+        printf( "Error: BDD Manager is NULL. Run 'collapse' first.\n" );
         return;
     }
 
-    // 3. Get the BDD variable for input x_i via its CI node
-    Abc_Obj_t * pCi  = Abc_NtkCi( pNtk, inIdx );
-    DdNode    * pVar = (DdNode *)Abc_ObjGlobalBdd( pCi );
+    // 2. Get the BDD variable corresponding to primary input x_i.
+    //    We assume Cudd_bddIthVar(dd, inIdx) is the variable for input i.
+    DdNode * pVar = Cudd_bddIthVar( dd, inIdx );
     if ( pVar == nullptr ) {
-        printf( "Error: CI %d has no global BDD variable.\n", inIdx );
+        printf( "Error: Input index %d out of BDD bounds.\n", inIdx );
         return;
     }
+    // Keep a temporary reference as Hint 1 suggests.
+    Cudd_Ref( pVar );
 
-    // NOTE: We do NOT Ref/RecursiveDeref pVar or pFunc – they are owned by ABC.
+    // 3. Get the BDD for the chosen output y_k from the driver node's local BDD
+    Abc_Obj_t * pCo     = Abc_NtkCo( pNtk, outIdx );
+    Abc_Obj_t * pDriver = Abc_ObjFanin0( pCo );
+    DdNode    * pFunc   = (DdNode *)pDriver->pData;
+
+    if ( pFunc == nullptr ) {
+        printf( "Error: Output BDD is NULL.\n" );
+        Cudd_RecursiveDeref( dd, pVar );
+        return;
+    }
 
     // 4. Compute cofactors:
     //    f1 = f | x_i = 1
     //    f0 = f | x_i = 0
-    DdNode * f1 = Cudd_Cofactor( dd, pFunc, pVar );            Cudd_Ref( f1 );
+    DdNode * f1 = Cudd_Cofactor( dd, pFunc, pVar );             Cudd_Ref( f1 );
     DdNode * f0 = Cudd_Cofactor( dd, pFunc, Cudd_Not( pVar ) ); Cudd_Ref( f0 );
 
     // 5. Classify unateness
@@ -120,12 +118,11 @@ void Lsv_NtkUnateBdd( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
         printf( "negative unate\n" );
     }
     else {
+        // Otherwise the function is binate in x_i.
         printf( "binate\n" );
 
-        // 6. Generate patterns for binate case
-
         int nVars = Cudd_ReadSize( dd );
-        std::vector<char> cubeVals( nVars, 2 ); // all DC initially
+        std::vector<char> cubeVals( nVars, 2 ); // start with all don't care
 
         // Pattern 1: cube in (f1 & !f0) ⇒ cofactor equals x_i
         DdNode * diff1 = Cudd_bddAnd( dd, f1, Cudd_Not( f0 ) ); Cudd_Ref( diff1 );
@@ -146,15 +143,16 @@ void Lsv_NtkUnateBdd( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
         Cudd_RecursiveDeref( dd, diff2 );
     }
 
-    // 7. Cleanup cofactors we created
+    // 6. Cleanup temporary BDD nodes we created
     Cudd_RecursiveDeref( dd, f1 );
     Cudd_RecursiveDeref( dd, f0 );
+    Cudd_RecursiveDeref( dd, pVar );
 
     fflush( stdout );
 }
 
 // -----------------------------------------------------------------------------
-// ABC Command Wrapper
+// ABC command wrapper
 // -----------------------------------------------------------------------------
 
 int Lsv_CommandUnateBdd( Abc_Frame_t * pAbc, int argc, char ** argv )
