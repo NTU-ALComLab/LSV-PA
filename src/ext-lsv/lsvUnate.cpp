@@ -3,9 +3,25 @@
  * @brief Implementation of BDD unateness checking for LSV PA2.
  */
 
-#include "lsv.h"
+// 1. Force definition of missing CUDD types immediately
+//    These are standard types used in ABC's CUDD implementation.
+#include <cstdint>
+#ifndef ptruint
+  typedef uintptr_t ptruint;
+#endif
+#ifndef ptrint
+  typedef intptr_t ptrint;
+#endif
+
+// 2. Include ABC headers
 #include "base/abc/abc.h"
+#include "base/main/main.h"
+
+// 3. Include CUDD header
 #include "bdd/cudd/cudd.h"
+
+// 4. Include local header
+#include "lsv.h"
 
 // -----------------------------------------------------------------------------
 // Helper Function
@@ -13,8 +29,8 @@
 
 /**
  * @brief Prints the input pattern based on the cube array filled by CUDD.
- * * @param dd The CUDD manager.
- * @param cubeVals The char array filled by Cudd_bddPickOneCube. 
+ * @param dd The CUDD manager.
+ * @param cubeVals The char array filled by Cudd_bddPickOneCube.
  * cubeVals[i] is 0 (false), 1 (true), or 2 (don't care).
  * @param pNtk The ABC network.
  * @param inputIdx The index of the primary input x_i being tested.
@@ -31,6 +47,8 @@ void Lsv_PrintPattern(DdManager * dd, char * cubeVals, Abc_Ntk_t * pNtk, int inp
         // Get the BDD variable index corresponding to the j-th PI
         Abc_Obj_t * pVarObj = Abc_NtkCi(pNtk, j);
         DdNode * pVar = (DdNode *)pVarObj->pData;
+        
+        // Cudd_Regular is needed because pVar might be a complemented pointer
         int bddVarIdx = Cudd_Regular(pVar)->index;
         
         // Check the value in the cube array
@@ -41,8 +59,7 @@ void Lsv_PrintPattern(DdManager * dd, char * cubeVals, Abc_Ntk_t * pNtk, int inp
         } else if (val == 1) {
             printf("1");
         } else {
-            // val == 2 means Don't Care.
-            // The assignment asks for a concrete assignment (0 or 1). We pick 0.
+            // val == 2 means Don't Care. Default to 0.
             printf("0");
         }
     }
@@ -71,6 +88,7 @@ void Lsv_NtkUnateBdd(Abc_Ntk_t * pNtk, int outIdx, int inIdx) {
     }
     
     // Compute Cofactors: f1 (x_i=1) and f0 (x_i=0)
+    // Cudd_Ref is critical here to prevent garbage collection
     DdNode * f1 = Cudd_Cofactor(dd, pFunc, pVar);       Cudd_Ref(f1);
     DdNode * f0 = Cudd_Cofactor(dd, pFunc, Cudd_Not(pVar)); Cudd_Ref(f0);
     
@@ -88,15 +106,12 @@ void Lsv_NtkUnateBdd(Abc_Ntk_t * pNtk, int outIdx, int inIdx) {
         printf("binate\n");
         
         // Allocate buffer for Cudd_bddPickOneCube
-        // The size must be equal to the number of BDD variables in the manager
         char * cubeVals = new char[Cudd_ReadSize(dd)];
 
         // --- Pattern 1: f1=1, f0=0 ---
         // We need a cube inside the set difference (f1 & !f0)
         DdNode * diff1 = Cudd_bddAnd(dd, f1, Cudd_Not(f0)); Cudd_Ref(diff1);
         
-        // Pick one cube from diff1. 
-        // Note: The function returns 1 on success, 0 on failure. It fills cubeVals.
         if (Cudd_bddPickOneCube(dd, diff1, cubeVals)) {
             Lsv_PrintPattern(dd, cubeVals, pNtk, inIdx);
         }
@@ -106,13 +121,11 @@ void Lsv_NtkUnateBdd(Abc_Ntk_t * pNtk, int outIdx, int inIdx) {
         // We need a cube inside the set difference (!f1 & f0)
         DdNode * diff2 = Cudd_bddAnd(dd, Cudd_Not(f1), f0); Cudd_Ref(diff2);
         
-        // Pick one cube from diff2
         if (Cudd_bddPickOneCube(dd, diff2, cubeVals)) {
             Lsv_PrintPattern(dd, cubeVals, pNtk, inIdx);
         }
         Cudd_RecursiveDeref(dd, diff2);
         
-        // Clean up memory
         delete [] cubeVals;
     }
     
