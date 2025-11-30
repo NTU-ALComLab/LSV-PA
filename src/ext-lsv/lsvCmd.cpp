@@ -2,11 +2,15 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 #include "Multi_Cut.h" 
+extern int pa2_1(Abc_Frame_t* pAbc, int argc, char** argv);
+extern int pa2_2(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Abc_CommandLsvPrintMoCut, 0); //new commend
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_bdd", pa2_1,0);                           //pa2_1
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_sat", pa2_2,0);                           //pa2_1
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
