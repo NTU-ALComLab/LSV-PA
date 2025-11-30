@@ -82,16 +82,15 @@ void Lsv_NtkUnateBdd(Abc_Ntk_t * pNtk, int outIdx, int inIdx) {
     // Hint 1: Ref the variable [cite: 37]
     Cudd_Ref(pVar); 
     
-    // 3. Get Output BDD Function
-    Abc_Obj_t * pCo = Abc_NtkCo(pNtk, outIdx);
-    // Abc_ObjGlobalBdd retrieves the function from the driver node safely, 
-    // handling potential complement pointers (inverted outputs).
-    DdNode * pFunc = (DdNode *)Abc_ObjGlobalBdd(pCo);
+    // 3. Get Output BDD Function (use local BDD of the driver node)
+    Abc_Obj_t * pCo     = Abc_NtkCo(pNtk, outIdx);
+    Abc_Obj_t * pDriver = Abc_ObjFanin0(pCo);
+    DdNode * pFunc      = (DdNode *)pDriver->pData;
     
-    if (!pFunc) { 
-        printf("Error: Output BDD is NULL.\n"); 
+    if (!pFunc) {
+        printf("Error: Output BDD is NULL (driver has no local BDD).\n");
         Cudd_RecursiveDeref(dd, pVar); // Cleanup before return
-        return; 
+        return;
     }
 
     // 4. Compute Cofactors: f1 (x_i=1) and f0 (x_i=0)
@@ -160,7 +159,7 @@ int Lsv_CommandUnateBdd(Abc_Frame_t * pAbc, int argc, char ** argv) {
     }
     
     int outIdx = atoi(argv[1]);
-    int inIdx = atoi(argv[2]);
+    int inIdx  = atoi(argv[2]);
     
     Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
     if (!pNtk) { 
