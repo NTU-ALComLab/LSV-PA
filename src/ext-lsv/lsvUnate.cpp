@@ -16,8 +16,10 @@
   typedef intptr_t ptrint;
 #endif
 
+extern "C" {
 #include "base/abc/abc.h"
 #include "base/main/main.h"
+}
 #include "bdd/cudd/cudd.h"
 #include "lsv.h"
 
@@ -26,9 +28,11 @@
 // -----------------------------------------------------------------------------
 //
 // cubeVals: length = Cudd_ReadSize(dd), entries in {0,1,2} (0 = false, 1 = true,
-// 2 = don't care) indexed by BDD variable index.  We assume that the BDD
-// variable index for CI j is exactly j, which is consistent with how the BDD
-// network is built from "collapse" in this assignment.
+// 2 = don't care) indexed by BDD variable index.
+//
+// IMPORTANT: In this ABC BDD network, variable indices are in **reversed
+// PI order**. If there are nInputs primary inputs, then
+//   - PI index j  ↔  BDD var index (nInputs - 1 - j).
 //
 static void Lsv_PrintPattern(
     DdManager * dd,
@@ -46,8 +50,8 @@ static void Lsv_PrintPattern(
             continue;
         }
 
-        // Map primary input j to BDD variable index j.
-        int bddVarIdx = j;
+        // Map primary input j to its BDD variable index (reversed order).
+        int bddVarIdx = nInputs - 1 - j;
 
         // Safety check: if there are fewer BDD vars than inputs, just print 0.
         if ( bddVarIdx < 0 || bddVarIdx >= nVars ) {
@@ -78,11 +82,25 @@ void Lsv_NtkUnateBdd( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
         return;
     }
 
-    // 2. Get the BDD variable corresponding to primary input x_i.
-    //    We assume Cudd_bddIthVar(dd, inIdx) is the variable for input i.
-    DdNode * pVar = Cudd_bddIthVar( dd, inIdx );
+    int nInputs = Abc_NtkCiNum( pNtk );
+    if ( inIdx < 0 || inIdx >= nInputs ) {
+        printf( "Error: Invalid input index %d.\n", inIdx );
+        return;
+    }
+
+    // 2. Map primary input index to BDD var index (reversed order)
+    //
+    // From observed behavior:
+    //   - For the PA2 example, Cudd var 0 behaves like x2,
+    //     and Cudd var 2 behaves like x0.
+    // So we use: varIdx = nInputs - 1 - inIdx.
+    //
+    int bddVarIdx = nInputs - 1 - inIdx;
+
+    DdNode * pVar = Cudd_bddIthVar( dd, bddVarIdx );
     if ( pVar == nullptr ) {
-        printf( "Error: Input index %d out of BDD bounds.\n", inIdx );
+        printf( "Error: BDD var index %d (for input %d) out of bounds.\n",
+                bddVarIdx, inIdx );
         return;
     }
     // Keep a temporary reference as Hint 1 suggests.
