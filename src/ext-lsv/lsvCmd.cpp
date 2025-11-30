@@ -1,6 +1,7 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "sat/cnf/cnf.h"
 
 #include <algorithm>
 #include <array>
@@ -9,14 +10,20 @@
 #include <string>
 #include <vector>
 
+extern "C"{
+  Aig_Man_t* Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+}
+
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_CommandPrintMoCut, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_bdd", Lsv_CommandUnateBdd, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_sat", Lsv_CommandUnateSat, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -347,6 +354,80 @@ void Lsv_UnateBdd(Abc_Ntk_t* pNtk, unsigned int k, unsigned int i) {
   Cudd_RecursiveDeref(dd, f);
 }
 
+void Lsv_UnateSat(Abc_Ntk_t* pNtk, unsigned int k, unsigned int i) {
+  Abc_Obj_t* pObj = Abc_NtkCo(pNtk, k);
+  Abc_Ntk_t* pCone = Abc_NtkCreateCone(pNtk, Abc_ObjFanin0(pObj), Abc_ObjName(pObj), 1);
+  Aig_Man_t* pAig = Abc_NtkToDar(pCone, 0, 0);
+  sat_solver* pSat = sat_solver_new();
+  Cnf_Dat_t* pCnf0 = Cnf_Derive(pAig, 1);
+  int o_flip = Abc_ObjFaninC0(pObj) ^ Aig_ObjFaninC0(Aig_ManCo(pAig, 0));
+  pSat = (sat_solver*)Cnf_DataWriteIntoSolverInt(pSat, pCnf0, 1, 0);
+  assert(pSat != NULL);
+  Cnf_Dat_t* pCnf1 = Cnf_Derive(pAig, 1);
+  Cnf_DataLift(pCnf1, pCnf0->nVars);
+  pSat = (sat_solver*)Cnf_DataWriteIntoSolverInt(pSat, pCnf1, 1, 0);
+  assert(pSat != NULL);
+
+  Aig_Obj_t* pCi; size_t m;
+  Aig_ManForEachCi(pAig, pCi, m) {
+    if (m == i) continue;
+    int var0 = pCnf0->pVarNums[pCi->Id];
+    int var1 = pCnf1->pVarNums[pCi->Id];
+    int impl[2] = {toLitCond(var0, 0), toLitCond(var1, 1)};
+    sat_solver_addclause(pSat, impl, impl + 2);
+    impl[0] = impl[0] ^ 01; impl[1] = impl[1] ^ 01;
+    sat_solver_addclause(pSat, impl, impl + 2);
+  }
+
+  int var_i0 = pCnf0->pVarNums[Aig_ManCi(pAig, i)->Id];
+  int var_i1 = pCnf1->pVarNums[Aig_ManCi(pAig, i)->Id];
+  int var_k0 = pCnf0->pVarNums[Aig_ManCo(pAig, 0)->Id];
+  int var_k1 = pCnf1->pVarNums[Aig_ManCo(pAig, 0)->Id];
+  int pos_status, neg_status;
+  std::string pos_pattern(Aig_ManCiNum(pAig), '0'),
+    neg_pattern(Aig_ManCiNum(pAig), '0');
+  int assume[4] = {toLitCond(var_i0, 1), toLitCond(var_k0, 1 ^ o_flip),
+    toLitCond(var_i1, 0), toLitCond(var_k1, 0 ^ o_flip)};
+  pos_status = sat_solver_solve(pSat, assume, assume + 4, 0, 0, 0, 0);
+  if (pos_status != l_False) {
+    Aig_ManForEachCi(pAig, pCi, m) {
+      pos_pattern[m] = sat_solver_var_value(pSat, pCnf0->pVarNums[pCi->Id]) ? '1' : '0';
+      if (m != i) assert(sat_solver_var_value(pSat, pCnf0->pVarNums[pCi->Id])
+        == sat_solver_var_value(pSat, pCnf1->pVarNums[pCi->Id]));
+    }
+    assert(pos_pattern[i] == '0');
+    pos_pattern[i] = '-';
+  }
+
+  assume[1] = toLitCond(var_k0, 0 ^ o_flip);
+  assume[3] = toLitCond(var_k1, 1 ^ o_flip);
+  neg_status = sat_solver_solve(pSat, assume, assume + 4, 0, 0, 0, 0);
+  if (neg_status != l_False) {
+    Aig_ManForEachCi(pAig, pCi, m) {
+      neg_pattern[m] = sat_solver_var_value(pSat, pCnf0->pVarNums[pCi->Id]) ? '1' : '0';
+      if (m != i) assert(sat_solver_var_value(pSat, pCnf0->pVarNums[pCi->Id])
+        == sat_solver_var_value(pSat, pCnf1->pVarNums[pCi->Id]));
+    }
+    assert(neg_pattern[i] == '0');
+    neg_pattern[i] = '-';
+  }
+
+  if (pos_status == l_False) {
+    if (neg_status == l_False) printf("independent\n");
+    else printf("negative unate\n");
+  }
+  else {
+    if (neg_status == l_False) printf("positive unate\n");
+    else printf("binate\n%s\n%s\n", pos_pattern.data(), neg_pattern.data());
+  }
+
+  Cnf_DataFree(pCnf1);
+  Cnf_DataFree(pCnf0);
+  sat_solver_delete(pSat);
+  Aig_ManStop(pAig);
+  Abc_NtkDelete(pCone);
+}
+
 int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   int c;
@@ -461,6 +542,53 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
 usage:
   Abc_Print(-2, "usage: lsv_unate_bdd [-h] <k> <i>\n");
   Abc_Print(-2, "\t        check whether the k-th primary output of a BDD is unate in the i-th primary input\n");
+  Abc_Print(-2, "\t-h    : print the command usage\n");
+  Abc_Print(-2, "\t<k>   : the primary output index starting from 0\n");
+  Abc_Print(-2, "\t<i>   : the primary input index starting from 0\n");
+  return 1;
+}
+
+int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  unsigned int k, i;
+  int c;
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    switch (c) {
+      case 'h':
+        goto usage;
+      default:
+        goto usage;
+    }
+  }
+  if (!pNtk) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  if (!Abc_NtkIsStrash(pNtk)) {
+    Abc_Print(-1, "The network is not a strashed AIG.\n");
+    return 1;
+  }
+  if (argc != globalUtilOptind + 2) {
+    Abc_Print(-1, "Wrong number of auguments.\n");
+    goto usage;
+  }
+  k = std::stoi(argv[globalUtilOptind]);
+  if (k < 0 || k >= Abc_NtkCoNum(pNtk)) {
+    Abc_Print(-1, "Primary output index %d out of bound.\n", k);
+    return 1;
+  }
+  i = std::stoi(argv[globalUtilOptind + 1]);
+  if (i < 0 || i >= Abc_NtkCiNum(pNtk)) {
+    Abc_Print(-1, "Primary input index %d out of bound.\n", i);
+    return 1;
+  }
+  Lsv_UnateSat(pNtk, k, i);
+  return 0;
+
+usage:
+  Abc_Print(-2, "usage: lsv_unate_sat [-h] <k> <i>\n");
+  Abc_Print(-2, "\t        check whether the k-th primary output of a strashed AIG is unate in the i-th primary input\n");
   Abc_Print(-2, "\t-h    : print the command usage\n");
   Abc_Print(-2, "\t<k>   : the primary output index starting from 0\n");
   Abc_Print(-2, "\t<i>   : the primary input index starting from 0\n");
