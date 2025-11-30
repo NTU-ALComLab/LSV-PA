@@ -2,10 +2,33 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 
+#include "./lsvCut.h"
+#include <stdint.h>
+#include <vector> 
+#include <map>
+#ifndef ptrint
+typedef intptr_t ptrint;
+#endif
+#include "bdd/cudd/cudd.h"
+#include "bdd/cudd/cuddInt.h"
+
+#include "sat/cnf/cnf.h"
+extern "C"{
+ Aig_Man_t* Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+}
+
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
+// static int Lsv_CommandPrintMOCut(Abc_Frame_t* pAbc, int argc, char** argv);
+static DdManager * build_bdds_for_network(Abc_Ntk_t * pNtk);
+static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv);
+
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+  // Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_CommandPrintMOCut, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_bdd", Lsv_CommandUnateBdd, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_sat", Lsv_CommandUnateSat, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -31,6 +54,7 @@ void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
       printf("The SOP of this node:\n%s", (char*)pObj->pData);
     }
   }
+  return;
 }
 
 int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
@@ -57,4 +81,231 @@ usage:
   Abc_Print(-2, "\t        prints the nodes in the network\n");
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
+}
+
+
+int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
+  // check if everything is valid
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  if (!pNtk) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  assert(Abc_NtkIsBddLogic(pNtk));
+
+  if(argc != 3) {
+    Abc_Print(-1, "Wrong number of arguments.\n");
+    Abc_Print(-2, "usage: lsv_unate_bdd <k> <i> [-h]\n");
+    Abc_Print(-2, "\t        whether the function of yk is binate, positive unate, negative unate in xi, or independent of xi\n");
+    Abc_Print(-2, "\t-h    : print the command usage\n");
+    return 1;
+  }
+  int k = atoi(argv[1]);
+  int i = atoi(argv[2]);
+  // printf("DEBUG: k=%d, i=%d\n", k, i);
+  // check if k < Abc_NtkPoNum(pNtk) && i < Abc_NtkPiNum(pNtk)
+  int pi_num = Abc_NtkPiNum(pNtk);
+  // printf("DEBUG: pi_num=%d\n", pi_num);
+  if(k >= Abc_NtkPoNum(pNtk) || i >= pi_num || k < 0 || i < 0) {
+    Abc_Print(-1, "Invalid k or i value.\n");
+    Abc_Print(-2, "usage: lsv_unate_bdd <k> <i>\n");
+    Abc_Print(-2, "\t        k should be less than number of POs (%d), i should be less than number of PIs (%d)\n", Abc_NtkPoNum(pNtk), Abc_NtkPiNum(pNtk));
+    return 1;
+  }
+
+  DdManager * dd = (DdManager*)pNtk->pManFunc;
+  if (dd == NULL) {
+    Abc_Print(-1, "No BDD manager available in the network.\n");
+    return 1;
+  }
+  // Abc_Print(-2, "DEBUG: dd=%p\n", (void*)dd);
+
+  // get the BDD of the PO k
+  Abc_Obj_t* pPO = Abc_NtkPo(pNtk, k);
+  Abc_Obj_t *pRoot  = Abc_ObjFanin0( pPO );
+  if (pPO == NULL || pRoot == NULL) {
+    Abc_Print(-1, "Internal error: Abc_NtkPo returned NULL for k=%d\n", k);
+    return 1;
+  }
+  // Abc_Print(-2, "DEBUG: PO id=%d name=%s pPO=%p pRoot= %p Data=%p\n", Abc_ObjId(pPO), Abc_ObjName(pPO), (void*)pPO, pRoot, pRoot->pData);
+  
+  DdNode * f = (DdNode *)pRoot->pData;
+  // DdNode * f = (DdNode*)pPO->pData;
+  if (f == NULL) {
+    Abc_Print(-1, "Internal error: PO's pData is NULL (BDD not built for PO %d)\n", k);
+    return 1;
+  }
+  // Abc_Print(-2, "DEBUG: BDD f=%p\n", (void*)f);
+  Cudd_Ref(f);
+
+  // get the variable of the PI i
+  Abc_Obj_t* pPI = Abc_NtkPi(pNtk, i);
+  if (pPI == NULL) {
+      Abc_Print(-1, "Internal error: Abc_NtkPi returned NULL for i=%d\n", i);
+      return 1;
+  }
+  // DdNode * x = Cudd_bddIthVar(dd, i);   // BUT the index may be different
+  // DdNode * x = (DdNode *)pPI->pData; // BUT pData==NULL
+
+  int idx = -1;
+  for (int j = 0; j < Abc_ObjFaninNum(pRoot); j++)
+  {
+    if (Abc_ObjFaninId(pRoot, j) == i + 1) idx = j;
+  }
+
+  if(idx == -1)
+  {
+    printf("independent\n");
+    Cudd_RecursiveDeref(dd, f);
+    return 0;
+  }
+  DdNode *x = Cudd_bddIthVar(dd, idx);
+    if (x == NULL) {
+      Abc_Print(-1, "Internal error: PI's pData is NULL (BDD var not set for PI %d)\n", i);
+      return 1;
+  }
+  // Abc_Print(-2, "DEBUG: PI i=%d id=%d pPI=%p\n", i, idx, (void*)x);
+  Cudd_Ref(x);
+
+  // cofactor f with respect to x
+  DdNode * f_x1 = Cudd_Cofactor(dd, f, x); 
+  Cudd_Ref(f_x1);
+  DdNode * f_x0 = Cudd_Cofactor(dd, f, Cudd_Not(x)); 
+  Cudd_Ref(f_x0);
+
+  // check unate property
+  int is_pos_unate = Cudd_bddLeq(dd, f_x0, f_x1); // f_x0 <= f_x1
+  int is_neg_unate = Cudd_bddLeq(dd, f_x1, f_x0); // f_x1 <= f_x0
+
+  // print result
+  if(is_pos_unate && is_neg_unate) {
+    Abc_Print(-2, "independent\n");
+  } else if(is_pos_unate) {
+    Abc_Print(-2, "positive unate\n");
+  } else if(is_neg_unate) {
+    Abc_Print(-2, "negative unate\n");
+  } else {
+    Abc_Print(-2, "binate\n");
+    // find patterns
+    // int nVars  = Cudd_ReadSize(dd);
+    // char *raw = (char*)malloc(nVars + 1);
+    // if(raw == NULL) {
+    //   Abc_Print(-1, "Error: memory allocation failed for cube1.\n");
+    // }
+    // raw[nVars] = '\0';
+
+    char *cube1 = new char[pi_num];
+    DdNode *pattern1 = Cudd_bddAnd(dd, f_x1, Cudd_Not(f_x0)); 
+    Cudd_Ref(pattern1);
+    int ok1 = Cudd_bddPickOneCube(dd, pattern1, cube1);
+    if(!ok1) {
+      Abc_Print(-1, "Error: failed to pick one cube from pattern1.\n");
+    }
+    
+    // reorder and set xi free
+    // printf("cube1 pattern: ");
+    // for (int j = 0; j < pi_num; j++)
+    // {
+    //   printf("%d", cube1[j]);
+    // }
+    for (int j = 0; j < pi_num; j++)
+    {
+      if (j == i) Abc_Print(-2, "%c", '-'); // set xi free
+      else {
+        int var_index = -1;
+        for (int k = 0; k < Abc_ObjFaninNum(pRoot); k++)
+        {
+          if (Abc_ObjFaninId(pRoot, k) == j + 1) var_index = k;
+        }
+        // printf("DEBUG: var_index of pi %d = %d\n", j, var_index);
+        if(var_index == -1) { // independent variable
+          Abc_Print(-2, "%d", 0); // set to 0
+        } else {
+          if(cube1[var_index] == 2) { // don't care
+            Abc_Print(-2, "%c", '-');
+          } else {
+            Abc_Print(-2, "%d", cube1[var_index]);
+          }
+        }
+      }
+    }
+    // Abc_Print(-2, "cube1: %s\n", cube1);
+
+    char *cube2 = new char[Abc_NtkPiNum(pNtk)];
+    DdNode *pattern2 = Cudd_bddAnd(dd, f_x0, Cudd_Not(f_x1)); 
+    Cudd_Ref(pattern2);
+    int ok2 = Cudd_bddPickOneCube(dd, pattern2, cube2);
+    if(!ok2) {
+      Abc_Print(-1, "Error: failed to pick one cube from pattern2.\n");
+    }
+    printf("\n");
+    // for (int j = 0; j < pi_num; j++)
+    // {
+    //   printf("%d", cube2[j]);
+    // }
+    for (int j = 0; j < pi_num; j++)
+    {
+      if (j == i) Abc_Print(-2, "%c", '-'); // set xi free
+      else {
+        int var_index = -1;
+        for (int k = 0; k < Abc_ObjFaninNum(pRoot); k++)
+        {
+          if (Abc_ObjFaninId(pRoot, k) == j + 1) var_index = k;
+        }
+        // printf("DEBUG: var_index of pi %d = %d\n", j, var_index);
+        if(var_index == -1) { // independent variable
+          Abc_Print(-2, "%d", 0); // set to 0
+        } else {
+          if(cube1[var_index] == 2) { // don't care
+            Abc_Print(-2, "%c", '-');
+          } else {
+            Abc_Print(-2, "%d", cube2[var_index]);
+          }
+        }
+      }
+    }
+    printf("\n");
+
+    Cudd_RecursiveDeref(dd, pattern1);
+    Cudd_RecursiveDeref(dd, pattern2);
+    // free(cube1);
+    // free(cube2);
+  }    
+
+  // free
+  Cudd_RecursiveDeref(dd, f);
+  Cudd_RecursiveDeref(dd, f_x1);
+  Cudd_RecursiveDeref(dd, f_x0);
+
+  return 0;
+}
+
+int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
+  // check if everything is valid
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  if (!pNtk) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  assert(Abc_NtkIsStrash(pNtk));
+
+  if(argc != 3) {
+    Abc_Print(-1, "Wrong number of arguments.\n");
+    Abc_Print(-2, "usage: lsv_unate_bdd <k> <i> [-h]\n");
+    Abc_Print(-2, "\t        whether the function of yk is binate, positive unate, negative unate in xi, or independent of xi\n");
+    Abc_Print(-2, "\t-h    : print the command usage\n");
+    return 1;
+  }
+  int k = atoi(argv[1]);
+  int i = atoi(argv[2]);
+  // check if k < Abc_NtkPoNum(pNtk) && i < Abc_NtkPiNum(pNtk)
+  int pi_num = Abc_NtkPiNum(pNtk);
+  if(k >= Abc_NtkPoNum(pNtk) || i >= pi_num || k < 0 || i < 0) {
+    Abc_Print(-1, "Invalid k or i value.\n");
+    Abc_Print(-2, "usage: lsv_unate_bdd <k> <i>\n");
+    Abc_Print(-2, "\t        k should be less than number of POs (%d), i should be less than number of PIs (%d)\n", Abc_NtkPoNum(pNtk), Abc_NtkPiNum(pNtk));
+    return 1;
+  }
+
+  return 0;
 }
