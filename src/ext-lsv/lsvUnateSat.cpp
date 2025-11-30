@@ -51,6 +51,8 @@ static void AddCnfToSolver( sat_solver * pSat, Cnf_Dat_t * pCnf )
 }
 
 // SAT solve with assumptions (var, value)
+// value here is the *variable* assignment (for the underlying AIG node),
+// not yet including any output complement; we handle that before calling.
 static int SolveWithAssumps(
     sat_solver * pSat,
     const std::vector<std::pair<int,int>> & assumps
@@ -58,7 +60,8 @@ static int SolveWithAssumps(
     std::vector<lit> vec;
     vec.reserve( assumps.size() );
     for ( auto [var, val] : assumps ) {
-        // val = 1 => positive literal; val = 0 => negated literal
+        // val = 1 => variable = 1 => positive literal
+        // val = 0 => variable = 0 => negative literal
         vec.push_back( toLitCond( var, val ? 0 : 1 ) );
     }
     return sat_solver_solve(
@@ -179,10 +182,14 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
 
     // Output y: cone has exactly one PO, but in AIG we look at its driver
     Aig_Obj_t * pAigCo = Aig_ManCo( pAig, 0 );
-    Aig_Obj_t * pAigF  = Aig_ObjFanin0( pAigCo );
+    Aig_Obj_t * pOut   = Aig_ObjFanin0( pAigCo ); // may be complemented!
 
-    int varYA = pCnfA->pVarNums[ Aig_ObjId( pAigF ) ];
-    int varYB = pCnfB->pVarNums[ Aig_ObjId( pAigF ) ];
+    // Regular node and sign for output
+    Aig_Obj_t * pOutReg = Aig_Regular( pOut );
+    int        signY    = Aig_IsComplement( pOut ); // 0 = non-inverted, 1 = inverted
+
+    int varYA = pCnfA->pVarNums[ Aig_ObjId( pOutReg ) ];
+    int varYB = pCnfB->pVarNums[ Aig_ObjId( pOutReg ) ];
 
     // Enforce x_t^A == x_t^B for all inputs t ≠ i
     Abc_Obj_t * pCi; int t;
@@ -202,44 +209,50 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
 
     // --------------------------------------------------------------
     // SAT queries:
-    //  - not positive unate: ∃ (0,1) s.t. yA=1, yB=0
-    //  - not negative unate: ∃ (0,1) s.t. yA=0, yB=1
+    //  - not positive unate: ∃ (xA=0, xB=1) s.t. yA=1, yB=0
+    //  - not negative unate: ∃ (xA=0, xB=1) s.t. yA=0, yB=1
+    //
+    // BUT y may be complemented at the AIG level: y = signY ? ¬F : F.
+    // Our CNF variables correspond to F (the regular node), so:
+    //   F = y XOR signY
+    // We encode assumptions on F accordingly.
     // --------------------------------------------------------------
 
-    // Violate positive unate
+    // Violate positive unate: want yA=1, yB=0
+    // Map to F-values: F = y XOR signY
     std::vector<std::pair<int,int>> assumpsPos;
-    assumpsPos.push_back( { varXA, 0 } ); // xA = 0
-    assumpsPos.push_back( { varXB, 1 } ); // xB = 1
-    assumpsPos.push_back( { varYA, 1 } ); // yA = 1
-    assumpsPos.push_back( { varYB, 0 } ); // yB = 0
+    assumpsPos.push_back( { varXA, 0 } );                      // xA = 0
+    assumpsPos.push_back( { varXB, 1 } );                      // xB = 1
+    assumpsPos.push_back( { varYA, 1 ^ signY } );              // F_A = (1 XOR signY)
+    assumpsPos.push_back( { varYB, 0 ^ signY } );              // F_B = (0 XOR signY)
 
     int sat_not_pos = SolveWithAssumps( pSat, assumpsPos );
 
-    // Violate negative unate
+    // Violate negative unate: want yA=0, yB=1
     std::vector<std::pair<int,int>> assumpsNeg;
-    assumpsNeg.push_back( { varXA, 0 } ); // xA = 0
-    assumpsNeg.push_back( { varXB, 1 } ); // xB = 1
-    assumpsNeg.push_back( { varYA, 0 } ); // yA = 0
-    assumpsNeg.push_back( { varYB, 1 } ); // yB = 1
+    assumpsNeg.push_back( { varXA, 0 } );                      // xA = 0
+    assumpsNeg.push_back( { varXB, 1 } );                      // xB = 1
+    assumpsNeg.push_back( { varYA, 0 ^ signY } );              // F_A = (0 XOR signY)
+    assumpsNeg.push_back( { varYB, 1 ^ signY } );              // F_B = (1 XOR signY)
 
     int sat_not_neg = SolveWithAssumps( pSat, assumpsNeg );
 
     bool can_violate_pos = (sat_not_pos == l_True);
     bool can_violate_neg = (sat_not_neg == l_True);
 
-    // NOTE: because of output polarity / CNF encoding, the roles of
-    // can_violate_pos / can_violate_neg end up swapped in practice,
-    // so the labels below are arranged to match the BDD results.
+    // Correct classification:
+    // - if neither violation is possible => independent
+    // - if not_pos UNSAT and not_neg SAT  => positive unate
+    // - if not_pos SAT  and not_neg UNSAT => negative unate
+    // - if both SAT                       => binate
     if ( !can_violate_pos && !can_violate_neg ) {
         printf( "independent\n" );
     }
     else if ( !can_violate_pos && can_violate_neg ) {
-        // only "not negative" is SAT  => function behaves as NEGATIVE unate
-        printf( "negative unate\n" );
+        printf( "positive unate\n" );
     }
     else if ( can_violate_pos && !can_violate_neg ) {
-        // only "not positive" is SAT => function behaves as POSITIVE unate
-        printf( "positive unate\n" );
+        printf( "negative unate\n" );
     }
     else {
         // binate: both violations SAT – also need to print patterns
