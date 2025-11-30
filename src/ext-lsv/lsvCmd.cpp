@@ -19,14 +19,17 @@ extern "C" {
 // Forward Declarations
 // -----------------------------------------------------------------------------
 
-// Existing command
+// Existing PA1 command
 static int Cmd_LsvPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv);
 
-// NEW: Declaration for the BDD Unateness command (implemented in lsvUnate.cpp)
+// PA2 Part 1: BDD unateness command (implemented in lsvUnate.cpp)
 extern "C" int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv);
 
+// PA2 Part 2: SAT unateness command (implemented in lsvUnateSat.cpp)
+extern "C" int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv);
+
 // -----------------------------------------------------------------------------
-// MoCut Utilities (Your existing code)
+// MoCut Utilities (your existing PA1 code)
 // -----------------------------------------------------------------------------
 
 static inline bool IsAigNet(Abc_Ntk_t* pNtk) {
@@ -208,14 +211,17 @@ static int Cmd_LsvPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv) {
 // -----------------------------------------------------------------------------
 
 extern "C" void Lsv_Init(Abc_Frame_t* pAbc) {
-    // 1. Register your existing command
+    // 1. Existing PA1 command
     Cmd_CommandAdd( pAbc, "LSV", "lsv_printmocut", Cmd_LsvPrintMoCut, 0 );
     
-    // 2. Register the new PA2 command (from lsvUnate.cpp)
+    // 2. PA2 Part 1: BDD unateness
     Cmd_CommandAdd( pAbc, "LSV", "lsv_unate_bdd", Lsv_CommandUnateBdd, 0 );
+
+    // 3. PA2 Part 2: SAT unateness
+    Cmd_CommandAdd( pAbc, "LSV", "lsv_unate_sat", Lsv_CommandUnateSat, 0 );
     
-    // 3. Keep the placeholder
-    // Cmd_CommandAdd( pAbc, "LSV", "lsv",          nullptr,             0 );
+    // 4. Placeholder
+    Cmd_CommandAdd( pAbc, "LSV", "lsv",          nullptr,             0 );
 }
 
 extern "C" void Lsv_End(Abc_Frame_t* pAbc) {
@@ -234,4 +240,3 @@ struct LsvAutoRegistrar {
     }
 } _lsv_auto_registrar;
 } // namespace
-
