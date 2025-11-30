@@ -16,7 +16,7 @@ extern "C" {
 #include "lsv.h"
 
 // Abc_NtkToDar is implemented but not declared in headers for this PA.
-extern "C"{
+extern "C" {
 Aig_Man_t* Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
 }
 
@@ -51,7 +51,7 @@ static void AddCnfToSolver( sat_solver * pSat, Cnf_Dat_t * pCnf )
 }
 
 // SAT solve with assumptions (var, value)
-// value is the assignment to the underlying AIG node (before any output inversion).
+// 'value' is assignment for the underlying AIG node: 0 or 1.
 static int SolveWithAssumps(
     sat_solver * pSat,
     const std::vector<std::pair<int,int>> & assumps
@@ -59,8 +59,7 @@ static int SolveWithAssumps(
     std::vector<lit> vec;
     vec.reserve( assumps.size() );
     for ( auto [var, val] : assumps ) {
-        // val = 1 => variable = 1 => positive literal
-        // val = 0 => variable = 0 => negative literal
+        // val = 1 ⇒ positive literal, val = 0 ⇒ negative literal
         vec.push_back( toLitCond( var, val ? 0 : 1 ) );
     }
     // In this ABC build: 0 = SAT, non-zero = UNSAT/other.
@@ -90,14 +89,14 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
         return;
     }
 
-    // Root node for the cone must be a node / CI / const, NOT a CO.
+    // Root node for the cone: the CO's fanin (driver).
     Abc_Obj_t * pRoot = Abc_ObjFanin0( pCo );
     if ( !pRoot ) {
         printf( "Error: CO has no fanin.\n" );
         return;
     }
 
-    // Build cone of pRoot; last arg = 1 so input IDs match original net (Hint 3)
+    // Build cone of pRoot; last arg = 1 so CI IDs match original network (Hint 3).
     Abc_Ntk_t * pCone = Abc_NtkCreateCone(
         pNtk,
         pRoot,
@@ -180,16 +179,13 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
     int varXA = pCnfA->pVarNums[ Aig_ObjId( pAigCi ) ];
     int varXB = pCnfB->pVarNums[ Aig_ObjId( pAigCi ) ];
 
-    // Output y: cone has exactly one PO, but in AIG we look at its driver
+    // Logical output f: AIG PO's fanin node (function root).
     Aig_Obj_t * pAigCo = Aig_ManCo( pAig, 0 );
-    Aig_Obj_t * pOut   = Aig_ObjFanin0( pAigCo ); // may be complemented!
+    Aig_Obj_t * pAigF  = Aig_ObjFanin0( pAigCo ); // function root (may have internal complements)
 
-    // Regular node and sign for output
-    Aig_Obj_t * pOutReg = Aig_Regular( pOut );
-    int        signY    = Aig_IsComplement( pOut ); // 0 = non-inverted, 1 = inverted
-
-    int varYA = pCnfA->pVarNums[ Aig_ObjId( pOutReg ) ];
-    int varYB = pCnfB->pVarNums[ Aig_ObjId( pOutReg ) ];
+    Aig_Obj_t * pFreg  = Aig_Regular( pAigF );
+    int varYA = pCnfA->pVarNums[ Aig_ObjId( pFreg ) ];
+    int varYB = pCnfB->pVarNums[ Aig_ObjId( pFreg ) ];
 
     // Enforce x_t^A == x_t^B for all inputs t ≠ i
     Abc_Obj_t * pCi; int t;
@@ -208,44 +204,38 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
     }
 
     // --------------------------------------------------------------
-    // SAT queries:
-    //  - not positive unate: ∃ (xA=0, xB=1) s.t. yA=1, yB=0
-    //  - not negative unate: ∃ (xA=0, xB=1) s.t. yA=0, yB=1
-    //
-    // BUT y may be complemented at the AIG level: y = signY ? ¬F : F.
-    // Our CNF variables correspond to F (the regular node), so:
-    //   F = y XOR signY
-    // We encode assumptions on F accordingly.
+    // SAT queries (at the function root f):
+    //  - not positive unate: ∃ (xA=0, xB=1) s.t. f(0,·)=1 and f(1,·)=0
+    //  - not negative unate: ∃ (xA=0, xB=1) s.t. f(0,·)=0 and f(1,·)=1
     // --------------------------------------------------------------
 
-    // Violate positive unate: want yA=1, yB=0
-    // Map to F-values: F = y XOR signY
+    // Violate positive unate
     std::vector<std::pair<int,int>> assumpsPos;
-    assumpsPos.push_back( { varXA, 0 } );                      // xA = 0
-    assumpsPos.push_back( { varXB, 1 } );                      // xB = 1
-    assumpsPos.push_back( { varYA, 1 ^ signY } );              // F_A = (1 XOR signY)
-    assumpsPos.push_back( { varYB, 0 ^ signY } );              // F_B = (0 XOR signY)
+    assumpsPos.push_back( { varXA, 0 } ); // xA = 0
+    assumpsPos.push_back( { varXB, 1 } ); // xB = 1
+    assumpsPos.push_back( { varYA, 1 } ); // fA = 1
+    assumpsPos.push_back( { varYB, 0 } ); // fB = 0
 
     int sat_not_pos = SolveWithAssumps( pSat, assumpsPos );
 
-    // Violate negative unate: want yA=0, yB=1
+    // Violate negative unate
     std::vector<std::pair<int,int>> assumpsNeg;
-    assumpsNeg.push_back( { varXA, 0 } );                      // xA = 0
-    assumpsNeg.push_back( { varXB, 1 } );                      // xB = 1
-    assumpsNeg.push_back( { varYA, 0 ^ signY } );              // F_A = (0 XOR signY)
-    assumpsNeg.push_back( { varYB, 1 ^ signY } );              // F_B = (1 XOR signY)
+    assumpsNeg.push_back( { varXA, 0 } ); // xA = 0
+    assumpsNeg.push_back( { varXB, 1 } ); // xB = 1
+    assumpsNeg.push_back( { varYA, 0 } ); // fA = 0
+    assumpsNeg.push_back( { varYB, 1 } ); // fB = 1
 
     int sat_not_neg = SolveWithAssumps( pSat, assumpsNeg );
 
-    // In this ABC build: sat_solver_solve(...) == 0 ⇔ SAT (violating witness exists)
+    // sat_solver_solve(...) == 0  ⇔ SAT  (violating witness exists)
     bool can_violate_pos = (sat_not_pos == 0);
     bool can_violate_neg = (sat_not_neg == 0);
 
-    // Correct classification:
-    // - if neither violation is possible => independent
-    // - if not_pos UNSAT and not_neg SAT  => positive unate
-    // - if not_pos SAT  and not_neg UNSAT => negative unate
-    // - if both SAT                       => binate
+    // Classification:
+    //  - neither violation possible => independent
+    //  - only negative-violation SAT => positive unate
+    //  - only positive-violation SAT => negative unate
+    //  - both SAT                   => binate
     if ( !can_violate_pos && !can_violate_neg ) {
         printf( "independent\n" );
     }
@@ -266,6 +256,7 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
             SolveWithAssumps( pSat, assumpsPos );
             for ( int j = 0; j < nCisCone; ++j ) {
                 Abc_Obj_t * pCiConeJ = Abc_NtkCi( pCone, j );
+                // Tested input becomes '-'
                 if ( Abc_ObjId( pCiConeJ ) == Abc_ObjId( pCiCone ) ) {
                     printf( "-" );
                     continue;
