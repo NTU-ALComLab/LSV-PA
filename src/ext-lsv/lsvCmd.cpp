@@ -171,6 +171,11 @@ int Lsv_CommandPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv) {
     Abc_Print(-1, "Empty network.\n");
     return 1;
   }
-  Lsv_NtkPrintMoCuts(pNtk, k, l);
+  
+
+  Cnf_DataFree(pCnf);
+  sat_solver_delete(pSat);
+  Aig_ManStop(pMan);
+  Abc_NtkDelete(pCone);
   return 0;
 }
