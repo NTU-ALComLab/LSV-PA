@@ -51,8 +51,7 @@ static void AddCnfToSolver( sat_solver * pSat, Cnf_Dat_t * pCnf )
 }
 
 // SAT solve with assumptions (var, value)
-// value here is the *variable* assignment (for the underlying AIG node),
-// not yet including any output complement; we handle that before calling.
+// value is the assignment to the underlying AIG node (before any output inversion).
 static int SolveWithAssumps(
     sat_solver * pSat,
     const std::vector<std::pair<int,int>> & assumps
@@ -64,6 +63,7 @@ static int SolveWithAssumps(
         // val = 0 => variable = 0 => negative literal
         vec.push_back( toLitCond( var, val ? 0 : 1 ) );
     }
+    // In this ABC build: 0 = SAT, non-zero = UNSAT/other.
     return sat_solver_solve(
         pSat,
         vec.data(), vec.data() + vec.size(),
@@ -237,8 +237,9 @@ static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int outIdx, int inIdx )
 
     int sat_not_neg = SolveWithAssumps( pSat, assumpsNeg );
 
-    bool can_violate_pos = (sat_not_pos == l_True);
-    bool can_violate_neg = (sat_not_neg == l_True);
+    // In this ABC build: sat_solver_solve(...) == 0 ⇔ SAT (violating witness exists)
+    bool can_violate_pos = (sat_not_pos == 0);
+    bool can_violate_neg = (sat_not_neg == 0);
 
     // Correct classification:
     // - if neither violation is possible => independent
