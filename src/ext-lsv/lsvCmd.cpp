@@ -227,86 +227,6 @@ int Lsv_CommandPrintMOCut(Abc_Frame_t* pAbc, int argc, char** argv) {
 }
 */
 
-// Build simple BDDs for the whole network and attach them to pData.
-DdManager * build_bdds_for_network(Abc_Ntk_t * pNtk)
-{
-  // create manager (tune params as needed)
-  DdManager *dd = Cudd_Init(0,0,0,0,0);
-  if (!dd) return NULL;
-
-  // assign PI vars
-  Abc_Obj_t * pObj;
-  int idx = 0;
-  Abc_NtkForEachPi(pNtk, pObj, idx) {
-    DdNode *var = Cudd_bddIthVar(dd, idx);
-    Cudd_Ref(var);                // keep a reference while attached
-    pObj->pData = (void*)var;
-    printf("DEBUG: PI id=%d name=%s var=%p pData=%p\n",
-           Abc_ObjId(pObj), Abc_ObjName(pObj), (void*)var, pObj->pData);
-  }
-
-  // traverse internal nodes in topological order and build BDD
-  Abc_NtkForEachNode(pNtk, pObj, idx) {
-    // collect fanin BDDs and complement flags
-    std::vector<DdNode*> fdds;
-    std::vector<int> invs;
-    Abc_Obj_t * pF;
-    int j = 0;
-    Abc_ObjForEachFanin(pObj, pF, j) {
-      DdNode *fd = (DdNode*)pF->pData;
-      if (fd == NULL) {
-        printf("DEBUG: missing fanin BDD for fanin %d of node %d (%s)\n",
-               j, Abc_ObjId(pObj), Abc_ObjName(pObj));
-        return NULL;
-      }
-      /* use ABC API to detect complemented edges */
-      int inv = Abc_ObjFaninC(pObj, j); /* returns 1 if fanin j is complemented */
-      if (inv) fd = Cudd_Not(fd);
-      fdds.push_back(fd);
-      invs.push_back(inv);
-      printf("DEBUG: Node id=%d name=%s Fanin-%d id=%d name=%s fd=%p inv=%d\n",
-             Abc_ObjId(pObj), Abc_ObjName(pObj), j,
-             Abc_ObjId(pF), Abc_ObjName(pF), (void*)fd, inv);
-    }
-
-    // compute node function depending on gate type
-    DdNode *res = NULL;
-    /* if node is truly an AND, combine fanins; otherwise you'll need to implement
-        a proper translation for the node type (SOP/AIG/etc.). */
-    if (fdds.size() == 1) {
-      res = fdds[0];
-      Cudd_Ref(res);
-    } else if (fdds.size() == 2) {
-      res = Cudd_bddAnd(dd, fdds[0], fdds[1]); Cudd_Ref(res);
-    } else {
-      res = Cudd_ReadOne(dd); Cudd_Ref(res);
-      for (DdNode* a : fdds) {
-        DdNode *t = Cudd_bddAnd(dd, res, a); Cudd_Ref(t);
-        Cudd_RecursiveDeref(dd, res);
-        res = t;
-      }
-    }
-    
-
-    // attach result to node (store pointer and keep ref)
-    pObj->pData = (void*)res;
-  }
-
-  // build PO BDDs: PO pData = fanin BDD (respect complement)
-  Abc_NtkForEachPo(pNtk, pObj, idx) {
-    Abc_Obj_t * pFanin = Abc_ObjFanin0(pObj); // adapt this accessor
-    DdNode *fd = (DdNode*)pFanin->pData;
-    bool inv = Abc_ObjFaninC0(pObj); // true if PO fanin is complemented (first fanin)
-    if (inv) fd = Cudd_Not(fd);
-    Cudd_Ref(fd);
-    pObj->pData = (void*)fd;
-  }
-
-  // store manager in network so other code can use it
-  pNtk->pManFunc = (void*)dd;
-  return dd;
-}
-
 int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
   // check if everything is valid
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
@@ -370,11 +290,9 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
   // DdNode * x = Cudd_bddIthVar(dd, i);   // BUT the index may be different
   // DdNode * x = (DdNode *)pPI->pData; // BUT pData==NULL
 
-  // std::map<int, int> id2idx;
   int idx = -1;
   for (int j = 0; j < Abc_ObjFaninNum(pRoot); j++)
   {
-    // id2idx[Abc_ObjFaninId(pRoot, j) - 1] = j;
     if (Abc_ObjFaninId(pRoot, j) == i + 1) idx = j;
   }
 
@@ -412,49 +330,89 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
   } else {
     Abc_Print(-2, "binate\n");
     // find patterns
-    int nVars  = Cudd_ReadSize(dd);
-    char *raw = (char*)malloc(nVars + 1);
-    if(raw == NULL) {
-      Abc_Print(-1, "Error: memory allocation failed for cube1.\n");
-    }
-    raw[nVars] = '\0';
+    // int nVars  = Cudd_ReadSize(dd);
+    // char *raw = (char*)malloc(nVars + 1);
+    // if(raw == NULL) {
+    //   Abc_Print(-1, "Error: memory allocation failed for cube1.\n");
+    // }
+    // raw[nVars] = '\0';
 
+    char *cube1 = new char[pi_num];
     DdNode *pattern1 = Cudd_bddAnd(dd, f_x1, Cudd_Not(f_x0)); 
     Cudd_Ref(pattern1);
-    int ok1 = Cudd_bddPickOneCube(dd, pattern1, raw);
+    int ok1 = Cudd_bddPickOneCube(dd, pattern1, cube1);
     if(!ok1) {
       Abc_Print(-1, "Error: failed to pick one cube from pattern1.\n");
     }
-    // get only PI, the first pi_num variables
-    char *cube1 = (char*)malloc(pi_num + 1);
-    for (int j = 0; j < pi_num; ++j) {
-        if      (raw[j] == '0') cube1[j] = '0';
-        else if (raw[j] == '1') cube1[j] = '1';
-        else                    cube1[j] = '2'; // '2' => don't care
+    
+    // reorder and set xi free
+    // printf("cube1 pattern: ");
+    // for (int j = 0; j < pi_num; j++)
+    // {
+    //   printf("%d", cube1[j]);
+    // }
+    for (int j = 0; j < pi_num; j++)
+    {
+      if (j == i) Abc_Print(-2, "%c", '-'); // set xi free
+      else {
+        int var_index = -1;
+        for (int k = 0; k < Abc_ObjFaninNum(pRoot); k++)
+        {
+          if (Abc_ObjFaninId(pRoot, k) == j + 1) var_index = k;
+        }
+        // printf("DEBUG: var_index of pi %d = %d\n", j, var_index);
+        if(var_index == -1) { // independent variable
+          Abc_Print(-2, "%d", 0); // set to 0
+        } else {
+          if(cube1[var_index] == 2) { // don't care
+            Abc_Print(-2, "%c", '-');
+          } else {
+            Abc_Print(-2, "%d", cube1[var_index]);
+          }
+        }
+      }
     }
-    cube1[pi_num] = '\0';
-    cube1[i] = '-'; // set xi free
-    Abc_Print(-2, "cube1: %s\n", cube1);
+    // Abc_Print(-2, "cube1: %s\n", cube1);
 
+    char *cube2 = new char[Abc_NtkPiNum(pNtk)];
     DdNode *pattern2 = Cudd_bddAnd(dd, f_x0, Cudd_Not(f_x1)); 
     Cudd_Ref(pattern2);
-    char *cube2 = (char*)malloc(pi_num + 1);
-    cube2[pi_num] = '\0';
-    int ok2 = Cudd_bddPickOneCube(dd, pattern2, raw);
+    int ok2 = Cudd_bddPickOneCube(dd, pattern2, cube2);
     if(!ok2) {
       Abc_Print(-1, "Error: failed to pick one cube from pattern2.\n");
     }
-    for (int j = 0; j < pi_num; ++j) {
-        if      (raw[j] == '0') cube2[j] = '0';
-        else if (raw[j] == '1') cube2[j] = '1';
-        else                    cube2[j] = '2'; // '2' => don't care
+    printf("\n");
+    // for (int j = 0; j < pi_num; j++)
+    // {
+    //   printf("%d", cube2[j]);
+    // }
+    for (int j = 0; j < pi_num; j++)
+    {
+      if (j == i) Abc_Print(-2, "%c", '-'); // set xi free
+      else {
+        int var_index = -1;
+        for (int k = 0; k < Abc_ObjFaninNum(pRoot); k++)
+        {
+          if (Abc_ObjFaninId(pRoot, k) == j + 1) var_index = k;
+        }
+        // printf("DEBUG: var_index of pi %d = %d\n", j, var_index);
+        if(var_index == -1) { // independent variable
+          Abc_Print(-2, "%d", 0); // set to 0
+        } else {
+          if(cube1[var_index] == 2) { // don't care
+            Abc_Print(-2, "%c", '-');
+          } else {
+            Abc_Print(-2, "%d", cube2[var_index]);
+          }
+        }
+      }
     }
-    cube2[i] = '-'; // set xi free
-    Abc_Print(-2, "cube2: %s\n", cube1);
+    printf("\n");
+
     Cudd_RecursiveDeref(dd, pattern1);
     Cudd_RecursiveDeref(dd, pattern2);
-    free(cube1);
-    free(cube2);
+    // free(cube1);
+    // free(cube2);
   }    
 
   // free
@@ -464,69 +422,15 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
 
   return 0;
 }
-/*
-int Lsv_CommandUnate(Abc_Frame_t* pAbc, int argc, char** argv) {
-  // 0. check if everything is valid
+
+int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
+  // check if everything is valid
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   if (!pNtk) {
     Abc_Print(-1, "Empty network.\n");
     return 1;
   }
-  assert(Abc_NtkIsBddLogic(pNtk));
+  assert(Abc_NtkIsSopLogic(pNtk));
 
-  if(argc != 3) {
-    Abc_Print(-1, "Wrong number of arguments.\n");
-    Abc_Print(-2, "usage: lsv_unate_bdd <k> <i> [-h]\n");
-    Abc_Print(-2, "\t        whether the function of yk is binate, positive unate, negative unate in xi, or independent of xi\n");
-    Abc_Print(-2, "\t-h    : print the command usage\n");
-    return 1;
-  }
-  int k = atoi(argv[1]);
-  int i = atoi(argv[2]);
-  printf("DEBUG: k=%d, i=%d\n", k, i);
-  // check if k < Abc_NtkPoNum(pNtk) && i < Abc_NtkPiNum(pNtk)
-  int pi_num = Abc_NtkPiNum(pNtk);
-  printf("DEBUG: pi_num=%d\n", pi_num);
-  if(k >= Abc_NtkPoNum(pNtk) || i >= pi_num || k < 0 || i < 0) {
-    Abc_Print(-1, "Invalid k or i value.\n");
-    Abc_Print(-2, "usage: lsv_unate_bdd <k> <i>\n");
-    Abc_Print(-2, "\t        k should be less than number of POs (%d), i should be less than number of PIs (%d)\n", Abc_NtkPoNum(pNtk), Abc_NtkPiNum(pNtk));
-    return 1;
-  }
-
-  // 1. Ensure network is strashed (AIG)
-  if ( !Abc_NtkIsStrash( pNtk ) ) {
-      printf( "Converting current network to a strashed AIG...\n" );
-      pNtk = Abc_NtkStrash( pNtk, 0, 1, 0 );
-      if ( pNtk == NULL ) {
-          printf( "Strashing failed.\n" );
-          return 1;
-      }
-      Abc_FrameReplaceCurrentNetwork( pAbc, pNtk );
-  }
-  // 2. Build global BDDs if not already present
-  if ( Abc_NtkGlobalBddMan( pNtk ) == NULL ) {
-      int nBddSizeMax   = 10000000; // size limit
-      int fDropInternal = 1;        // drop internal-node BDDs
-      int fReorder      = 1;        // enable reordering
-      int fVerbose      = 0;
-
-      if ( Abc_NtkBuildGlobalBdds( pNtk,
-                                    nBddSizeMax,
-                                    fDropInternal,
-                                    fReorder,
-                                    fVerbose ) == NULL ) {
-          printf( "BDD construction aborted (likely BDD blow-up).\n" );
-          return 1;
-      }
-  }
-  // 3. Grab manager and the BDDs you need
-  DdManager *dd = Abc_NtkGlobalBddMan( pNtk );
-  if ( dd == NULL ) {
-      printf( "Internal error: no BDD manager.\n" );
-      return 1;
-  }
-
-
+  return 0;
 }
-*/
