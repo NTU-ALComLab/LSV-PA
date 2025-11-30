@@ -187,49 +187,32 @@ usage:
 // PA2
 // part1: lsv_unate_bdd
 
-void Lsv_PrintBinatePattern(DdManager * dd, Abc_Ntk_t * pNtk, DdNode * bddFunc, int targetPiIndex) {
+void Lsv_PrintBinatePattern(DdManager * dd, Abc_Ntk_t * pNtkCone, DdNode * bddFunc, int targetPiIndex) {
     int * cube;
     CUDD_VALUE_TYPE val;
-    DdGen * gen; // Ensure this is a pointer
-    
-    // Safety check: If the BDD function is empty (logical 0), there are no patterns to print
-    if (bddFunc == Cudd_ReadLogicZero(dd)) {
-        printf("Error: Domain is empty.\n");
-        return;
-    }
+    DdGen * gen;
 
+    if (bddFunc == Cudd_ReadLogicZero(dd)) return;
+
+    // Use the first cube found
     Cudd_ForeachCube(dd, bddFunc, gen, cube, val) {
-        // Inside Lsv_PrintBinatePattern loop
-        for (int j = 0; j < Abc_NtkPiNum(pNtk); j++) {
+        // Iterate over the PIs of the CONE (which match the original network if fAllPis=1)
+        for (int j = 0; j < Abc_NtkPiNum(pNtkCone); j++) {
             if (j == targetPiIndex) {
                 printf("-");
-            }
-            else {
-                // We need to find which BDD variable corresponds to PI 'j'
-                Abc_Obj_t * pPi = Abc_NtkPi(pNtk, j);
-                DdNode * piBdd = (DdNode *)pPi->pData;
-                int bddVarIdx;
+            } else {
+                Abc_Obj_t * pPi = Abc_NtkPi(pNtkCone, j);
 
-                if (piBdd != NULL) {
-                    bddVarIdx = Cudd_Regular(piBdd)->index;
-                } else {
-                    // Apply the same reverse mapping here!
-                    int numPis = Abc_NtkPiNum(pNtk);
-                    bddVarIdx = (numPis - 1) - j; 
-                }
+                DdNode * piBdd = (DdNode *)Abc_ObjGlobalBdd(pPi);
+                int bddVarIdx = (int)Cudd_Regular(piBdd)->index;
 
-                // Now lookup the cube using the corrected BDD index
-                if (bddVarIdx < 0 || bddVarIdx >= Cudd_ReadSize(dd)) {
-                    printf("0");
-                } else {
-                    if (cube[bddVarIdx] == 1) printf("1");
-                    else printf("0");
-                }
+                if (cube[bddVarIdx] == 1) printf("1");
+                else printf("0");
             }
         }
         printf("\n");
         Cudd_GenFree(gen);
-        return; // Print only one pattern
+        return;
     }
 }
 
@@ -238,82 +221,102 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
         Abc_Print(-1, "Usage: lsv_unate_bdd <output_index> <input_index>\n");
         return 1;
     }
+
     Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
-    int outputIdx, inputIdx;
-    if (!pNtk) {
-        Abc_Print(-1, "Empty network.\n");
-        return 1;
-    }
-    if (!Abc_NtkIsBddLogic(pNtk)) {
-         Abc_Print(-1, "Network is not in BDD format. Run 'collapse' first.\n");
-         return 1; 
-    }
+    if (!pNtk) { Abc_Print(-1, "Empty network.\n"); return 1; }
 
-    outputIdx = atoi(argv[1]);
-    inputIdx = atoi(argv[2]);
+    int outIdx = atoi(argv[1]);
+    int inIdx = atoi(argv[2]);
 
-    if (outputIdx >= Abc_NtkPoNum(pNtk) || inputIdx >= Abc_NtkPiNum(pNtk)) {
+    if (outIdx >= Abc_NtkPoNum(pNtk) || inIdx >= Abc_NtkPiNum(pNtk)) {
         Abc_Print(-1, "Index out of bounds.\n");
         return 1;
     }
-    
-    DdManager * dd = (DdManager *)pNtk->pManFunc;
-    
-    Abc_Obj_t * pPo = Abc_NtkPo(pNtk, outputIdx);
-    Abc_Obj_t * pPi = Abc_NtkPi(pNtk, inputIdx);
-    
-    Abc_Obj_t * pRoot = Abc_ObjFanin0(pPo); 
 
-    // Retrieve the BDD from the driving node's data
-    DdNode * fn_node = (DdNode *)pRoot->pData;
+    Abc_Obj_t * pPo = Abc_NtkPo(pNtk, outIdx);
+    Abc_Obj_t * pRoot = Abc_ObjFanin0(pPo);
+    
+    // Safety: Use logic name to ensure mapping works
+    Abc_Ntk_t * pCone = Abc_NtkCreateCone(pNtk, pRoot, Abc_ObjName(pRoot), 1);
+    if (!pCone) { Abc_Print(-1, "Error: Cone creation failed.\n"); return 1; }
 
-    // If the wire from the logic node to the PO is inverted, we must complement the BDD.
+    Abc_Ntk_t * pConeStrash = Abc_NtkStrash(pCone, 0, 0, 0);
+    Abc_NtkDelete(pCone);
+    if (!pConeStrash) { Abc_Print(-1, "Error: Strash failed.\n"); return 1; }
+
+    Abc_NtkBuildGlobalBdds(pConeStrash, 10000000, 0, 1, 0, 0);
+
+    DdManager * dd = (DdManager *)Abc_NtkGlobalBddMan(pConeStrash);
+    if (!dd) { 
+        Abc_Print(-1, "Error: Global BDD Manager not found.\n"); 
+        Abc_NtkDelete(pConeStrash);
+        return 1; 
+    }
+
+    Abc_Obj_t * pConePo = Abc_NtkPo(pConeStrash, 0);
+    Abc_Obj_t * pConeRoot = Abc_ObjFanin0(pConePo);
+    DdNode * fn_node = (DdNode *)Abc_ObjGlobalBdd(pConeRoot);
+
+    if (!fn_node) {
+        // Special Case: Constant Node?
+        if (Abc_AigNodeIsConst(pConeRoot)) {
+            fn_node = Cudd_ReadOne(dd); // Default to Constant 1
+        } else {
+            Abc_Print(-1, "Error: Output function BDD is NULL.\n");
+            Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+            Abc_NtkDelete(pConeStrash);
+            return 1;
+        }
+    }
+
+
+    if (Abc_ObjFaninC0(pConePo)) {
+        fn_node = Cudd_Not(fn_node);
+    }
     if (Abc_ObjFaninC0(pPo)) {
         fn_node = Cudd_Not(fn_node);
     }
+    // Get Input Variable
+    Abc_Obj_t * pConePi = Abc_NtkPi(pConeStrash, inIdx);
+    DdNode * var_node = (DdNode *)Abc_ObjGlobalBdd(pConePi);
 
-    DdNode * var_node;    
-    int numPis = Abc_NtkPiNum(pNtk);
-    int mappedBddIndex = (numPis - 1) - inputIdx;        
-    var_node = Cudd_bddIthVar(dd, mappedBddIndex);
+    if (!var_node) {
+        Abc_Print(-1, "Error: Input %d BDD is NULL. (Index mismatch?)\n", inIdx);
+        Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+        Abc_NtkDelete(pConeStrash);
+        return 1;
+    }
 
     DdNode * f_pos = Cudd_Cofactor(dd, fn_node, var_node);
     Cudd_Ref(f_pos);
     DdNode * f_neg = Cudd_Cofactor(dd, fn_node, Cudd_Not(var_node));
     Cudd_Ref(f_neg);
-    
-    // Check Independent: f_pos == f_neg
+
     if (f_pos == f_neg) {
         printf("independent\n");
-    } 
-    // Check Positive Unate: f_neg <= f_pos
-    else if (Cudd_bddLeq(dd, f_neg, f_pos)) {
+    } else if (Cudd_bddLeq(dd, f_neg, f_pos)) {
         printf("positive unate\n");
-    }
-    // Check Negative Unate: f_pos <= f_neg
-    else if (Cudd_bddLeq(dd, f_pos, f_neg)) {
+    } else if (Cudd_bddLeq(dd, f_pos, f_neg)) {
         printf("negative unate\n");
-    }
-    else {
+    } else {
         printf("binate\n");
-
-        // Positive behavior witness
-        // P1 = f_pos & (!f_neg)
+        // Pattern 1
         DdNode * diff_pos = Cudd_bddAnd(dd, f_pos, Cudd_Not(f_neg));
         Cudd_Ref(diff_pos);
-        Lsv_PrintBinatePattern(dd, pNtk, diff_pos, inputIdx);
+        Lsv_PrintBinatePattern(dd, pConeStrash, diff_pos, inIdx);
         Cudd_RecursiveDeref(dd, diff_pos);
 
-        // Pattern 2: Negative behavior witness
-        // Logic: P2 = (!f_pos) & f_neg
+        // Pattern 2
         DdNode * diff_neg = Cudd_bddAnd(dd, Cudd_Not(f_pos), f_neg);
         Cudd_Ref(diff_neg);
-        Lsv_PrintBinatePattern(dd, pNtk, diff_neg, inputIdx);
+        Lsv_PrintBinatePattern(dd, pConeStrash, diff_neg, inIdx);
         Cudd_RecursiveDeref(dd, diff_neg);
     }
 
     Cudd_RecursiveDeref(dd, f_pos);
     Cudd_RecursiveDeref(dd, f_neg);
+    Abc_NtkFreeGlobalBdds(pConeStrash, 1);
+    Abc_NtkDelete(pConeStrash);
 
     return 0;
 }
