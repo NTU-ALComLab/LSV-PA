@@ -61,9 +61,9 @@ static void PrintUnateResult(bool canPos, bool canNeg)
 /// Core procedure (works on the whole strashed network)
 ////////////////////////////////////////////////////////////////////////
 
-void Lsv_NtkUnateSat(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
+static void Lsv_NtkUnateSatCore(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
 {
-    // Basic sanity checks
+    // Basic sanity checks on ABC side
     if (!Abc_NtkIsStrash(pNtk)) {
         Abc_Print(-1, "Error: network is not strashed. Use \"strash\" first.\n");
         return;
@@ -77,14 +77,18 @@ void Lsv_NtkUnateSat(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
         return;
     }
 
-    // Map POs and PIs in the ABC network
-    Abc_Obj_t* pPo = Abc_NtkPo(pNtk, poIdx);
-    Abc_Obj_t* pPi = Abc_NtkPi(pNtk, piIdx);
-
     // Convert the *whole* strashed network to an AIG
     Aig_Man_t* pAig = Abc_NtkToDar(pNtk, 0, 0);
     if (!pAig) {
         Abc_Print(-1, "Error: Abc_NtkToDar() failed.\n");
+        return;
+    }
+
+    // Sanity: AIG CI/CO counts should match ABC PI/PO counts
+    if ( Aig_ManCiNum(pAig) != Abc_NtkPiNum(pNtk) ||
+         Aig_ManCoNum(pAig) != Abc_NtkPoNum(pNtk) ) {
+        Abc_Print(-1, "Error: mismatch between network PIs/POs and AIG CIs/COs.\n");
+        Aig_ManStop(pAig);
         return;
     }
 
@@ -113,33 +117,33 @@ void Lsv_NtkUnateSat(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
     Cnf_DataLift(pCnf, -nVars);
 
     // === Map output and input to CNF variable indices ===
+    // Use AIG CI/CO order directly; no pCopy dependence.
 
-    // Output: PO's fanin in AIG
-    Aig_Obj_t* pAigPo  = (Aig_Obj_t*)pPo->pCopy;       // CO object
-    Aig_Obj_t* pLitOut = Aig_ObjChild0(pAigPo);        // literal for function
-    int fOutCompl      = Aig_IsComplement(pLitOut);    // 1 if complemented at PO
-    Aig_Obj_t* pOutReg = Aig_Regular(pLitOut);
+    // Output: poIdx-th CO in AIG
+    Aig_Obj_t* pAigCo  = Aig_ManCo(pAig, poIdx);
+    Aig_Obj_t* pLitOut = Aig_ObjChild0(pAigCo);        // literal for function
+    int        fOutCompl = Aig_IsComplement(pLitOut);  // 1 if complemented at PO
+    Aig_Obj_t* pOutReg   = Aig_Regular(pLitOut);
 
     int varY  = pCnf->pVarNums[Aig_ObjId(pOutReg)];
     int varYA = varY;            // copy A
     int varYB = varY + nVars;    // copy B
 
-    // Input: PI in AIG
-    Aig_Obj_t* pAigPi = (Aig_Obj_t*)pPi->pCopy;        // CI object (not complemented)
-    Aig_Obj_t* pPiReg = Aig_Regular(pAigPi);
-    int varX  = pCnf->pVarNums[Aig_ObjId(pPiReg)];
+    // Input: piIdx-th CI in AIG
+    Aig_Obj_t* pAigCi = Aig_ManCi(pAig, piIdx);
+    Aig_Obj_t* pCiReg = Aig_Regular(pAigCi);
+    int varX  = pCnf->pVarNums[Aig_ObjId(pCiReg)];
     int varXA = varX;
     int varXB = varX + nVars;
 
-    // === Add equalities for all other PIs ===
-    int nPi = Abc_NtkPiNum(pNtk);
-    for (int i = 0; i < nPi; ++i) {
+    // === Add equalities for all other PIs (CIs) ===
+    int nCi = Aig_ManCiNum(pAig);
+    for (int i = 0; i < nCi; ++i) {
         if (i == piIdx) continue;   // skip tested PI
 
-        Abc_Obj_t* pThisPi = Abc_NtkPi(pNtk, i);
-        Aig_Obj_t* pAigPi2 = (Aig_Obj_t*)pThisPi->pCopy;
-        Aig_Obj_t* pPi2Reg = Aig_Regular(pAigPi2);
-        int varZ  = pCnf->pVarNums[Aig_ObjId(pPi2Reg)];
+        Aig_Obj_t* pCi2    = Aig_ManCi(pAig, i);
+        Aig_Obj_t* pCi2Reg = Aig_Regular(pCi2);
+        int varZ  = pCnf->pVarNums[Aig_ObjId(pCi2Reg)];
         int varZA = varZ;
         int varZB = varZ + nVars;
         AddEquality(pSat, varZA, varZB);
@@ -188,7 +192,7 @@ void Lsv_NtkUnateSat(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
 
     bool canViolateNeg = SolveSAT(assumpsNotNeg);
 
-    // Print classification (no patterns for Part 2)
+    // Print classification (no patterns needed for SAT part)
     PrintUnateResult(canViolatePos, canViolateNeg);
 
     // Clean up
@@ -198,7 +202,7 @@ void Lsv_NtkUnateSat(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
 }
 
 ////////////////////////////////////////////////////////////////////////
-/// ABC command wrapper (this is what the linker was missing)
+/// ABC command wrapper
 ////////////////////////////////////////////////////////////////////////
 
 int Lsv_CommandUnateSat( Abc_Frame_t * pAbc, int argc, char ** argv )
@@ -217,6 +221,6 @@ int Lsv_CommandUnateSat( Abc_Frame_t * pAbc, int argc, char ** argv )
         return 1;
     }
 
-    Lsv_NtkUnateSat( pNtk, poIdx, piIdx );
+    Lsv_NtkUnateSatCore( pNtk, poIdx, piIdx );
     return 0;
 }
