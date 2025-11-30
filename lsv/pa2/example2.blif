@@ -1,0 +1,14 @@
+.model example2
+.inputs x0 x1 x2 x3
+.outputs y0
+
+# t0 = ~x0 & x1
+.names x0 x1 t0
+01 1
+
+# y0 = t0 | x2 = (~x0 & x1) ∨ x2
+.names t0 x2 y0
+1- 1
+-1 1
+
+.end
