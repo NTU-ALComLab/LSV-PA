@@ -58,7 +58,7 @@ static void PrintUnateResult(bool canPos, bool canNeg)
 }
 
 ////////////////////////////////////////////////////////////////////////
-/// Core procedure
+/// Core procedure (works on the whole strashed network)
 ////////////////////////////////////////////////////////////////////////
 
 void Lsv_NtkUnateSat(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
@@ -120,14 +120,14 @@ void Lsv_NtkUnateSat(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
     int fOutCompl      = Aig_IsComplement(pLitOut);    // 1 if complemented at PO
     Aig_Obj_t* pOutReg = Aig_Regular(pLitOut);
 
-    int varY = pCnf->pVarNums[Aig_ObjId(pOutReg)];
+    int varY  = pCnf->pVarNums[Aig_ObjId(pOutReg)];
     int varYA = varY;            // copy A
     int varYB = varY + nVars;    // copy B
 
     // Input: PI in AIG
     Aig_Obj_t* pAigPi = (Aig_Obj_t*)pPi->pCopy;        // CI object (not complemented)
     Aig_Obj_t* pPiReg = Aig_Regular(pAigPi);
-    int varX = pCnf->pVarNums[Aig_ObjId(pPiReg)];
+    int varX  = pCnf->pVarNums[Aig_ObjId(pPiReg)];
     int varXA = varX;
     int varXB = varX + nVars;
 
@@ -139,8 +139,7 @@ void Lsv_NtkUnateSat(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
         Abc_Obj_t* pThisPi = Abc_NtkPi(pNtk, i);
         Aig_Obj_t* pAigPi2 = (Aig_Obj_t*)pThisPi->pCopy;
         Aig_Obj_t* pPi2Reg = Aig_Regular(pAigPi2);
-        int varZ = pCnf->pVarNums[Aig_ObjId(pPi2Reg)];
-
+        int varZ  = pCnf->pVarNums[Aig_ObjId(pPi2Reg)];
         int varZA = varZ;
         int varZB = varZ + nVars;
         AddEquality(pSat, varZA, varZB);
@@ -154,10 +153,7 @@ void Lsv_NtkUnateSat(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
             const_cast<lit*>(assumps.data()) + assumps.size(),
             0, 0, 0, 0
         );
-        // ABC uses l_True / l_False:
-        //   l_True  =  1  (SAT)
-        //   l_False =  0  (UNSAT)
-        //   l_Undef = -1
+        // ABC uses l_True / l_False / l_Undef
         return (status == l_True);
     };
 
@@ -192,11 +188,35 @@ void Lsv_NtkUnateSat(Abc_Ntk_t* pNtk, int poIdx, int piIdx)
 
     bool canViolateNeg = SolveSAT(assumpsNotNeg);
 
-    // Print classification (no patterns for now — PA2 usually only checks type)
+    // Print classification (no patterns for Part 2)
     PrintUnateResult(canViolatePos, canViolateNeg);
 
     // Clean up
     Cnf_DataFree(pCnf);
     Aig_ManStop(pAig);
     sat_solver_delete(pSat);
+}
+
+////////////////////////////////////////////////////////////////////////
+/// ABC command wrapper (this is what the linker was missing)
+////////////////////////////////////////////////////////////////////////
+
+int Lsv_CommandUnateSat( Abc_Frame_t * pAbc, int argc, char ** argv )
+{
+    if ( argc != 3 ) {
+        Abc_Print( -1, "Usage: lsv_unate_sat <po_index> <pi_index>\n" );
+        return 1;
+    }
+
+    int poIdx = atoi( argv[1] );
+    int piIdx = atoi( argv[2] );
+
+    Abc_Ntk_t * pNtk = Abc_FrameReadNtk( pAbc );
+    if ( !pNtk ) {
+        Abc_Print( -1, "Error: empty network.\n" );
+        return 1;
+    }
+
+    Lsv_NtkUnateSat( pNtk, poIdx, piIdx );
+    return 0;
 }
