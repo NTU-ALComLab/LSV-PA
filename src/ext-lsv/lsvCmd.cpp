@@ -5,43 +5,48 @@
 #include "lsvCmd.h"
 #include <string>
 
-static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
-static int Lsv_CommandPrintMocut(Abc_Frame_t* pAbc, int argc, char** argv);
-static int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv);
-static int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandPrintNodes(Abc_Frame_t *pAbc, int argc, char **argv);
+static int Lsv_CommandPrintMocut(Abc_Frame_t *pAbc, int argc, char **argv);
+static int Lsv_CommandUnateBdd(Abc_Frame_t *pAbc, int argc, char **argv);
+static int Lsv_CommandUnateSat(Abc_Frame_t *pAbc, int argc, char **argv);
 
-void init(Abc_Frame_t* pAbc) {
+void init(Abc_Frame_t *pAbc)
+{
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "pa1", Lsv_CommandPrintMocut, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_CommandPrintMocut, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_bdd", Lsv_CommandUnateBdd, 0);
   Cmd_CommandAdd(pAbc, "LSV", "pa2_bdd", Lsv_CommandUnateBdd, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_sat", Lsv_CommandUnateSat, 0);
-  Cmd_CommandAdd(pAbc, "LSV", "pa2", Lsv_CommandUnateSat, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "pa2_sat", Lsv_CommandUnateSat, 0);
 }
 
-void destroy(Abc_Frame_t* pAbc) {}
+void destroy(Abc_Frame_t *pAbc) {}
 
 Abc_FrameInitializer_t frame_initializer = {init, destroy};
 
-struct PackageRegistrationManager {
+struct PackageRegistrationManager
+{
   PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer); }
 } lsvPackageRegistrationManager;
 
-
-int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
-  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+int Lsv_CommandPrintNodes(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+  Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
   int c;
   Extra_UtilGetoptReset();
-  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
-    switch (c) {
-      case 'h':
-        goto usage;
-      default:
-        goto usage;
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF)
+  {
+    switch (c)
+    {
+    case 'h':
+      goto usage;
+    default:
+      goto usage;
     }
   }
-  if (!pNtk) {
+  if (!pNtk)
+  {
     Abc_Print(-1, "Empty network.\n");
     return 1;
   }
@@ -55,36 +60,40 @@ usage:
   return 1;
 }
 
-
-int Lsv_CommandPrintMocut(Abc_Frame_t* pAbc, int argc, char** argv) {
-  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+int Lsv_CommandPrintMocut(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+  Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
   int c, k = -1, l = -1;
   Extra_UtilGetoptReset();
-  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
-    switch (c) {
-      case 'h':
-        goto usage;
-      default:
-        goto usage;
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF)
+  {
+    switch (c)
+    {
+    case 'h':
+      goto usage;
+    default:
+      goto usage;
     }
   }
-  if ( argc != globalUtilOptind + 2 )
-        goto usage;
+  if (argc != globalUtilOptind + 2)
+    goto usage;
   // try{
-    k = atoi(argv[globalUtilOptind]);
-    l = atoi(argv[globalUtilOptind + 1]);
-  
-  if(k < 3 || k > 6) goto usage;
-  if(l < 1 || l > 4) goto usage;
+  k = atoi(argv[globalUtilOptind]);
+  l = atoi(argv[globalUtilOptind + 1]);
+
+  if (k < 3 || k > 6)
+    goto usage;
+  if (l < 1 || l > 4)
+    goto usage;
 
   // printf("k = %d, l = %d\n", k, l);
-  if (!pNtk) {
+  if (!pNtk)
+  {
     Abc_Print(-1, "Empty network.\n");
     return 1;
   }
   Lsv_NtkPrintMocut(pNtk, k, l);
   return 0;
-
 
 usage:
   Abc_Print(-2, "usage: lsv_print_mocut [-h] <k> <l>\n");
@@ -96,38 +105,44 @@ usage:
   return 1;
 }
 
-int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
-  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+int Lsv_CommandUnateBdd(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+  Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
   // Abc_Obj_t* pNode;
   int c, k = -1, i = -1;
   Extra_UtilGetoptReset();
-  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
-    switch (c) {
-      case 'h':
-        goto usage;
-      default:
-        goto usage;
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF)
+  {
+    switch (c)
+    {
+    case 'h':
+      goto usage;
+    default:
+      goto usage;
     }
   }
-  if ( argc != globalUtilOptind + 2 )
-        goto usage;
+  if (argc != globalUtilOptind + 2)
+    goto usage;
   // try{
-    k = atoi(argv[globalUtilOptind]);
-    i = atoi(argv[globalUtilOptind + 1]);
-  
-  if(!Abc_NtkIsBddLogic(pNtk) ){
+  k = atoi(argv[globalUtilOptind]);
+  i = atoi(argv[globalUtilOptind + 1]);
+
+  if (!Abc_NtkIsBddLogic(pNtk))
+  {
     Abc_Print(-1, "The network is not in BDD form.\n");
     return 1;
   }
-  if(k < 0 || k >= Abc_NtkCoNum(pNtk)){
-    // Abc_Print(-1, ("Input k is " + std::to_string(k) + " but should be between 0 and " + std::to_string(Abc_NtkCoNum(pNtk) - 1) + ".\n").c_str());
+  if (k < 0 || k >= Abc_NtkCoNum(pNtk))
+  {
+    Abc_Print(-1, ("Input k is " + std::to_string(k) + " but should be between 0 and " + std::to_string(Abc_NtkCoNum(pNtk) - 1) + ".\n").c_str());
     goto usage;
   }
-  else if(i < 0 || i >= Abc_NtkCiNum(pNtk)){
-    // Abc_Print(-1, ("Input i is " + std::to_string(i) + " but should be between 0 and " + std::to_string(Abc_NtkCiNum(pNtk) - 1) + ".\n").c_str());
+  else if (i < 0 || i >= Abc_NtkCiNum(pNtk))
+  {
+    Abc_Print(-1, ("Input i is " + std::to_string(i) + " but should be between 0 and " + std::to_string(Abc_NtkCiNum(pNtk) - 1) + ".\n").c_str());
     goto usage;
   }
-  // else 
+  // else
   // printf("Output %d is unate with respect to input %d.\n", k, i);
 
   // pNode = Abc_NtkObj(pNtk, k);
@@ -135,7 +150,7 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
 
   return 0;
 
-  usage:
+usage:
   Abc_Print(-2, "usage: lsv_unate_bdd [-h] <k> <i>\n");
   Abc_Print(-2, "\t        Check unateness of a output w.r.t. a input of a circuit in BDD form.\n");
   Abc_Print(-2, "\t        For binate cases, provide witness input patterns.\n");
@@ -145,27 +160,41 @@ int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv) {
   return 1;
 }
 
-int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
-  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+int Lsv_CommandUnateSat(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+  Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
   int c, k = -1, i = -1;
   Extra_UtilGetoptReset();
-  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
-    switch (c) {
-      case 'h':
-        goto usage;
-      default:
-        goto usage;
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF)
+  {
+    switch (c)
+    {
+    case 'h':
+      goto usage;
+    default:
+      goto usage;
     }
   }
-  if ( argc != globalUtilOptind + 2 )
-        goto usage;
+  if (argc != globalUtilOptind + 2)
+    goto usage;
   // try{
-    k = atoi(argv[globalUtilOptind]);
-    i = atoi(argv[globalUtilOptind + 1]);
-  
-  if(!Abc_NtkIsStrash(pNtk)){
+  k = atoi(argv[globalUtilOptind]);
+  i = atoi(argv[globalUtilOptind + 1]);
+
+  if (!Abc_NtkIsStrash(pNtk))
+  {
     Abc_Print(-1, "Need to strash first.\n");
     return 1;
+  }
+  if (k < 0 || k >= Abc_NtkCoNum(pNtk))
+  {
+    Abc_Print(-1, ("Input k is " + std::to_string(k) + " but should be between 0 and " + std::to_string(Abc_NtkCoNum(pNtk) - 1) + ".\n").c_str());
+    goto usage;
+  }
+  else if (i < 0 || i >= Abc_NtkCiNum(pNtk))
+  {
+    Abc_Print(-1, ("Input i is " + std::to_string(i) + " but should be between 0 and " + std::to_string(Abc_NtkCiNum(pNtk) - 1) + ".\n").c_str());
+    goto usage;
   }
   unate_sat(pNtk, k, i);
   // if(k < 0 || k >= Abc_NtkCoNum(pNtk)){
@@ -179,7 +208,7 @@ int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv) {
   // else printf("Output %d is unate with respect to input %d.\n", k, i);
   return 0;
 
-  usage:
+usage:
   Abc_Print(-2, "usage: lsv_unate_sat [-h] <k> <i>\n");
   Abc_Print(-2, "\t        Check unateness of a output w.r.t. a input of a circuit in SAT form.\n");
   Abc_Print(-2, "\t        For binate cases, provide witness input patterns.\n");
