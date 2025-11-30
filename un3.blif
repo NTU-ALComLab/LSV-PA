@@ -1,0 +1,121 @@
+.model heavy_binate
+.inputs x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11
+.outputs y_xor_tree y_mux_cond y_arith_comp y_hard_search
+
+# ==========================================================
+# Case 1: y_xor_tree (The Classic Binate)
+# 邏輯: y = x0 XOR x1 XOR ... XOR x7
+# 性質: 對 x0 絕對是 Binate。
+# 難點: 變數相依性極強，任何一個變數改變都會翻轉輸出。
+#      這會產生很多 BDD 節點 (如果變數順序不好)，SAT Solver 
+#      也需要傳播很長的 implication chain。
+# ==========================================================
+
+# Layer 1
+.names x0 x1 t1_1
+01 1
+10 1
+.names x2 x3 t1_2
+01 1
+10 1
+.names x4 x5 t1_3
+01 1
+10 1
+.names x6 x7 t1_4
+01 1
+10 1
+
+# Layer 2
+.names t1_1 t1_2 t2_1
+01 1
+10 1
+.names t1_3 t1_4 t2_2
+01 1
+10 1
+
+# Output
+.names t2_1 t2_2 y_xor_tree
+01 1
+10 1
+
+
+# ==========================================================
+# Case 2: y_mux_cond (Mode Dependent)
+# 邏輯: 是一個受控的 MUX 結構。
+#      Control = (x1 AND x2 AND x3)
+#      如果 Control == 1 (Mode A), y = x0 (Positive)
+#      如果 Control == 0 (Mode B), y = !x0 (Negative)
+# 性質: x0 是 Binate。
+# 難點: 正向 Pattern 很容易找 (x1=x2=x3=1)，
+#      但反向 Pattern 空間很大，且混雜了 x0 的反相邏輯。
+# ==========================================================
+
+# Control Signal: c = x1 * x2 * x3
+.names x1 x2 x3 ctrl
+111 1
+
+# Mux Logic: y = (ctrl * x0) + (!ctrl * !x0) 
+# 這其實就是 XNOR (同或門)
+.names ctrl x0 y_mux_cond
+11 1
+00 1
+
+
+# ==========================================================
+# Case 3: y_arith_comp (Pseudo-Arithmetic Logic)
+# 邏輯: 模擬 "大於" 比較器的一部分，混入 XOR。
+#      y = (GroupA > GroupB) XOR x0
+#      其中 GroupA 包含 x0。這會造成 x0 在某些數字組合下
+#      讓輸出翻轉 (XOR特性)，在某些組合下又具有 Carry 傳遞特性。
+# 簡化邏輯實作:
+#      y = (x0 & x1 & x2) XOR (x0 | x3 | x4)
+#      這會讓 x0 同時出現在 XOR 的兩端，造成複雜的相消或增強。
+# ==========================================================
+
+.names x0 x1 x2 part_and
+111 1
+
+.names x0 x3 x4 part_or
+1-- 1
+-1- 1
+--1 1
+
+.names part_and part_or y_arith_comp
+01 1
+10 1
+
+
+# ==========================================================
+# Case 4: y_hard_search (The "Needle in a Haystack")
+# 邏輯: 設計一個極端不平衡的條件。
+#      Positive Pattern 只有 1 種組合 (極難找)
+#      Negative Pattern 有 2^11 - 1 種組合 (極易找)
+#      或是反過來。
+#
+#      y = (x0 AND All_Others_Are_1) OR (!x0 AND All_Others_Are_0)
+#      目標: 證明 x0 是 Binate。
+#      挑戰: Solver 必須找到全 1 的狀況才能證明 Positive Unate 的部分，
+#           同時要找到全 0 的狀況證明 Negative Unate 的部分。
+#           這會強迫 SAT Solver 進行深層搜尋。
+# ==========================================================
+
+# Big AND (x1...x11) -> all_ones
+.names x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 all_ones
+11111111111 1
+
+# Big NOR (x1...x11) -> all_zeros
+.names x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 all_zeros
+00000000000 1
+
+# Final: y = (x0 * all_ones) + (!x0 * all_zeros)
+.names x0 all_ones term_pos
+11 1
+
+.names x0 all_zeros term_neg
+01 1
+
+.names term_pos term_neg y_hard_search
+10 1
+01 1
+
+.end

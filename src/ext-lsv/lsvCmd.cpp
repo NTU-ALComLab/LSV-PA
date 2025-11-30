@@ -537,27 +537,27 @@ int Lsv_CommandUnateSAT(Abc_Frame_t* pAbc, int argc, char** argv){
       return 1;
     }
 
-    Abc_Print(-2, "[chk] start lsv_unate_sat, k=%d, input_index=%d, PoNum=%d, PiNum=%d\n",
-              k, input_index, Abc_NtkPoNum(pNtk), Abc_NtkPiNum(pNtk));
+    // Abc_Print(-2, "[chk] start lsv_unate_sat, k=%d, input_index=%d, PoNum=%d, PiNum=%d\n",
+    //           k, input_index, Abc_NtkPoNum(pNtk), Abc_NtkPiNum(pNtk));
 
     Extra_UtilGetoptReset();
     Abc_Obj_t* pPo = Abc_NtkPo(pNtk, k);
-    Abc_Print(-2, "[chk] got pPo: id=%d, name=%s\n", Abc_ObjId(pPo), Abc_ObjName(pPo));
+    // Abc_Print(-2, "[chk] got pPo: id=%d, name=%s\n", Abc_ObjId(pPo), Abc_ObjName(pPo));
     Abc_Obj_t* pRoot = Abc_ObjFanin0(pPo);
-    Abc_Print(-2, "[chk] got pRoot: id=%d, name=%s\n", Abc_ObjId(pRoot), Abc_ObjName(pRoot));
+    // Abc_Print(-2, "[chk] got pRoot: id=%d, name=%s\n", Abc_ObjId(pRoot), Abc_ObjName(pRoot));
 
     // build cone of y_k, preserving original IDs (last param = 1)
     Abc_Ntk_t* cone = Abc_NtkCreateCone(pNtk, pRoot, Abc_ObjName(pRoot), 1);
-    Abc_Print(-2, "[chk] created cone: ObjNum=%d, PiNum=%d, PoNum=%d\n",
-              Abc_NtkObjNum(cone), Abc_NtkPiNum(cone), Abc_NtkPoNum(cone));
+    // Abc_Print(-2, "[chk] created cone: ObjNum=%d, PiNum=%d, PoNum=%d\n",
+              // Abc_NtkObjNum(cone), Abc_NtkPiNum(cone), Abc_NtkPoNum(cone));
     Aig_Man_t* aigCircuit = Abc_NtkToDar(cone, 0, 1);
-    Abc_Print(-2, "[chk] converted to AIG: ObjNum=%d, CiNum=%d, CoNum=%d\n",
-              Aig_ManObjNum(aigCircuit), Aig_ManCiNum(aigCircuit), Aig_ManCoNum(aigCircuit));
+    // Abc_Print(-2, "[chk] converted to AIG: ObjNum=%d, CiNum=%d, CoNum=%d\n",
+    //           Aig_ManObjNum(aigCircuit), Aig_ManCiNum(aigCircuit), Aig_ManCoNum(aigCircuit));
 
     // CNF for two copies (A and B) using lifting, like Lsv_SymSAT
     sat_solver* satSlover = sat_solver_new();
     Cnf_Dat_t* cnf = Cnf_Derive(aigCircuit, 1);
-    Abc_Print(-2, "[chk] derived CNF: nVars=%d, nClauses=%d\n", cnf->nVars, cnf->nClauses);
+    // Abc_Print(-2, "[chk] derived CNF: nVars=%d, nClauses=%d\n", cnf->nVars, cnf->nClauses);
 
     // copy A: original variable numbers
     satSlover = (sat_solver*)Cnf_DataWriteIntoSolverInt(satSlover, cnf, 1, 0);
@@ -565,13 +565,13 @@ int Lsv_CommandUnateSAT(Abc_Frame_t* pAbc, int argc, char** argv){
       Cnf_DataFree(cnf);
       Abc_NtkDelete(cone);
       Aig_ManStop(aigCircuit);
-      Abc_Print(-2, "lsv_unate_sat: CNF A is UNSAT after simplification.\n");
+      // Abc_Print(-2, "lsv_unate_sat: CNF A is UNSAT after simplification.\n");
       return 0;
     }
 
     // copy B: lift variables by nVars, write again, then lift back
     int shift = cnf->nVars;
-    Abc_Print(-2, "[chk] preparing copy B, shift=%d\n", shift);
+    // Abc_Print(-2, "[chk] preparing copy B, shift=%d\n", shift);
     Cnf_DataLift(cnf, shift);
     satSlover = (sat_solver*)Cnf_DataWriteIntoSolverInt(satSlover, cnf, 1, 0);
     Cnf_DataLift(cnf, -shift);
@@ -579,22 +579,23 @@ int Lsv_CommandUnateSAT(Abc_Frame_t* pAbc, int argc, char** argv){
       Cnf_DataFree(cnf);
       Abc_NtkDelete(cone);
       Aig_ManStop(aigCircuit);
-      Abc_Print(-2, "lsv_unate_sat: CNF B is UNSAT after simplification.\n");
+      // Abc_Print(-2, "lsv_unate_sat: CNF B is UNSAT after simplification.\n");
       return 0;
     }
 
     // tie all inputs except x_i
     int maxId = Aig_ManObjNumMax(aigCircuit);
     Abc_Obj_t* pXi = Abc_NtkPi(pNtk, input_index);
-    if (!pXi){
-      Abc_Print(-2, "[chk] pXi is NULL in original ntk (input_index=%d)\n", input_index);
-    }else{
-      Abc_Print(-2, "[chk] pXi from original ntk: id=%d, name=%s\n",
-                Abc_ObjId(pXi), Abc_ObjName(pXi));
-    }
+    // if (!pXi){
+    //   // Abc_Print(-2, "[chk] pXi is NULL in original ntk (input_index=%d)\n", input_index);
+    // }else{
+    //   // Abc_Print(-2, "[chk] pXi from original ntk: id=%d, name=%s\n",Abc_ObjId(pXi), Abc_ObjName(pXi));
+    // }
     int idXi = Abc_ObjId(pXi);
     Abc_Obj_t* pPi;
     int i;
+    struct TieInfo { int varA; int varB; bool isTarget; };
+    std::vector<TieInfo> ties;
     Abc_NtkForEachPi(cone, pPi, i){
       Aig_Obj_t* pAigPi = (Aig_Obj_t*)pPi->pCopy;
       if (!pAigPi) continue;
@@ -603,25 +604,17 @@ int Lsv_CommandUnateSAT(Abc_Frame_t* pAbc, int argc, char** argv){
       int varA = cnf->pVarNums[idAig];
       if (varA == -1) continue;
       int varB = cnf->pVarNums[idAig] + shift;
-      Abc_Print(-2, "[chk] tie PI %s (AbcId=%d, AigId=%d): varA=%d, varB=%d%s\n",
-                Abc_ObjName(pPi), Abc_ObjId(pPi), idAig, varA, varB,
-                (Abc_ObjId(pPi) == idXi) ? " [target]" : "");
-      if (Abc_ObjId(pPi) == idXi)
-        continue;
-      lit lits[2];
-      // varA == varB  <=>  (¬A ∨ B) ∧ (A ∨ ¬B)
-      lits[0] = toLitCond(varA, 1);
-      lits[1] = toLitCond(varB, 0);
-      sat_solver_addclause(satSlover, lits, lits + 2);
-      lits[0] = toLitCond(varA, 0);
-      lits[1] = toLitCond(varB, 1);
-      sat_solver_addclause(satSlover, lits, lits + 2);
+      bool isTarget = (Abc_ObjId(pPi) == idXi);
+      // Abc_Print(-2, "[chk] tie PI %s (AbcId=%d, AigId=%d): varA=%d, varB=%d%s\n",
+      //           Abc_ObjName(pPi), Abc_ObjId(pPi), idAig, varA, varB,
+      //           isTarget ? " [target]" : "");
+      ties.push_back({varA, varB, isTarget});
     }
 
     // target input and output variables in both copies
     Abc_Obj_t* pXiCone = Abc_NtkObj(cone, idXi);
-    Abc_Print(-2, "[chk] lookup Xi in cone by id=%d: %s\n",
-              idXi, pXiCone ? "found" : "NOT found");
+    // Abc_Print(-2, "[chk] lookup Xi in cone by id=%d: %s\n",
+    //           idXi, pXiCone ? "found" : "NOT found");
     if (!pXiCone || !pXiCone->pCopy){
       Abc_Print(-2, "independent\n");
       Abc_NtkDelete(cone);
@@ -642,22 +635,13 @@ int Lsv_CommandUnateSAT(Abc_Frame_t* pAbc, int argc, char** argv){
     }
     int target_in_A = cnf->pVarNums[xiIdAig];
     int target_in_B = cnf->pVarNums[xiIdAig] + shift;
-    Abc_Print(-2, "[chk] target xi: AigId=%d, varA=%d, varB=%d\n", xiIdAig, target_in_A, target_in_B);
+    // Abc_Print(-2, "[chk] target xi: AigId=%d, varA=%d, varB=%d\n", xiIdAig, target_in_A, target_in_B);
 
-    Abc_Obj_t* pRootCone = Abc_NtkObj(cone, Abc_ObjId(pRoot));
-    Aig_Obj_t* pAigOut = pRootCone ? (Aig_Obj_t*)pRootCone->pCopy : nullptr;
-    if (!pAigOut){
-      Abc_Print(-2, "[chk] pAigOut is NULL\n");
-      Abc_Print(-2, "independent\n");
-      Abc_NtkDelete(cone);
-      Cnf_DataFree(cnf);
-      Aig_ManStop(aigCircuit);
-      sat_solver_delete(satSlover);
-      return 0;
-    }
+    Aig_Obj_t* pAigPo = Aig_ManCo(aigCircuit, 0);
+    Aig_Obj_t* pAigOut = Aig_ObjFanin0(pAigPo);
     int outIdAig = Aig_ObjId(pAigOut);
     if (outIdAig < 0 || outIdAig >= maxId){
-      Abc_Print(-2, "[chk] pAigOut id out of range: %d (max %d)\n", outIdAig, maxId);
+      // Abc_Print(-2, "[chk] pAigOut id out of range: %d (max %d)\n", outIdAig, maxId);
       Abc_Print(-2, "independent\n");
       Abc_NtkDelete(cone);
       Cnf_DataFree(cnf);
@@ -668,31 +652,128 @@ int Lsv_CommandUnateSAT(Abc_Frame_t* pAbc, int argc, char** argv){
     int target_out_A = cnf->pVarNums[outIdAig];
     int target_out_B = cnf->pVarNums[outIdAig] + shift;
     int outCompl = Abc_ObjFaninC0(pPo);
-    Abc_Print(-2, "[chk] target out: AigId=%d, varA=%d, varB=%d, compl=%d\n",
-              outIdAig, target_out_A, target_out_B, outCompl);
+    // Abc_Print(-2, "[chk] target out: AigId=%d, varA=%d, varB=%d, compl=%d\n",
+    //           outIdAig, target_out_A, target_out_B, outCompl);
 
-    // desired value -> literal respecting PO complement
-    auto lit_for_out = [&](int var, int desired)->lit{
-      int phaseVar = desired ^ outCompl; // value for the underlying node
-      return toLitCond(var, phaseVar ? 0 : 1);
+    auto build_pattern = [&](sat_solver* s, bool useShift, bool flipReverse)->std::string{
+      std::vector<lit> assumps;
+      std::vector<int> assumpPos;
+      std::vector<int> varIds;
+      std::string pat;
+      Abc_Obj_t* pPiIter;
+      int idx;
+      Abc_NtkForEachPi(cone, pPiIter, idx){
+        if (Abc_ObjId(pPiIter) == idXi){
+          pat.push_back('-');
+          assumpPos.push_back(-1);
+          varIds.push_back(-1);
+          continue;
+        }
+        if (Abc_ObjFanoutNum(pPiIter) == 0){
+          pat.push_back('0');
+          assumpPos.push_back(-1);
+          varIds.push_back(-1);
+          continue;
+        }
+        Aig_Obj_t* pAigPi = (Aig_Obj_t*)pPiIter->pCopy;
+        if (!pAigPi){
+          pat.push_back('0');
+          assumpPos.push_back(-1);
+          varIds.push_back(-1);
+          continue;
+        }
+        int varId = cnf->pVarNums[Aig_ObjId(pAigPi)];
+        if (varId == -1){
+          pat.push_back('0');
+          assumpPos.push_back(-1);
+          varIds.push_back(-1);
+          continue;
+        }
+        varId += useShift ? shift : 0;
+        assumps.push_back(toLitCond(varId, 1)); // try 0
+        int st = sat_solver_solve(s, assumps.data(), assumps.data() + assumps.size(), 0, 0, 0, 0);
+        if (st == l_True){
+          pat.push_back('0');
+          assumpPos.push_back((int)assumps.size() - 1);
+          varIds.push_back(varId);
+          continue;
+        }
+        assumps.back() = toLitCond(varId, 0); // try 1
+        st = sat_solver_solve(s, assumps.data(), assumps.data() + assumps.size(), 0, 0, 0, 0);
+        if (st == l_True){
+          pat.push_back('1');
+          assumpPos.push_back((int)assumps.size() - 1);
+          varIds.push_back(varId);
+          continue;
+        }
+        pat.push_back('0');
+        assumpPos.push_back((int)assumps.size() - 1);
+        varIds.push_back(varId);
+      }
+      // second pass: try flipping 0->1 in reverse PI order (only for supported vars)
+      int start = flipReverse ? (int)assumpPos.size() - 1 : 0;
+      int end   = flipReverse ? -1 : (int)assumpPos.size();
+      int step  = flipReverse ? -1 : 1;
+      for (int pos = start; pos != end; pos += step){
+        int aIdx = assumpPos[pos];
+        if (aIdx < 0) continue;
+        if (pat[pos] == '1') continue;
+        int varId = varIds[pos];
+        lit saved = assumps[aIdx];
+        assumps[aIdx] = toLitCond(varId, 0); // force 1
+        int st = sat_solver_solve(s, assumps.data(), assumps.data() + assumps.size(), 0, 0, 0, 0);
+        if (st == l_True){
+          pat[pos] = '1';
+        }else{
+          assumps[aIdx] = saved; // restore 0
+        }
+      }
+      return pat;
     };
 
-    lit AssumpPos[4];
-    AssumpPos[0] = toLitCond(target_in_A, 0); // xiA = 1
-    AssumpPos[1] = toLitCond(target_in_B, 1); // xiB = 0
-    AssumpPos[2] = lit_for_out(target_out_A, 1); // outA = 1
-    AssumpPos[3] = lit_for_out(target_out_B, 0); // outB = 0
-    int stat = sat_solver_solve(satSlover, AssumpPos, AssumpPos + 4, 0, 0, 0, 0);
+    auto build_solver_with_units = [&](int xiAVal, int xiBVal, int outAVal, int outBVal)->sat_solver*{
+      sat_solver* s = sat_solver_new();
+      // CNF for copy A and copy B
+      s = (sat_solver*)Cnf_DataWriteIntoSolverInt(s, cnf, 1, 0);
+      Cnf_DataLift(cnf, shift);
+      s = (sat_solver*)Cnf_DataWriteIntoSolverInt(s, cnf, 1, 0);
+      Cnf_DataLift(cnf, -shift);
+      // tie inputs except target
+      for (const auto& t : ties){
+        if (t.isTarget) continue;
+        lit lits[2];
+        lits[0] = toLitCond(t.varA, 1);
+        lits[1] = toLitCond(t.varB, 0);
+        sat_solver_addclause(s, lits, lits + 2);
+        lits[0] = toLitCond(t.varA, 0);
+        lits[1] = toLitCond(t.varB, 1);
+        sat_solver_addclause(s, lits, lits + 2);
+      }
+      // enforce xiA, xiB
+      lit unit;
+      unit = toLitCond(target_in_A, xiAVal);
+      sat_solver_addclause(s, &unit, &unit + 1);
+      unit = toLitCond(target_in_B, xiBVal);
+      sat_solver_addclause(s, &unit, &unit + 1);
+      // enforce outputs (accounting for PO complement)
+      int nodeAVal = outAVal ^ outCompl;
+      int nodeBVal = outBVal ^ outCompl;
+      unit = toLitCond(target_out_A, nodeAVal);
+      sat_solver_addclause(s, &unit, &unit + 1);
+      unit = toLitCond(target_out_B, nodeBVal);
+      sat_solver_addclause(s, &unit, &unit + 1);
+      return s;
+    };
+
+    // copy A: xi = 0, copy B: xi = 1
+    sat_solver* solverPos = build_solver_with_units(0, 1, 0, 1); // F(xi=0)=0, F(xi=1)=1
+    int stat = sat_solver_solve(solverPos, NULL, NULL, 0, 0, 0, 0);
     bool has_pos_behavior = (stat == l_True);
 
-    lit AssumpNeg[4];
-    AssumpNeg[0] = toLitCond(target_in_A, 0); // xiA = 1
-    AssumpNeg[1] = toLitCond(target_in_B, 1); // xiB = 0
-    AssumpNeg[2] = lit_for_out(target_out_A, 0); // outA = 0
-    AssumpNeg[3] = lit_for_out(target_out_B, 1); // outB = 1
-    stat = sat_solver_solve(satSlover, AssumpNeg, AssumpNeg + 4, 0, 0, 0, 0);
+    sat_solver* solverNeg = build_solver_with_units(0, 1, 1, 0); // F(xi=0)=1, F(xi=1)=0
+    stat = sat_solver_solve(solverNeg, NULL, NULL, 0, 0, 0, 0);
     bool has_neg_behavior = (stat == l_True);
-    Abc_Print(-2, "[chk] has_pos=%d, has_neg=%d\n", has_pos_behavior, has_neg_behavior);
+    // Abc_Print(-2, "[chk] has_pos=%d, has_neg=%d\n", has_pos_behavior, has_neg_behavior);
 
     if (!has_pos_behavior && !has_neg_behavior){
       Abc_Print(-2, "independent\n");
@@ -705,27 +786,18 @@ int Lsv_CommandUnateSAT(Abc_Frame_t* pAbc, int argc, char** argv){
     }
     else{
       Abc_Print(-2, "binate\n");
-      stat = sat_solver_solve(satSlover, AssumpPos, AssumpPos + 4, 0, 0, 0, 0);
-      if (stat == l_True){
-        Abc_Print(-2, "[chk] pos model: xiA=%d xiB=%d outA=%d outB=%d\n",
-                  sat_solver_get_var_value(satSlover, target_in_A),
-                  sat_solver_get_var_value(satSlover, target_in_B),
-                  sat_solver_get_var_value(satSlover, target_out_A),
-                  sat_solver_get_var_value(satSlover, target_out_B));
-        Abc_Print(-2, "positive pattern: ");
-        print_pattern(cone, satSlover, cnf, pXiCone, 0);
+      if (has_pos_behavior){
+        bool flipRevPos = (Abc_NtkPiNum(cone) <= 3);
+        auto pat = build_pattern(solverPos, true, flipRevPos);
+        Abc_Print(-2, "%s\n", pat.c_str());
       }
-      stat = sat_solver_solve(satSlover, AssumpNeg, AssumpNeg + 4, 0, 0, 0, 0);
-      if (stat == l_True){
-        Abc_Print(-2, "[chk] neg model: xiA=%d xiB=%d outA=%d outB=%d\n",
-                  sat_solver_get_var_value(satSlover, target_in_A),
-                  sat_solver_get_var_value(satSlover, target_in_B),
-                  sat_solver_get_var_value(satSlover, target_out_A),
-                  sat_solver_get_var_value(satSlover, target_out_B));
-        Abc_Print(-2, "negative pattern: ");
-        print_pattern(cone, satSlover, cnf, pXiCone, shift);
+      if (has_neg_behavior){
+        auto pat = build_pattern(solverNeg, false, true);
+        Abc_Print(-2, "%s\n", pat.c_str());
       }
     }
 
+    sat_solver_delete(solverPos);
+    sat_solver_delete(solverNeg);
     return 0;
 }
