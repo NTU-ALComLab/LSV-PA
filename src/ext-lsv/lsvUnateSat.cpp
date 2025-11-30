@@ -13,6 +13,10 @@ extern "C" {
 
 #include "lsv.h"
 
+extern "C"{
+Aig_Man_t* Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+}
+
 // Tiny helper: build equality clauses (a == b)
 static void AddEquality( sat_solver * pSat, int varA, int varB )
 {
