@@ -620,208 +620,258 @@ static void Lsv_BuildPiId2Index( Abc_Ntk_t* pNtk, Vec_Int_t* vId2Pi )
     }
 }
 
-static void Lsv_NtkUnateSat( Abc_Ntk_t* pNtk, int k, int iPi )
+static char * Lsv_SatPatternFromModel( sat_solver * pSat, int * piVarA, int nPis, int iSkip )
 {
-    // 1. 抽 cone
-    Abc_Obj_t* pCo  = Abc_NtkCo( pNtk, k );
-    Abc_Ntk_t* pCone = Abc_NtkCreateCone( pNtk, pCo, Abc_ObjName(pCo), 1 );
-    if ( !pCone ) {
-        Abc_Print( -1, "Error: cannot create cone.\n" );
+    // Helper: read var values from solver model and produce pattern string.
+    // sat_solver_var_value returns 0/1 (or -1 for unknown) in many ABC versions.
+    char * pattern = (char*) ABC_ALLOC( char, nPis + 1 );
+    for ( int i = 0; i < nPis; ++i ) {
+        if ( i == iSkip ) { pattern[i] = '-'; continue; }
+        if ( piVarA[i] < 0 ) { pattern[i] = '0'; continue; } // PI not in cone
+        int val = sat_solver_var_value( pSat, piVarA[i] );
+        if ( val == 0 ) pattern[i] = '0';
+        else if ( val == 1 ) pattern[i] = '1';
+        else pattern[i] = '0';
+    }
+    pattern[nPis] = '\0';
+    return pattern;
+}
+
+static void Lsv_NtkUnateSat( Abc_Ntk_t * pNtk, int k, int iPi )
+{
+    if ( pNtk == NULL ) {
+        Abc_Print( -1, "Error: empty network\n" );
+        return;
+    }
+    if ( k < 0 || k >= Abc_NtkCoNum(pNtk) ) {
+        Abc_Print( -1, "Error: CO index out of range\n" );
+        return;
+    }
+    if ( iPi < 0 || iPi >= Abc_NtkCiNum(pNtk) ) {
+        Abc_Print( -1, "Error: CI index out of range\n" );
         return;
     }
 
-    // 2. 轉 AIG
-    Aig_Man_t* pAig = Abc_NtkToDar( pCone, 0, 0 );
-    if ( !pAig ) {
-        Abc_Print( -1, "Error: Abc_NtkToDar failed.\n" );
+    // --- build cone correctly (use fanin0 of the CO node) ---
+    Abc_Obj_t * pCo = Abc_NtkCo( pNtk, k );
+    if ( pCo == NULL ) {
+        Abc_Print( -1, "Error: cannot find CO %d\n", k );
+        return;
+    }
+    Abc_Obj_t * pRoot = Abc_ObjFanin0( pCo ); // IMPORTANT: use fanin0
+    if ( pRoot == NULL || !Abc_ObjIsNode(pRoot) && !Abc_ObjIsCi(pRoot) ) {
+        Abc_Print( -1, "Error: CO %d has no valid fanin root\n", k );
+        return;
+    }
+
+    Abc_Ntk_t * pCone = Abc_NtkCreateCone( pNtk, pRoot, Abc_ObjName(pCo), 0 );
+    if ( pCone == NULL ) {
+        Abc_Print( -1, "Error: Abc_NtkCreateCone failed\n" );
+        return;
+    }
+
+    // Ensure cone is strashed (AIG) before CNF derive
+    Abc_Ntk_t * pConeAig = pCone;
+    if ( !Abc_NtkIsStrash( pCone ) ) {
+        pConeAig = Abc_NtkStrash( pCone, 1, 1, 0 ); // (fAllNodes=1, fCleanup=1, fRecord=0)
+        if ( pConeAig == NULL ) {
+            Abc_Print( -1, "Error: Abc_NtkStrash on cone failed\n" );
+            Abc_NtkDelete( pCone );
+            return;
+        }
+    }
+
+    // Convert AIG to AIG manager if necessary (Abc_NtkToDar returns Aig_Man_t*)
+    Aig_Man_t * pAig = Abc_NtkToDar( pConeAig, 0, 0 );
+    if ( pAig == NULL ) {
+        Abc_Print( -1, "Error: Abc_NtkToDar failed\n" );
+        if ( pConeAig != pCone ) Abc_NtkDelete( pConeAig );
         Abc_NtkDelete( pCone );
         return;
     }
 
-    // 3 + 4. CNF for A (CA)
-    Cnf_Dat_t* pCnfA = Cnf_Derive( pAig, 1 );
-    if ( !pCnfA ) {
-        Abc_Print( -1, "Error: Cnf_Derive A failed.\n" );
+    // Derive CNF for A (first copy)
+    Cnf_Dat_t * pCnfA = Cnf_Derive( pAig, 1 );
+    if ( pCnfA == NULL ) {
+        Abc_Print( -1, "Error: Cnf_Derive A failed\n" );
         Aig_ManStop( pAig );
+        if ( pConeAig != pCone ) Abc_NtkDelete( pConeAig );
         Abc_NtkDelete( pCone );
         return;
     }
 
-    // 再 derive 一份 B，然後 lift
-    Cnf_Dat_t* pCnfB = Cnf_Derive( pAig, 1 );
-    if ( !pCnfB ) {
-        Abc_Print( -1, "Error: Cnf_Derive B failed.\n" );
+    // Derive CNF for B (second copy)
+    Cnf_Dat_t * pCnfB = Cnf_Derive( pAig, 1 );
+    if ( pCnfB == NULL ) {
+        Abc_Print( -1, "Error: Cnf_Derive B failed\n" );
         Cnf_DataFree( pCnfA );
         Aig_ManStop( pAig );
+        if ( pConeAig != pCone ) Abc_NtkDelete( pConeAig );
         Abc_NtkDelete( pCone );
         return;
     }
-    Cnf_DataLift( pCnfB, pCnfA->nVars ); // 讓 B 使用 n+1..2n 的變數
 
-    // 3. SAT solver
-    sat_solver* pSat = sat_solver_new();
+    // Lift CNF B variable indices by pCnfA->nVars
+    Cnf_DataLift( pCnfB, pCnfA->nVars );
+
+    // Create SAT solver and set number of variables
+    sat_solver * pSat = sat_solver_new();
     sat_solver_setnvars( pSat, pCnfA->nVars + pCnfB->nVars );
 
-    // 5. 把 CA / CB 加進 solver
+    // Write CNFs into solver
     Cnf_DataWriteIntoSolverInt( pSat, pCnfA, 1, 0 );
     Cnf_DataWriteIntoSolverInt( pSat, pCnfB, 1, 0 );
 
-    // 6~7. 建 PI mapping，並加上 vA(t) = vB(t) (t != iPi)
-    int nPisOrig = Abc_NtkPiNum( pNtk );
-    int* piVarA  = (int*)ABC_ALLOC( int, nPisOrig );
-    int* piVarB  = (int*)ABC_ALLOC( int, nPisOrig );
-    int idx;
-    for ( idx = 0; idx < nPisOrig; ++idx ) {
-        piVarA[idx] = -1;
-        piVarB[idx] = -1;
+    // Map PI variables:
+    // pCone's PIs correspond to some original PIs — we need mapping from original PI index to var in CA/CB.
+    // We'll build piVarA[origPiIndex] / piVarB[origPiIndex] arrays. Default -1 means PI not in cone.
+    int nOrigPis = Abc_NtkCiNum( pNtk );
+    int * piVarA = (int*) ABC_ALLOC( int, nOrigPis );
+    int * piVarB = (int*) ABC_ALLOC( int, nOrigPis );
+    for ( int idx = 0; idx < nOrigPis; ++idx ) { piVarA[idx] = -1; piVarB[idx] = -1; }
+
+    // Build mapping: iterate cone's PIs; each cone PI has pObj->pCopy set to AIG obj earlier in strash pipeline
+    int j = 0;
+    Abc_Obj_t * pPi;
+    Abc_NtkForEachPi( pConeAig, pPi, j ) {
+        // In many ABC flows, pPi->pCopy contains the corresponding AIG object id (Aig_Obj_t*), but easier:
+        // find its original PI index by name or Id: assume the cone PI came from original network CI and retains Id.
+        int origId = Abc_ObjOriginalId( pPi ); // if not available, try pPi->Id
+        // Fallback: use pPi->Id and hope original CI Id matches; if not, user may need to customize mapping.
+        int origIdx = -1;
+        // Try to get original PI index by scanning original network PIs by Id
+        Abc_Obj_t * pOrigPi;
+        int t = 0;
+        Abc_NtkForEachCi( pNtk, pOrigPi, t ) {
+            if ( pOrigPi->Id == pPi->Id ) { origIdx = t; break; }
+        }
+        if ( origIdx == -1 ) {
+            // fallback: use order in cone PI list (best-effort)
+            origIdx = j;
+            if ( origIdx >= nOrigPis ) origIdx = -1;
+        }
+
+        if ( origIdx >= 0 ) {
+            // get the CNF variable that encodes this PI in pCnfA/pCnfB
+            // Many ABC builds pCnf->pVarNums indexed by AIG object ID:
+            // We need Aig_Obj_t* corresponding to this PI; assume pPi->pCopy holds pointer to AIG CI object
+            Aig_Obj_t * pAigPi = (Aig_Obj_t*) pPi->pCopy;
+            if ( pAigPi ) {
+                int varA = pCnfA->pVarNums[ pAigPi->Id ];
+                int varB = pCnfB->pVarNums[ pAigPi->Id ];
+                piVarA[origIdx] = varA;
+                piVarB[origIdx] = varB;
+            } else {
+                // If pCopy not set, we may try to use pPi->Id as index (some ABC versions use this)
+                if ( pPi->Id < pCnfA->nVars ) {
+                    piVarA[origIdx] = pPi->Id;
+                    piVarB[origIdx] = pPi->Id + pCnfA->nVars;
+                }
+            }
+        }
     }
 
-    Vec_Int_t* vId2Pi = Vec_IntAlloc( Abc_NtkObjNumMax(pNtk) + 1 );
-    Lsv_BuildPiId2Index( pNtk, vId2Pi );
-
-    Abc_Obj_t* pPi;
-    Abc_NtkForEachPi( pCone, pPi, idx ) {
-        int origPiIdx = Vec_IntEntry( vId2Pi, pPi->Id );
-        if ( origPiIdx < 0 ) continue; // 不太會發生，但保險
-
-        Aig_Obj_t* pAigPi = (Aig_Obj_t*)pPi->pCopy;
-        int varA = pCnfA->pVarNums[ pAigPi->Id ];
-        int varB = pCnfB->pVarNums[ pAigPi->Id ];
-
-        piVarA[origPiIdx] = varA;
-        piVarB[origPiIdx] = varB;
-    }
-
-    Vec_IntFree( vId2Pi );
-
-    Aig_Obj_t* pAigPo = NULL;
-    int varYA = 0;
-    int varYB = 0;
-    int varXiA = 0;
-    int varXiB = 0;
-    int badNegSat = 0;
-    int badPosSat = 0;
-    char* pat1 = NULL;
-    char* pat2 = NULL;
-
-    // xi 不在 cone 裡 ⇒ 一定 independent
-    if ( piVarA[iPi] == -1 ) {
+    // If xi not in cone => independent
+    if ( iPi < 0 || iPi >= nOrigPis || piVarA[iPi] == -1 ) {
         Abc_Print( 1, "independent\n" );
-        goto CLEAN_UP;
+        // cleanup
+        Cnf_DataFree( pCnfA );
+        Cnf_DataFree( pCnfB );
+        sat_solver_delete( pSat );
+        Aig_ManStop( pAig );
+        if ( pConeAig != pCone ) Abc_NtkDelete( pConeAig );
+        Abc_NtkDelete( pCone );
+        ABC_FREE( piVarA );
+        ABC_FREE( piVarB );
+        return;
     }
 
-    // 加 vA(t) = vB(t) 的 clause，t != iPi
-    for ( idx = 0; idx < nPisOrig; ++idx ) {
-        if ( idx == iPi ) continue;
-        if ( piVarA[idx] == -1 ) continue;
+    // Add equality constraints for all PI t != iPi: (vA == vB) as two clauses (¬vA ∨ vB) & (vA ∨ ¬vB)
+    // Helper to convert var to SAT literal:
+    // Many ABC versions provide Abc_Var2Lit(var, sign). If not present, use this macro:
+    #ifndef Abc_Var2Lit
+    #define LIT(var, sign) ( ((var) << 1) ^ (sign) )
+    #else
+    #define LIT Abc_Var2Lit
+    #endif
 
-        int vA = piVarA[idx];
-        int vB = piVarB[idx];
+    // Note: sat_solver_addclause expects array of lit (type 'lit' or int). We will use int.
+    for ( int t = 0; t < nOrigPis; ++t ) {
+        if ( t == iPi ) continue;
+        if ( piVarA[t] == -1 || piVarB[t] == -1 ) continue;
+        int lit1 = LIT( piVarA[t], 1 ); // ¬vA
+        int lit2 = LIT( piVarB[t], 0 ); //  vB
+        int arr1[2] = { lit1, lit2 };
+        sat_solver_addclause( pSat, arr1, arr1 + 2 );
 
-        lit lits[2];
-
-        // (¬vA ∨  vB)
-        lits[0] = Abc_Var2Lit( vA, 1 );
-        lits[1] = Abc_Var2Lit( vB, 0 );
-        sat_solver_addclause( pSat, lits, lits + 2 );
-
-        // ( vA ∨ ¬vB)
-        lits[0] = Abc_Var2Lit( vA, 0 );
-        lits[1] = Abc_Var2Lit( vB, 1 );
-        sat_solver_addclause( pSat, lits, lits + 2 );
+        int lit3 = LIT( piVarA[t], 0 ); // vA
+        int lit4 = LIT( piVarB[t], 1 ); // ¬vB
+        int arr2[2] = { lit3, lit4 };
+        sat_solver_addclause( pSat, arr2, arr2 + 2 );
     }
 
-    // 找 output 在 A/B 的 CNF 變數
-    pAigPo = Aig_ManCo( pAig, 0 ); // cone 只有一個 PO
-    varYA = pCnfA->pVarNums[ pAigPo->Id ];
-    varYB = pCnfB->pVarNums[ pAigPo->Id ];
+    // Prepare var indices for xi and y (output)
+    int varXiA = piVarA[iPi];
+    int varXiB = piVarB[iPi];
+    // Find output literal (the cone has single PO, corresponding to pAig's CO)
+    // pAig's CO id mapping: pAig outputs usually at last CO object index; but pCnfA->pVarNums[pObj->Id] maps object id to CNF var
+    // We need AIG object for PO. Easiest: find the AIG CO Aig_Obj_t* for the cone's PO:
+    Aig_Obj_t * pAigPo = Aig_ManCo( pAig, 0 ); // cone has single output
+    int varYA = pCnfA->pVarNums[ pAigPo->Id ];
+    int varYB = pCnfB->pVarNums[ pAigPo->Id ];
 
-    varXiA = piVarA[iPi];
-    varXiB = piVarB[iPi];
+    // Now check badNeg (f(0,a)=0, f(1,a)=1) => xiA=0 xiB=1 yA=0 yB=1
+    int assumptions[4];
+    // use LIT macro on variables to build assumption literals
+    assumptions[0] = LIT( varXiA, 1 ); // xiA = 0
+    assumptions[1] = LIT( varXiB, 0 ); // xiB = 1
+    assumptions[2] = LIT( varYA,   1 ); // yA = 0
+    assumptions[3] = LIT( varYB,   0 ); // yB = 1
 
-    // === 8. badNeg: f(0,a)=0, f(1,a)=1 ===
-    lit assump[4];
-    lbool status;
-    badNegSat = 0;
-    badPosSat = 0;
-    pat1 = NULL;
-    pat2 = NULL;
-
-    // xiA = 0, xiB = 1, yA = 0, yB = 1
-    assump[0] = Abc_Var2Lit( varXiA, 1 );
-    assump[1] = Abc_Var2Lit( varXiB, 0 );
-    assump[2] = Abc_Var2Lit( varYA,   1 );
-    assump[3] = Abc_Var2Lit( varYB,   0 );
-    status = sat_solver_solve( pSat, assump, assump + 4, 0, 0, 0, 0 );
-    if ( status == l_True ) {
+    int ret;
+    // sat_solver_solve signature: (s, begin, end, nConfLimit, nInsLimit, nConfLimitGlobal, nInsLimitGlobal)
+    ret = sat_solver_solve( pSat, assumptions, assumptions + 4, 0, 0, 0, 0 );
+    int badNegSat = 0, badPosSat = 0;
+    char * pat1 = NULL, * pat2 = NULL;
+    if ( ret == l_True ) {
         badNegSat = 1;
-        pat1 = Lsv_SatPatternFromModel( pSat, piVarA, nPisOrig, iPi );
+        pat1 = Lsv_SatPatternFromModel( pSat, piVarA, nOrigPis, iPi );
     }
 
-    // === badPos: f(0,a)=1, f(1,a)=0 ===
-    assump[0] = Abc_Var2Lit( varXiA, 1 );
-    assump[1] = Abc_Var2Lit( varXiB, 0 );
-    assump[2] = Abc_Var2Lit( varYA,   0 );
-    assump[3] = Abc_Var2Lit( varYB,   1 );
-    status = sat_solver_solve( pSat, assump, assump + 4, 0, 0, 0, 0 );
-    if ( status == l_True ) {
+    // badPos: xiA=0 xiB=1 yA=1 yB=0  (f(0,a)=1, f(1,a)=0)
+    assumptions[0] = LIT( varXiA, 1 ); // xiA = 0
+    assumptions[1] = LIT( varXiB, 0 ); // xiB = 1
+    assumptions[2] = LIT( varYA,   0 ); // yA = 1
+    assumptions[3] = LIT( varYB,   1 ); // yB = 0
+
+    ret = sat_solver_solve( pSat, assumptions, assumptions + 4, 0, 0, 0, 0 );
+    if ( ret == l_True ) {
         badPosSat = 1;
-        pat2 = Lsv_SatPatternFromModel( pSat, piVarA, nPisOrig, iPi );
+        pat2 = Lsv_SatPatternFromModel( pSat, piVarA, nOrigPis, iPi );
     }
 
-    // === 9. 判斷 & 輸出 ===
+    // Interpret results
     if ( !badPosSat && !badNegSat ) {
         Abc_Print( 1, "independent\n" );
-    }
-    else if ( !badPosSat && badNegSat ) {
+    } else if ( !badPosSat && badNegSat ) {
         Abc_Print( 1, "positive unate\n" );
-    }
-    else if ( badPosSat && !badNegSat ) {
+    } else if ( badPosSat && !badNegSat ) {
         Abc_Print( 1, "negative unate\n" );
-    }
-    else { // both SAT
+    } else {
         Abc_Print( 1, "binate\n" );
-        if ( pat1 ) {
-            Abc_Print( 1, "%s\n", pat1 );
-            ABC_FREE( pat1 );
-        }
-        if ( pat2 ) {
-            Abc_Print( 1, "%s\n", pat2 );
-            ABC_FREE( pat2 );
-        }
+        if ( pat1 ) { Abc_Print( 1, "%s\n", pat1 ); ABC_FREE( pat1 ); }
+        if ( pat2 ) { Abc_Print( 1, "%s\n", pat2 ); ABC_FREE( pat2 ); }
     }
 
-CLEAN_UP:
-    ABC_FREE( piVarA );
-    ABC_FREE( piVarB );
+    // cleanup
+    ABC_FREE( piVarA ); ABC_FREE( piVarB );
+    if ( pat1 ) ABC_FREE( pat1 );
+    if ( pat2 ) ABC_FREE( pat2 );
+
     Cnf_DataFree( pCnfA );
     Cnf_DataFree( pCnfB );
     sat_solver_delete( pSat );
     Aig_ManStop( pAig );
+    if ( pConeAig != pCone ) Abc_NtkDelete( pConeAig );
     Abc_NtkDelete( pCone );
-}
-
-static char* Lsv_SatPatternFromModel( sat_solver* pSat,
-                                      int* piVarA, int nPis, int iSkip )
-{
-    int i;
-    char* pattern = (char*)ABC_ALLOC( char, nPis + 1 );
-    for ( i = 0; i < nPis; ++i ) {
-        if ( i == iSkip ) {
-            pattern[i] = '-';
-            continue;
-        }
-        if ( piVarA[i] == -1 ) {
-            // xi 不在 cone 裡，隨便給 0
-            pattern[i] = '0';
-            continue;
-        }
-        int val = sat_solver_var_value( pSat, piVarA[i] );
-        // l_False=0, l_True=1, l_Undef=2 (通常不會有 undef)
-        if ( val == 0 )      pattern[i] = '0';
-        else if ( val == 1 ) pattern[i] = '1';
-        else                 pattern[i] = '0';
-    }
-    pattern[nPis] = '\0';
-    return pattern;
 }
