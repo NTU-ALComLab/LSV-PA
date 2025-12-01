@@ -1,0 +1,16 @@
+.model pa2_test
+.inputs x0 x1 x2 x3
+.outputs y0
+
+# intermediate node t = x0 XOR x1
+.names x0 x1 t
+01 1
+10 1
+
+# y0 = t OR x2
+.names t x2 y0
+11 1
+10 1
+01 1
+
+.end
