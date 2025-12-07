@@ -33,6 +33,7 @@ static int Lsv_CommandPrintCut(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandSdc(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandOdc(Abc_Frame_t* pAbc, int argc, char** argv);
+// static int Abc_CommandCheckUnateAig(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void Lsv_NtkSdc(Abc_Ntk_t* pNtk, int id, int* pat, int fVerbose, int fSim );
 int Lsv_NtkOdc(Abc_Ntk_t* pNtk, int id, int* pat, int fVerbose, int fSim );
@@ -43,6 +44,7 @@ void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_printmocut", Lsv_CommandPrintMoCut, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_sdc", Lsv_CommandSdc, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_odc", Lsv_CommandOdc, 0);
+//   Cmd_CommandAdd(pAbc, "LSV", "lsv_unate_aig", Abc_CommandCheckUnateAig, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -170,6 +172,12 @@ int Abc_NtkMyAppend( Abc_Ntk_t * pNtk1, Abc_Ntk_t * pNtk2, int fAddPos )
 void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk, int fSkip ) {
   Abc_Obj_t* pObj;
   int i;
+
+  Abc_NtkForEachCi( pNtk, pObj, i )
+  {
+    printf( "%s\n", Abc_ObjName(pObj) );
+  }
+  return ;
 
   if ( !fSkip )
   {
@@ -398,8 +406,20 @@ void Lsv_NtkSdc(Abc_Ntk_t* pNtk, int id, int* pat, int fVerbose, int fSim )
 {
     Abc_Obj_t* pObj;
     Abc_Obj_t* pTarget = Abc_NtkObj(pNtk, id);
+    Abc_Ntk_t* pCone;
     int i, j;
 
+
+    Abc_Obj_t* pRoot = Abc_ObjFanin0( Abc_NtkPo(pNtk, 2) );
+    pCone = Abc_NtkCreateCone( pNtk, pRoot, "name", 1);
+    Aig_Man_t * pMan = Abc_NtkToDar( pCone, 0, 0 );
+    if ( pMan == NULL ) printf("NULL!\n");
+    else {
+        printf("no problem! %d\n", pCone->ntkType);
+        Abc_NtkPrintStats(pCone, 0,0,0,0,0,0,0,0,0,0);
+        Aig_ManStop(pMan);
+    }
+    Abc_NtkDelete(pCone);
     
     // init
     for ( i = 0; i < 4; i++ ) pat[i] = 0;
@@ -407,7 +427,7 @@ void Lsv_NtkSdc(Abc_Ntk_t* pNtk, int id, int* pat, int fVerbose, int fSim )
     // create fanin cone
     Vec_Ptr_t * vFanin = Vec_PtrAlloc(2);
     Vec_PtrPushTwo(vFanin, Abc_ObjFanin0(pTarget), Abc_ObjFanin1(pTarget));
-    Abc_Ntk_t * pCone = Abc_NtkCreateConeArray(pNtk, vFanin, 0);
+    pCone = Abc_NtkCreateConeArray(pNtk, vFanin, 0);
     if ( Abc_ObjFaninC0(pTarget) ) Abc_ObjXorFaninC( Abc_NtkPo(pCone, 0), 0);
     if ( Abc_ObjFaninC1(pTarget) ) Abc_ObjXorFaninC( Abc_NtkPo(pCone, 1), 0);
     Vec_PtrFree( vFanin );
@@ -849,3 +869,39 @@ usage:
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
 }
+
+// int Abc_CommandCheckUnateAig(Abc_Frame_t *pAbc, int argc, char **argv){
+//     if (argc != 3) {
+//         Abc_Print(-1, "Usage: lsv_unate_aig <po> <ci>\n");
+//         return 1;
+//     }
+
+//     int k = atoi(argv[1]);   // output index
+//     int i = atoi(argv[2]);   // input index
+
+//     Abc_Ntk_t * pNtk = Abc_FrameReadNtk(pAbc);
+//     if ( pNtk == NULL ) { Abc_Print(-1,"No network\n"); return 1; }
+
+//     if (!Abc_NtkIsStrash(pNtk))
+//     {
+//         Abc_Print(-1, "Warning: Network is not AIG. Force-strashing now...\n");
+//         pNtk = Abc_NtkStrash(pNtk, 0, 0, 0);
+//         Abc_FrameSetCurrentNetwork(pAbc, pNtk);
+//     }
+
+//     Abc_Obj_t * pPo = Abc_NtkPo(pNtk, k);
+//     if ( pPo == NULL ) { Abc_Print(-1,"PO idx out of range\n"); return 1; }
+
+//     Abc_Obj_t* pRoot = Abc_ObjFanin0(pPo);
+
+//     // create cone
+//     Abc_Ntk_t * pCone = Abc_NtkCreateCone( pNtk, pRoot, Abc_ObjName(pPo), 0);
+//     if ( pCone == NULL ) { Abc_Print(-1,"Failed to create cone\n"); return 1; }
+//     Abc_Print(1, "DEBUG: cone type = %d (AIG=1, STRASH=2)\n", pCone->ntkType);
+
+//     Abc_NtkPrintStats(pCone, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+//     // convert the cone to AIG (Dar)
+//     Aig_Man_t * pAig = Abc_NtkToDar( pCone, 0, 0 );
+//     if ( pAig == NULL ) { Abc_Print(-1,"Abc_NtkToDar failed\n"); Abc_NtkDelete(pCone); return 1; }
+// }
