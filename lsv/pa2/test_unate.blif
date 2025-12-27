@@ -1,0 +1,16 @@
+.model test_unate
+.inputs x0 x1 x2
+.outputs y0
+
+# n_xor = x0 XOR x1
+.names x0 x1 n_xor
+10 1
+01 1
+
+# y0 = n_xor OR x2 = (x0 XOR x1) OR x2
+.names n_xor x2 y0
+1- 1
+-1 1
+
+.end
+
