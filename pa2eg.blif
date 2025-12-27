@@ -1,0 +1,14 @@
+.model example
+.inputs x1 x2 x3
+.outputs y
+
+# Intermediate XOR
+.names x1 x2 n1
+10 1
+01 1
+
+# xOR th x3
+.names n1 x3 y
+10 1
+01 1
+.end
