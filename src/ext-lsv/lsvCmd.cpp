@@ -1,5 +1,3 @@
-
-
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -17,10 +15,23 @@ extern "C" {
 
 #include "lsv.h"
 
-// Forward declaration
+// -----------------------------------------------------------------------------
+// Forward Declarations
+// -----------------------------------------------------------------------------
+
+// Existing PA1 command
 static int Cmd_LsvPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv);
 
-// Utilities
+// PA2 Part 1: BDD unateness command (implemented in lsvUnate.cpp)
+extern "C" int Lsv_CommandUnateBdd(Abc_Frame_t* pAbc, int argc, char** argv);
+
+// PA2 Part 2: SAT unateness command (implemented in lsvUnateSat.cpp)
+extern "C" int Lsv_CommandUnateSat(Abc_Frame_t* pAbc, int argc, char** argv);
+
+// -----------------------------------------------------------------------------
+// MoCut Utilities (your existing PA1 code)
+// -----------------------------------------------------------------------------
+
 static inline bool IsAigNet(Abc_Ntk_t* pNtk) {
     return Abc_NtkIsStrash(pNtk) && Abc_NtkHasAig(pNtk);
 }
@@ -60,18 +71,13 @@ static int Lsv_PrintMoCut_Run(Abc_Frame_t* pAbc, int K, int L) {
     }
 
     const int nObjs = Abc_NtkObjNum(pNtk);
-
-    // Per-node list of feasible cuts (each cut is sorted vector<int> of leaf IDs)
-    // FIX: size to nObjs + 1 (Abc_ObjId is 1-based; highest ID can equal nObjs)
     std::vector<std::vector<std::vector<int>>> nodeCuts(nObjs + 1);
 
-    // --- dominance-filtered insertion (keeps cuts set-minimal/irredundant) ---
     auto push_cut_unique_dominated = [&](std::vector<std::vector<int>>& cuts, std::vector<int>&& cand) {
         std::sort(cand.begin(), cand.end());
         cand.erase(std::unique(cand.begin(), cand.end()), cand.end());
-        for (auto const& c : cuts) if (c == cand) return;          // reject exact dup
-        for (auto const& c : cuts) if (isSubset(c, cand)) return;   // dominated by existing subset
-        // remove supersets of cand
+        for (auto const& c : cuts) if (c == cand) return;
+        for (auto const& c : cuts) if (isSubset(c, cand)) return;
         std::vector<std::vector<int>> kept;
         kept.reserve(cuts.size()+1);
         for (auto const& c : cuts) if (!isSubset(cand, c)) kept.push_back(c);
@@ -79,33 +85,26 @@ static int Lsv_PrintMoCut_Run(Abc_Frame_t* pAbc, int K, int L) {
         cuts.swap(kept);
     };
 
-    // FIX: seed CONST1 with the empty cut {} (never as a leaf)
     Abc_Obj_t* pConst = Abc_AigConst1(pNtk);
     if (pConst) {
         nodeCuts[ObjId(pConst)].push_back(std::vector<int>{});
     }
 
-    // Build cuts bottom-up
     Abc_Obj_t* pObj; int i;
     Abc_NtkForEachObj(pNtk, pObj, i) {
         if (!pObj) continue;
-
-        // Ignore COs during enumeration (their fanins already processed)
         if (Abc_ObjIsCo(pObj)) continue;
 
         const int vid = ObjId(pObj);
         auto& cutsV = nodeCuts[vid];
 
-        // FIX: skip trivial {v} for CONST1 (we only keep its empty cut)
         if (pObj != pConst) {
             std::vector<int> triv{ vid };
             push_cut_unique_dominated(cutsV, std::move(triv));
         }
 
-        // PIs stop here (only trivial cut)
         if (Abc_ObjIsCi(pObj)) continue;
 
-        // AND nodes: combine fanin cuts (using regularized fanins)
         if (Abc_AigNodeIsAnd(pObj)) {
             Abc_Obj_t* pF0 = Abc_ObjRegular(Abc_ObjFanin0(pObj));
             Abc_Obj_t* pF1 = Abc_ObjRegular(Abc_ObjFanin1(pObj));
@@ -121,17 +120,16 @@ static int Lsv_PrintMoCut_Run(Abc_Frame_t* pAbc, int K, int L) {
                     u.reserve(c0.size() + c1.size());
                     std::merge(c0.begin(), c0.end(), c1.begin(), c1.end(), std::back_inserter(u));
                     u.erase(std::unique(u.begin(), u.end()), u.end());
-                    if ((int)u.size() > K) continue;  // respect k
+                    if ((int)u.size() > K) continue;
                     push_cut_unique_dominated(cutsV, std::move(u));
                 }
             }
         }
     }
 
-    // Group by leaf set -> list of outputs (PIs + ANDs). Ignore COs.
     struct VecHash {
         size_t operator()(const std::vector<int>& v) const noexcept {
-            size_t h = 1469598103934665603ull; // FNV-1a
+            size_t h = 1469598103934665603ull;
             for (int x : v) { h ^= (size_t)x; h *= 1099511628211ull; }
             return h;
         }
@@ -143,16 +141,14 @@ static int Lsv_PrintMoCut_Run(Abc_Frame_t* pAbc, int K, int L) {
     };
     std::unordered_map<std::vector<int>, std::vector<int>, VecHash, VecEq> group;
 
-    // Add PI "outputs"
     Abc_NtkForEachCi(pNtk, pObj, i) {
         int oid = ObjId(pObj);
         for (auto const& cut : nodeCuts[oid]) {
             if ((int)cut.size() > K) continue;
-            if (cut.empty()) continue; // safety: don't emit empty leaves
+            if (cut.empty()) continue;
             group[cut].push_back(oid);
         }
     }
-    // Add AND "outputs"
     Abc_NtkForEachObj(pNtk, pObj, i) {
         if (!Abc_AigNodeIsAnd(pObj)) continue;
         int oid = ObjId(pObj);
@@ -163,12 +159,11 @@ static int Lsv_PrintMoCut_Run(Abc_Frame_t* pAbc, int K, int L) {
         }
     }
 
-    // Collect results (|outs| >= L), sort deterministically, then print
     std::vector<std::pair<std::vector<int>, std::vector<int>>> results;
     results.reserve(group.size());
     for (auto& kv : group) {
-        auto leaves = kv.first;      // copy
-        auto outs   = kv.second;     // copy
+        auto leaves = kv.first;
+        auto outs   = kv.second;
         if ((int)outs.size() < L) continue;
         std::sort(outs.begin(), outs.end());
         outs.erase(std::unique(outs.begin(), outs.end()), outs.end());
@@ -186,7 +181,6 @@ static int Lsv_PrintMoCut_Run(Abc_Frame_t* pAbc, int K, int L) {
                   joinInts(it.first).c_str(),
                   joinInts(it.second).c_str());
     }
-    // (No banner if empty; graders often expect no extra text)
     return 0;
 }
 
@@ -212,11 +206,22 @@ static int Cmd_LsvPrintMoCut(Abc_Frame_t* pAbc, int argc, char** argv) {
     return Lsv_PrintMoCut_Run(pAbc, K, L);
 }
 
-// === Registration ===
+// -----------------------------------------------------------------------------
+// Package Initialization
+// -----------------------------------------------------------------------------
+
 extern "C" void Lsv_Init(Abc_Frame_t* pAbc) {
+    // 1. Existing PA1 command
     Cmd_CommandAdd( pAbc, "LSV", "lsv_printmocut", Cmd_LsvPrintMoCut, 0 );
-    // Keep this category entry as in your original
-    Cmd_CommandAdd( pAbc, "LSV", "lsv",          nullptr,              0 );
+    
+    // 2. PA2 Part 1: BDD unateness
+    Cmd_CommandAdd( pAbc, "LSV", "lsv_unate_bdd", Lsv_CommandUnateBdd, 0 );
+
+    // 3. PA2 Part 2: SAT unateness
+    Cmd_CommandAdd( pAbc, "LSV", "lsv_unate_sat", Lsv_CommandUnateSat, 0 );
+    
+    // 4. Placeholder
+    Cmd_CommandAdd( pAbc, "LSV", "lsv",          nullptr,             0 );
 }
 
 extern "C" void Lsv_End(Abc_Frame_t* pAbc) {
@@ -235,4 +240,3 @@ struct LsvAutoRegistrar {
     }
 } _lsv_auto_registrar;
 } // namespace
-
