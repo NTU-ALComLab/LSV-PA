@@ -1,0 +1,11 @@
+.model test_ab
+.inputs a b
+.outputs y
+
+# y = a'b + ab
+#   = (a=0, b=1) OR (a=1, b=1)
+.names a b y
+01 1
+11 1
+
+.end
