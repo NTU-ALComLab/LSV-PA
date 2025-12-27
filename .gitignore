@@ -210,3 +210,9 @@ Temporary Items
 # Local History for Visual Studio Code
 .history/
 abc.history
+
+# Test files for lsv_unate commands
+test/circuits/
+test/test_spec.txt
+test/gen_unate_tests.py
+test/run_unate_tests.sh
