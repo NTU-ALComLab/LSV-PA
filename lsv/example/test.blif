@@ -1,0 +1,16 @@
+.model example_function
+.inputs x0 x1 x2
+.outputs y0
+
+# Function: y0 = (x0 XOR x1) OR x2
+# The rows below are the minterms for which y0 = 1
+
+.names x0 x1 x2 y0
+001 1
+010 1
+011 1
+100 1
+101 1
+111 1
+
+.end
