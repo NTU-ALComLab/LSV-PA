@@ -1,0 +1,13 @@
+.model example
+.inputs x0 x1 x2
+.outputs y0
+
+.names x0 x1 n1
+01 1
+10 1
+
+.names n1 x2 y0
+1- 1
+-1 1
+
+.end
