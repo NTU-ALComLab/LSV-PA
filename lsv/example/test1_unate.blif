@@ -1,0 +1,34 @@
+.model test_unate_big
+.inputs a b c d e f
+.outputs y1 y2 y3
+
+# n1 = a & b
+.names a b n1
+11 1
+
+# n2 = ~a & c
+.names a c n2
+01 1
+
+# n3 = d & e
+.names d e n3
+11 1
+
+# y1 = n1 | n2 | n3
+# = OR(n1, n2, n3)
+.names n1 n2 n3 y1
+1-- 1
+-1- 1
+--1 1
+
+# y2 = (~a & d) | e
+.names a d e y2
+01- 1
+--1 1
+
+# y3 = (b & c) | (d & f)
+.names b c d f y3
+11-- 1
+--11 1
+
+.end
