@@ -1,0 +1,32 @@
+.model complex_tests
+.inputs a b c d e
+.outputs y_pos y_neg y_ind y_bin_simple y_bin_hard
+
+.names a b c y_pos
+1-- 1
+-11 1
+
+.names a b c y_neg
+01- 1
+0-1 1
+
+.names a b temp1
+11 1
+.names a b temp2
+01 1
+.names temp1 temp2 y_ind
+1- 1
+-1 1
+.names a b y_bin_simple
+10 1
+01 1
+
+.names a b c term1
+111 1
+.names a d e term2
+011 1
+.names term1 term2 y_bin_hard
+1- 1
+-1 1
+
+.end
