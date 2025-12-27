@@ -1,0 +1,11 @@
+.model example
+.inputs x0 x1 x2
+.outputs 4
+.names x0 x1 t0
+10 1
+01 1
+.names t0 x2 4
+10 1
+01 1
+11 1
+.end

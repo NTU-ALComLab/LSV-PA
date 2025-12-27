@@ -1,0 +1,28 @@
+read lsv/pa1/example.blif
+strash
+pa2 0 0
+pa2 0 1
+pa2 0 2
+pa2 1 0
+pa2 1 1
+pa2 1 2
+pa2 2 0
+pa2 2 1
+pa2 2 2
+pa2 3 0
+pa2 3 1
+pa2 3 2
+clp
+
+pa2_bdd 0 0
+pa2_bdd 0 1
+pa2_bdd 0 2
+pa2_bdd 1 0
+pa2_bdd 1 1
+pa2_bdd 1 2
+pa2_bdd 2 0
+pa2_bdd 2 1
+pa2_bdd 2 2
+pa2_bdd 3 0
+pa2_bdd 3 1
+pa2_bdd 3 2
