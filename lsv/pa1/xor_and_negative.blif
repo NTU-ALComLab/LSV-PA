@@ -1,0 +1,14 @@
+.model xor_or_negative
+.inputs x0 x1 x2
+.outputs y0
+
+# t = x0 XOR x1
+.names x0 x1 t
+01 1
+10 1
+
+# y0 = NOT (t AND x2) -> negative unate on x2
+.names t x2 y0
+00 1
+01 1
+10 1
