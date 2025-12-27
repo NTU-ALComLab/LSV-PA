@@ -1,0 +1,15 @@
+.model example
+.inputs x0 x1 x2
+.outputs y0
+
+# n0 = x0 xor x1
+.names x0 x1 n0
+01 1
+10 1
+
+# y0 = n0 or x2
+.names n0 x2 y0
+1- 1
+-1 1
+
+.end
