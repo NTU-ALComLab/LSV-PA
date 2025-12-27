@@ -1,0 +1,26 @@
+.model alu
+.inputs a1 a0 b1 b0 c
+.outputs y2 y1 y0
+
+.names c b0 b1 newb1
+110 1
+101 1
+001 1
+011 1
+.names a0 b0 carry0
+11 1
+.names a0 b0 y0
+10 1
+01 1
+.names a1 newb1 carry0 y2
+111 1
+110 1
+101 1
+011 1
+.names a1 newb1 carry0 y1
+111 1
+100 1
+010 1
+001 1
+
+.end
