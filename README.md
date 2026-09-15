@@ -1,4 +1,4 @@
-# LSV-PA, Fall 2025
+# LSV-PA, Fall 2026
 This is a repository to host programming assignments of the course **Logic Synthesis and Verification** at National Taiwan University.
 It is forked from the repository [ABC](https://github.com/berkeley-abc/abc) of UC Berkeley.
 
@@ -27,14 +27,14 @@ The detailed steps are documented [here](./private-fork.md).
 Please register your student IDs and GitHub accounts in this [table](./lsv/admin/participants-id.csv).
 
 ## Assignments
-### [PA1](./lsv/pa1/pa1.pdf): Multi-output Cut Enumeration
+### [PA1](./lsv/pa1/LSV_2026_pa1): Cut Enumeration and TT BDD generation
 Submission deadline:
-- Exercises 1-3: 2023/09/21 23:59
-- Exercises 4: 2023/10/05 23:59
+- Exercises 1-3: 2026/09/25 23:59
+- Exercises 4: 2026/10/09 23:59
 
 ## Contact
-TA: Kuo-Wei Ho (f11943109@ntu.edu.tw)
+TA: Jui-Chun Ho (r15943061@ntu.edu.tw)
 
 For questions, you are encouraged to open an [issue](https://github.com/NTU-ALComLab/LSV-PA/issues).
 As other students might have the same questions, discussing in an issue will benefit everyone.
-Note that you can set labels, e.g., `PA0`, `PA1`, etc, to classify your questions.
+Note that you can set labels, e.g., `PA1`, `PA2`, etc, to classify your questions.

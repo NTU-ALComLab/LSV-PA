@@ -1,16 +1,10 @@
 .model example
-.inputs 1 2 3
-.outputs 4 5 6 7
-.names 1 2 4
-11 1
-.names 1 2 5
+.inputs x0 x1 x2
+.outputs y0
+.names x0 x1 A
 10 1
-.names 1 2 t0
-01 1
-.names 2 3 t1
+.names x1 x2 B
 11 1
-.names t0 3 6
+.names A B y0
 10 1
-.names 1 t1 7
-01 1
 .end
