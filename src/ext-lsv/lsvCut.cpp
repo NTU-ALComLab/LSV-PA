@@ -10,9 +10,6 @@
 #include "base/main/mainInt.h"
 #include "bdd/cudd/cudd.h"
 
-// Set to true to drop cuts that are supersets of another cut of the same node.
-static const bool kRemoveDominatedCuts = false;
-
 namespace {
 
 const int kMaxCutSize = 6;
@@ -158,6 +155,10 @@ class OutBuf {
 // trivial cut followed by the unions of every cut of fanin 0 with every cut of
 // fanin 1 (outer loop over fanin 0), keeping unions with at most k leaves and
 // dropping duplicates. This is the order shown in the assignment example.
+// Dominated cuts (strict supersets of another cut of the same node) are then
+// removed, as required by the assignment (clarified in issue #983). Filtering
+// at every node is safe: every irredundant cut of a node is the union of an
+// irredundant cut of each fanin, so nothing irredundant is lost upstream.
 //
 // Cut lists are released as soon as every AND fanout of a node has been
 // processed, so memory stays proportional to the current frontier rather than
@@ -198,7 +199,7 @@ class CutEnumerator {
           out.push_back(u);
         }
       }
-      if (kRemoveDominatedCuts) RemoveDominated(out);
+      RemoveDominated(out);
     }
     done_[id] = 1;
     return out;
