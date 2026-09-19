@@ -2,7 +2,7 @@
 .inputs a1 a0 b1 b0
 .outputs y3 y2 y1 y0
 
-// p01 p10 p11: p01 = a0 ^ b0, ......
+# p01 p10 p11: p01 = a0 ^ b0, ......
 .names a0 b0 y0
 11 1
 .names a1 b0 p10
@@ -12,7 +12,7 @@
 .names a1 b1 p11
 11 1
 
-// xor gate
+# xor gate
 .names p10 p01 y1
 01 1
 10 1
