@@ -6,6 +6,7 @@ static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandPA1CutTT, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -57,4 +58,9 @@ usage:
   Abc_Print(-2, "\t        prints the nodes in the network\n");
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
+}
+
+int Lsv_CommandPA1CutTT(Abc_Frame_t* pAbc, int argc, char** argv) {
+  // Implementation for the lsv_cut_tt command
+  return 0;
 }
