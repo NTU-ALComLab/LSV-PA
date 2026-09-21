@@ -1,0 +1,4 @@
+ABC command line: "source setup.rc; read mul.blif; aig; print_stats; show".
+
+Loading resource file "/Users/ooyang/Downloads/2026/LSV/LSV-PA/abc.rc".
+mul                           : i/o =    4/    4  lat =    0  nd =     8  edge =     16  aig  =    12  lev = 3

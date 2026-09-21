@@ -1,0 +1,211 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=22mm]{geometry}
+\usepackage{amsmath,graphicx,booktabs}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\newcommand{\evidence}[3]{%
+  \begin{center}
+    \includegraphics[width=\linewidth,height=#2\textheight,keepaspectratio]{figures/#1.png}\\[4pt]
+    {\small #3}
+  \end{center}
+}
+\newcommand{\comparison}[4]{%
+  \begin{center}
+  \begin{minipage}[t]{0.48\linewidth}\centering
+    \includegraphics[width=\linewidth,height=0.48\textheight,keepaspectratio]{figures/#1.png}\\[6pt]
+    {\small #2}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.48\linewidth}\centering
+    \includegraphics[width=\linewidth,height=0.48\textheight,keepaspectratio]{figures/#3.png}\\[6pt]
+    {\small #4}
+  \end{minipage}
+  \end{center}
+}
+\begin{document}
+\begin{center}
+{\Large\bfseries Logic Synthesis and Verification}\\[4pt]
+{\large Programming Assignment 1}\\[4pt]
+Yung-Hsiang Yang \quad B11901064 \quad September 21, 2026
+\end{center}
+\section{Exercise 2: two-bit unsigned multiplier}
+
+The file \texttt{mul.blif} implements \(Y=A B\), with
+\(A=(a_1a_0)\), \(B=(b_1b_0)\), and \(Y=(y_3y_2y_1y_0)\).
+Four partial products and two half-adder stages implement
+\[
+\begin{aligned}
+p_{00}&=a_0b_0,& p_{01}&=a_0b_1,& p_{10}&=a_1b_0,& p_{11}&=a_1b_1,\\
+y_0&=p_{00},& y_1&=p_{01}\oplus p_{10},&
+c_1&=p_{01}p_{10},\\
+y_2&=p_{11}\oplus c_1,& y_3&=p_{11}c_1.
+\end{aligned}
+\]
+Each AND and XOR is expressed as a BLIF \texttt{.names} table.
+The input order is \texttt{a1 a0 b1 b0}; the output order is
+\texttt{y3 y2 y1 y0}.
+
+An independent reference BLIF was generated from integer multiplication,
+rather than the half-adder equations. ABC's \texttt{cec} reported
+\texttt{Networks are equivalent}. The reference covers all sixteen input pairs:
+\begin{center}
+\begin{tabular}{c|rrrr}
+\toprule
+\(A\backslash B\) & 0 & 1 & 2 & 3\\
+\midrule
+0 & 0 & 0 & 0 & 0\\
+1 & 0 & 1 & 2 & 3\\
+2 & 0 & 2 & 4 & 6\\
+3 & 0 & 3 & 6 & 9\\
+\bottomrule
+\end{tabular}
+\end{center}
+In particular, \(3\cdot3=9=(1001)_2\).
+
+\subsection*{Experimental setup and measured statistics}
+The experiments use the course ABC checkout, built with \texttt{make -j4}
+and bundled CUDD on an Apple Silicon Mac. Each comparison starts by reading
+the same multiplier. Screenshots show actual ABC command output and
+ABC-generated diagrams displayed together for readability. Graphviz renders
+the diagrams; terminal color-control sequences are omitted.
+
+\begin{center}
+\small
+\begin{tabular}{lrrrl}
+\toprule
+Representation & Logic nodes & Edges & Levels & Function statistic\\
+\midrule
+Original SOP & 8 & 16 & 3 & \texttt{cube = 10}\\
+Local AIG (\texttt{aig}) & 8 & 16 & 3 & \texttt{aig = 12}\\
+Strashed AIG & -- & -- & 4 & \texttt{and = 12}\\
+Local BDD (\texttt{bdd}) & 8 & 16 & 3 & \texttt{bdd = 16}\\
+Collapsed BDD & 4 & 14 & 1 & \texttt{bdd = 14}\\
+SOP after \texttt{strash; logic} & 12 & 24 & 4 & \texttt{cube = 12}\\
+\bottomrule
+\end{tabular}
+\end{center}
+The function counters are ABC's reported values, not interchangeable measures
+of network size. Every case has four inputs, four outputs, and no latches.
+
+\newpage
+\subsection*{Reading and displaying the original network}
+\begin{verbatim}
+read mul.blif
+print_stats
+show
+\end{verbatim}
+The original network has eight internal nodes: four partial-product gates,
+two XOR gates, and two carry gates. XOR nodes have two cubes, so the total
+is ten cubes. Its longest path has three logic levels.
+\evidence{ex2-read}{0.73}{Original SOP network and its measured statistics.}
+
+\newpage
+\subsection*{Structural hashing}
+\begin{verbatim}
+read mul.blif
+strash
+print_stats
+show
+\end{verbatim}
+\texttt{strash} constructs a global AIG with two-input AND nodes and
+complemented edges. Each XOR requires a small AND/inverter implementation.
+The resulting network has twelve AND nodes and four levels. More AIG
+nodes than original logic nodes is not a correctness problem: the node
+types represent different amounts of logic.
+\evidence{ex2-strash}{0.73}{Structurally hashed AIG. Inversion is represented on edges.}
+
+\newpage
+\subsection*{Collapsing and displaying all output BDDs}
+\begin{verbatim}
+read mul.blif
+strash
+collapse
+print_stats
+show_bdd -g
+\end{verbatim}
+After collapse, there are four logic nodes, one per output, and one logic
+level. Their functions are expressed directly in terms of primary inputs.
+The network has fourteen fanin edges, and ABC reports
+\texttt{bdd = 14}. The \texttt{-g} option displays all output functions;
+without it, \texttt{show\_bdd} defaults to one output's driver.
+\evidence{ex2-collapse}{0.72}{Global view of all four multiplier output functions.}
+
+\newpage
+\section{Exercise 3: representation comparisons}
+\subsection{Local AIG versus structurally hashed AIG}
+\begin{verbatim}
+read mul.blif
+aig
+print_stats
+show
+\end{verbatim}
+\texttt{aig} preserves the eight-node logic network and replaces each
+node's local function representation by an AIG. Its fanins are still the
+signals feeding that logic node. In contrast, \texttt{strash} constructs
+one global AND/inverter network whose leaves are the circuit inputs.
+
+For this multiplier, \texttt{aig} reports twelve ANDs in the local function
+representation, while \texttt{strash} also produces twelve AND nodes.
+There is no observed reduction in that AND count. The structural difference
+is visible in the topology: eight logic nodes and three levels versus
+twelve global AND nodes and four levels. Structural hashing merges
+structurally identical nodes; it is not arbitrary Boolean minimization.
+Local AIGs should not be described simply as ``unhashed AIGs.''
+\evidence{ex3-aig}{0.65}{Local AIG representation; compare with the global AIG on the previous pages.}
+
+\newpage
+\subsection{Local BDD versus collapsed BDD: network structure}
+\begin{verbatim}
+read mul.blif; bdd; print_stats; show
+read mul.blif; collapse; print_stats; show
+\end{verbatim}
+\texttt{bdd} changes local node functions without flattening the network:
+eight nodes, sixteen edges, and three levels remain. Its
+\texttt{bdd} counter is sixteen. \texttt{collapse} composes the functions
+into output functions over primary inputs, leaving four nodes, fourteen
+edges, and one level, with a reported BDD counter of fourteen.
+
+These observations distinguish the circuit's structure from the size of its
+function representations. Collapse reduces these measurements for this
+example; it need not make BDDs small for an arbitrary circuit or ordering.
+The diagram regions below are cropped from the full screenshots to keep
+the node labels readable.
+\comparison{ex3-bdd-diagram}{Local BDD network: internal signals remain as fanins.}
+{ex3-collapse-diagram}{Collapsed network: each output function depends directly on primary inputs.}
+
+\newpage
+\subsection*{Local and global functions for \(y_2\)}
+\begin{verbatim}
+read mul.blif; bdd; show_bdd y2
+read mul.blif; collapse; show_bdd y2
+\end{verbatim}
+Before collapse, \(y_2=p_{11}\oplus c_1\) is a local two-variable
+function. After collapse, the intermediate signals are substituted by
+their definitions, so the BDD tests primary inputs instead.
+Using \texttt{show\_bdd -g} for both cases would instead request a global
+view in both cases and would not expose this local-versus-global distinction.
+\comparison{ex3-local-bdd-diagram}{Local BDD for \(y_2\), in terms of its two immediate fanins.}
+{ex3-global-bdd-diagram}{Collapsed BDD for \(y_2\), in terms of primary inputs.}
+
+\newpage
+\subsection{Converting a strashed AIG to SOP logic}
+\begin{verbatim}
+read mul.blif
+strash
+logic
+print_stats
+lsv_print_nodes
+\end{verbatim}
+\texttt{logic} converts the strashed AIG into a logic network with SOP
+node functions. It is the necessary representation conversion; applying
+\texttt{sop} directly to a strashed network is not sufficient because
+\texttt{sop} requires a logic network.
+
+The resulting network has twelve nodes, twenty-four edges, twelve cubes,
+and four levels. The \texttt{lsv\_print\_nodes} listing confirms SOP data,
+including \texttt{11 1} for AND nodes and complemented-input cubes such
+as \texttt{01 1}. Some functions use an OFF-set cube such as
+\texttt{00 0}; a zero-valued cube is valid and should not be mistaken
+for a missing function. Conversion preserves the represented function,
+but does not reconstruct the original eight-node XOR-level design.
+\evidence{ex3-sop}{0.60}{Beginning of the actual SOP node listing after conversion.}
+\end{document}
