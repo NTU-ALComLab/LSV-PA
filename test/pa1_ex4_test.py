@@ -46,4 +46,13 @@ with tempfile.TemporaryDirectory() as directory:
     assert any(line.endswith(": 8000000000000000") for line in run(circuit, "tt", 6))
     assert any(line.endswith(": 7") for line in run(circuit, "bddsize", 6))
 
+    mux = Path(directory) / "mux.blif"
+    for inputs, truth, size in (("a b c", "35", "4"), ("c b a", "27", "5")):
+        mux.write_text(
+            f".model mux\n.inputs {inputs}\n.outputs y\n"
+            ".names a b c y\n11- 1\n0-1 1\n.end\n"
+        )
+        assert "7: 1 2 3: " + truth in run(mux, "tt", 3)
+        assert "7: 1 2 3: " + size in run(mux, "bddsize", 3)
+
 print("PA1 Exercise 4 checks passed")

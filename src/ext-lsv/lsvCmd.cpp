@@ -3,10 +3,14 @@
 #include "base/main/mainInt.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cerrno>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <iterator>
+#include <memory>
 #include <set>
 #include <utility>
 #include <vector>
@@ -117,6 +121,7 @@ static const LsvCuts& Lsv_EnumerateCuts(Abc_Obj_t* node, int k,
 
 static int Lsv_Evaluate(Abc_Obj_t* node, const LsvCut& cut, unsigned assignment) {
   auto leaf = std::lower_bound(cut.begin(), cut.end(), Abc_ObjId(node));
+  // The first leaf is the highest assignment bit and CUDD variable 0.
   if (leaf != cut.end() && *leaf == Abc_ObjId(node))
     return (assignment >> (cut.end() - leaf - 1)) & 1;
   if (Abc_AigNodeIsConst(node)) return 1;
@@ -177,12 +182,14 @@ static int Lsv_CommandCut(Abc_Frame_t* frame, int argc, char** argv) {
 
   bool bddsize = !strcmp(argv[2], "bddsize");
 #ifdef ABC_USE_CUDD
-  DdManager* dd = bddsize ? Cudd_Init(k, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0) : nullptr;
+  std::unique_ptr<DdManager, decltype(&Cudd_Quit)> dd(
+      bddsize ? Cudd_Init(k, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0) : nullptr,
+      &Cudd_Quit);
   if (bddsize && !dd) {
     Abc_Print(-1, "Cannot initialize CUDD.\n");
     return 1;
   }
-  if (dd) Cudd_AutodynDisable(dd);
+  if (dd) Cudd_AutodynDisable(dd.get());
 #else
   if (bddsize) {
     Abc_Print(-1, "BDD support requires a build with CUDD.\n");
@@ -198,27 +205,24 @@ static int Lsv_CommandCut(Abc_Frame_t* frame, int argc, char** argv) {
       printf("%d: ", Abc_ObjId(node));
       for (size_t j = 0; j < cut.size(); ++j)
         printf("%s%d", j ? " " : "", cut[j]);
-      if (bddsize) {
-#ifdef ABC_USE_CUDD
-        DdNode* result = Lsv_BuildBdd(node, cut, dd);
-        if (!result) {
-          Cudd_Quit(dd);
-          Abc_Print(-1, "Cannot build BDD.\n");
-          return 1;
-        }
-        printf(": %d\n", Cudd_DagSize(result));
-        Cudd_RecursiveDeref(dd, result);
-#endif
-      } else {
+      if (!bddsize) {
         uint64_t truth = 0;
         for (unsigned assignment = 0; assignment < (1u << cut.size()); ++assignment)
           truth |= uint64_t(Lsv_Evaluate(node, cut, assignment)) << assignment;
         printf(": %llX\n", static_cast<unsigned long long>(truth));
       }
+#ifdef ABC_USE_CUDD
+      else {
+        DdNode* result = Lsv_BuildBdd(node, cut, dd.get());
+        if (!result) {
+          Abc_Print(-1, "Cannot build BDD.\n");
+          return 1;
+        }
+        printf(": %d\n", Cudd_DagSize(result));
+        Cudd_RecursiveDeref(dd.get(), result);
+      }
+#endif
     }
   }
-#ifdef ABC_USE_CUDD
-  if (dd) Cudd_Quit(dd);
-#endif
   return 0;
 }
