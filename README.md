@@ -27,10 +27,14 @@ The detailed steps are documented [here](./private-fork.md).
 Please register your student IDs and GitHub accounts in this [table](./lsv/admin/participants-id.csv).
 
 ## Assignments
-### [PA1](./lsv/pa1/LSV_2026_pa1): Cut Enumeration and TT BDD generation
+### [PA1](./lsv/pa1/LSV_2026_pa1.pdf): Cut Enumeration and TT BDD generation
 Submission deadline:
 - Exercises 1-3: 2026/09/25 23:59
 - Exercises 4: 2026/10/09 23:59
+
+For Exercise 4, build ABC with `make`, then run `read <circuit>; strash; lsv cut tt <k>`
+or `read <circuit>; strash; lsv cut bddsize <k>` in ABC. Both commands accept
+`2 <= k <= 6` and print cuts rooted at internal AIG nodes.
 
 ## Contact
 TA: Jui-Chun Ho (r15943061@ntu.edu.tw)
