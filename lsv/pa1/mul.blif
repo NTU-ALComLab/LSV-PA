@@ -2,7 +2,7 @@
 .inputs a1 a0 b1 b0
 .outputs y3 y2 y1 y0
 
-# p01 p10 p11: p01 = a0 ^ b0, ......
+# partial products (AND): y0 = a0&b0, p10 = a1&b0, p01 = a0&b1, p11 = a1&b1
 .names a0 b0 y0
 11 1
 .names a1 b0 p10
@@ -12,7 +12,7 @@
 .names a1 b1 p11
 11 1
 
-# xor gate
+# bit 1 half adder: y1 = p10 XOR p01 (sum), c1 = p10 AND p01 (carry)
 .names p10 p01 y1
 01 1
 10 1
@@ -20,6 +20,7 @@
 .names p10 p01 c1
 11 1
 
+# bit 2 half adder: y2 = p11 XOR c1 (sum), y3 = p11 AND c1 (carry)
 .names p11 c1 y2
 01 1
 10 1
