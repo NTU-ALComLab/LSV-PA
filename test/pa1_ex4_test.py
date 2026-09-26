@@ -30,6 +30,13 @@ assert run(example, "bddsize", 3) == [
 ]
 assert len(run(example, "tt", 2)) == 6
 
+router_cuts = {}
+for line in run(ROOT / "lsv/pa1/benchmarks/router.blif", "tt", 4):
+    root, leaves, _ = line.split(": ")
+    router_cuts.setdefault(root, set()).add(frozenset(map(int, leaves.split())))
+assert router_cuts
+assert all(not any(other < cut for other in cuts) for cuts in router_cuts.values() for cut in cuts)
+
 with tempfile.TemporaryDirectory() as directory:
     circuit = Path(directory) / "six_inputs.blif"
     circuit.write_text(

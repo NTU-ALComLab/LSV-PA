@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <iterator>
 #include <set>
+#include <utility>
 #include <vector>
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
@@ -94,6 +95,21 @@ static const LsvCuts& Lsv_EnumerateCuts(Abc_Obj_t* node, int k,
             cuts.push_back(std::move(merged));
         }
       }
+      LsvCuts irredundant;
+      for (const LsvCut& cut : cuts) {
+        bool redundant = false;
+        for (unsigned mask = 1; mask + 1 < (1u << cut.size()); ++mask) {
+          LsvCut subset;
+          for (size_t i = 0; i < cut.size(); ++i)
+            if (mask & (1u << i)) subset.push_back(cut[i]);
+          if (seen.count(subset)) {
+            redundant = true;
+            break;
+          }
+        }
+        if (!redundant) irredundant.push_back(cut);
+      }
+      cuts.swap(irredundant);
     }
   }
   return cuts;
