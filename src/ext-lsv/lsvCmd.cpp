@@ -119,23 +119,33 @@ static const LsvCuts& Lsv_EnumerateCuts(Abc_Obj_t* node, int k,
   return cuts;
 }
 
-static int Lsv_Evaluate(Abc_Obj_t* node, const LsvCut& cut, unsigned assignment) {
+static int Lsv_LeafIndex(Abc_Obj_t* node, const LsvCut& cut) {
   auto leaf = std::lower_bound(cut.begin(), cut.end(), Abc_ObjId(node));
-  // The first leaf is the highest assignment bit and CUDD variable 0.
-  if (leaf != cut.end() && *leaf == Abc_ObjId(node))
-    return (assignment >> (cut.end() - leaf - 1)) & 1;
-  if (Abc_AigNodeIsConst(node)) return 1;
+  return leaf != cut.end() && *leaf == Abc_ObjId(node) ? leaf - cut.begin() : -1;
+}
+
+static uint64_t Lsv_EvaluateTruth(Abc_Obj_t* node, const LsvCut& cut, uint64_t mask) {
+  int index = Lsv_LeafIndex(node, cut);
+  if (index >= 0) {
+    uint64_t truth = 0;
+    for (unsigned assignment = 0; assignment < (1u << cut.size()); ++assignment)
+      truth |= uint64_t((assignment >> (cut.size() - index - 1)) & 1) << assignment;
+    return truth;
+  }
+  if (Abc_AigNodeIsConst(node)) return mask;
   assert(Abc_ObjIsNode(node));
-  int left = Lsv_Evaluate(Abc_ObjFanin0(node), cut, assignment) ^ Abc_ObjFaninC0(node);
-  int right = Lsv_Evaluate(Abc_ObjFanin1(node), cut, assignment) ^ Abc_ObjFaninC1(node);
+  uint64_t left = Lsv_EvaluateTruth(Abc_ObjFanin0(node), cut, mask);
+  uint64_t right = Lsv_EvaluateTruth(Abc_ObjFanin1(node), cut, mask);
+  if (Abc_ObjFaninC0(node)) left ^= mask;
+  if (Abc_ObjFaninC1(node)) right ^= mask;
   return left & right;
 }
 
 #ifdef ABC_USE_CUDD
 static DdNode* Lsv_BuildBdd(Abc_Obj_t* node, const LsvCut& cut, DdManager* dd) {
-  auto leaf = std::lower_bound(cut.begin(), cut.end(), Abc_ObjId(node));
-  if (leaf != cut.end() && *leaf == Abc_ObjId(node)) {
-    DdNode* result = Cudd_bddIthVar(dd, leaf - cut.begin());
+  int index = Lsv_LeafIndex(node, cut);
+  if (index >= 0) {
+    DdNode* result = Cudd_bddIthVar(dd, index);
     if (result) Cudd_Ref(result);
     return result;
   }
@@ -206,9 +216,9 @@ static int Lsv_CommandCut(Abc_Frame_t* frame, int argc, char** argv) {
       for (size_t j = 0; j < cut.size(); ++j)
         printf("%s%d", j ? " " : "", cut[j]);
       if (!bddsize) {
-        uint64_t truth = 0;
-        for (unsigned assignment = 0; assignment < (1u << cut.size()); ++assignment)
-          truth |= uint64_t(Lsv_Evaluate(node, cut, assignment)) << assignment;
+        unsigned assignments = 1u << cut.size();
+        uint64_t mask = assignments == 64 ? ~uint64_t(0) : (uint64_t(1) << assignments) - 1;
+        uint64_t truth = Lsv_EvaluateTruth(node, cut, mask);
         printf(": %llX\n", static_cast<unsigned long long>(truth));
       }
 #ifdef ABC_USE_CUDD
