@@ -3,7 +3,6 @@
 #include "base/main/mainInt.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>
@@ -75,7 +74,7 @@ usage:
   return 1;
 }
 
-using LsvCut = std::vector<int>;
+using LsvCut = std::vector<unsigned>;
 using LsvCuts = std::vector<LsvCut>;
 
 static const LsvCuts& Lsv_EnumerateCuts(Abc_Obj_t* node, int k,
@@ -83,10 +82,11 @@ static const LsvCuts& Lsv_EnumerateCuts(Abc_Obj_t* node, int k,
   LsvCuts& cuts = cache[Abc_ObjId(node)];
   if (!cuts.empty()) return cuts;
 
+  // Strash normally removes constant fanins; retain support for imported AIGs.
   if (Abc_AigNodeIsConst(node)) {
     cuts.push_back({});
   } else {
-    cuts.push_back({static_cast<int>(Abc_ObjId(node))});
+    cuts.push_back({Abc_ObjId(node)});
     if (Abc_ObjIsNode(node)) {
       std::set<LsvCut> seen(cuts.begin(), cuts.end());
       const LsvCuts& left = Lsv_EnumerateCuts(Abc_ObjFanin0(node), k, cache);
@@ -125,13 +125,16 @@ static int Lsv_LeafIndex(Abc_Obj_t* node, const LsvCut& cut) {
   return leaf != cut.end() && *leaf == Abc_ObjId(node) ? leaf - cut.begin() : -1;
 }
 
-static uint64_t Lsv_EvaluateTruth(Abc_Obj_t* node, const LsvCut& cut, uint64_t mask,
-                                  std::unordered_map<int, uint64_t>& cache) {
-  int id = Abc_ObjId(node);
+static bool Lsv_EvaluateTruth(Abc_Obj_t* node, const LsvCut& cut, uint64_t mask,
+                              std::unordered_map<unsigned, uint64_t>& cache,
+                              uint64_t& truth) {
+  unsigned id = Abc_ObjId(node);
   auto cached = cache.find(id);
-  if (cached != cache.end()) return cached->second;
+  if (cached != cache.end()) {
+    truth = cached->second;
+    return true;
+  }
   int index = Lsv_LeafIndex(node, cut);
-  uint64_t truth;
   if (index >= 0) {
     truth = 0;
     for (unsigned assignment = 0; assignment < (1u << cut.size()); ++assignment)
@@ -139,23 +142,31 @@ static uint64_t Lsv_EvaluateTruth(Abc_Obj_t* node, const LsvCut& cut, uint64_t m
   } else if (Abc_AigNodeIsConst(node)) {
     truth = mask;
   } else {
-    assert(Abc_ObjIsNode(node));
-    uint64_t left = Lsv_EvaluateTruth(Abc_ObjFanin0(node), cut, mask, cache);
-    uint64_t right = Lsv_EvaluateTruth(Abc_ObjFanin1(node), cut, mask, cache);
+    if (!Abc_ObjIsNode(node)) return false;
+    uint64_t left, right;
+    if (!Lsv_EvaluateTruth(Abc_ObjFanin0(node), cut, mask, cache, left) ||
+        !Lsv_EvaluateTruth(Abc_ObjFanin1(node), cut, mask, cache, right))
+      return false;
     if (Abc_ObjFaninC0(node)) left ^= mask;
     if (Abc_ObjFaninC1(node)) right ^= mask;
     truth = left & right;
   }
   cache.emplace(id, truth);
-  return truth;
+  return true;
 }
 
 #ifdef ABC_USE_CUDD
+struct LsvBddDeref {
+  DdManager* dd;
+  void operator()(DdNode* node) const { Cudd_RecursiveDeref(dd, node); }
+};
+using LsvBddRef = std::unique_ptr<DdNode, LsvBddDeref>;
+
 static DdNode* Lsv_BuildBdd(Abc_Obj_t* node, const LsvCut& cut, DdManager* dd,
-                             std::unordered_map<int, DdNode*>& cache) {
-  int id = Abc_ObjId(node);
+                             std::unordered_map<unsigned, LsvBddRef>& cache) {
+  unsigned id = Abc_ObjId(node);
   auto cached = cache.find(id);
-  if (cached != cache.end()) return cached->second;
+  if (cached != cache.end()) return cached->second.get();
   int index = Lsv_LeafIndex(node, cut);
   DdNode* result;
   if (index >= 0) {
@@ -163,7 +174,7 @@ static DdNode* Lsv_BuildBdd(Abc_Obj_t* node, const LsvCut& cut, DdManager* dd,
   } else if (Abc_AigNodeIsConst(node)) {
     result = Cudd_ReadOne(dd);
   } else {
-    assert(Abc_ObjIsNode(node));
+    if (!Abc_ObjIsNode(node)) return nullptr;
     DdNode* left = Lsv_BuildBdd(Abc_ObjFanin0(node), cut, dd, cache);
     if (!left) return nullptr;
     DdNode* right = Lsv_BuildBdd(Abc_ObjFanin1(node), cut, dd, cache);
@@ -172,9 +183,8 @@ static DdNode* Lsv_BuildBdd(Abc_Obj_t* node, const LsvCut& cut, DdManager* dd,
                          Cudd_NotCond(right, Abc_ObjFaninC1(node)));
   }
   if (result) {
-    // Keep one reference per cached node until this cut is finished.
     Cudd_Ref(result);
-    cache.emplace(id, result);
+    cache.emplace(id, LsvBddRef(result, LsvBddDeref{dd}));
   }
   return result;
 }
@@ -221,22 +231,25 @@ static int Lsv_CommandCut(Abc_Frame_t* frame, int argc, char** argv) {
   int i;
   Abc_NtkForEachNode(network, node, i) {
     for (const LsvCut& cut : Lsv_EnumerateCuts(node, k, cache)) {
-      printf("%d: ", Abc_ObjId(node));
+      printf("%u: ", Abc_ObjId(node));
       for (size_t j = 0; j < cut.size(); ++j)
-        printf("%s%d", j ? " " : "", cut[j]);
+        printf("%s%u", j ? " " : "", cut[j]);
       if (!bddsize) {
         unsigned assignments = 1u << cut.size();
         uint64_t mask = assignments == 64 ? ~uint64_t(0) : (uint64_t(1) << assignments) - 1;
-        std::unordered_map<int, uint64_t> values;
-        uint64_t truth = Lsv_EvaluateTruth(node, cut, mask, values);
+        std::unordered_map<unsigned, uint64_t> values;
+        uint64_t truth;
+        if (!Lsv_EvaluateTruth(node, cut, mask, values, truth)) {
+          Abc_Print(-1, "Cut contains an invalid AIG node.\n");
+          return 1;
+        }
         printf(": %llX\n", static_cast<unsigned long long>(truth));
       }
 #ifdef ABC_USE_CUDD
       else {
-        std::unordered_map<int, DdNode*> values;
+        std::unordered_map<unsigned, LsvBddRef> values;
         DdNode* result = Lsv_BuildBdd(node, cut, dd.get(), values);
         if (result) printf(": %d\n", Cudd_DagSize(result));
-        for (const auto& entry : values) Cudd_RecursiveDeref(dd.get(), entry.second);
         if (!result) {
           Abc_Print(-1, "Cannot build BDD.\n");
           return 1;
