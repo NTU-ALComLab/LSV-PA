@@ -209,9 +209,9 @@ static void Lsv_NtkCutTT(Abc_Ntk_t* pNtk, int k) {
   Abc_NtkForEachNode(pNtk, pObj, i) {
     for (const Lsv_Cut& cut : vCuts[Abc_ObjId(pObj)]) {
       uint64_t tt = Lsv_CutTruthTable(pNtk, pObj, cut, vTt);
-      printf("%d:", Abc_ObjId(pObj));
-      for (int leaf : cut) printf(" %d", leaf);
-      printf(": %" PRIX64 "\n", tt);
+      Abc_Print(1, "%d:", Abc_ObjId(pObj));
+      for (int leaf : cut) Abc_Print(1, " %d", leaf);
+      Abc_Print(1, ": %" PRIX64 "\n", tt);
     }
   }
 }
