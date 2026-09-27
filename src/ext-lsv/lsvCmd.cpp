@@ -1,6 +1,7 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "bdd/extrab/extraBdd.h" 
 
 #include <cinttypes>
 #include <cstdint>
@@ -10,10 +11,12 @@
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandPA1CutTT(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandPA1CutBDDsize(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandPA1CutTT, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandPA1CutBDDsize, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -248,6 +251,94 @@ int Lsv_CommandPA1CutTT(Abc_Frame_t* pAbc, int argc, char** argv) {
 usage:
   Abc_Print(-2, "usage: lsv_cut_tt [-h] <k>\n");
   Abc_Print(-2, "\t        prints k-feasible cuts and their truth tables\n");
+  Abc_Print(-2, "\t-h    : print the command usage\n");
+  return 1;
+}
+
+static DdNode* Lsv_CutBDD_rec(Abc_Obj_t* pObj, DdManager* dd,
+                             std::vector<DdNode*>& vBddnode) {
+  if (Abc_NodeIsTravIdCurrent(pObj)) {
+    return vBddnode[Abc_ObjId(pObj)];
+  }
+  DdNode* bdd0 = Lsv_CutBDD_rec(Abc_ObjFanin0(pObj), dd, vBddnode);
+  DdNode* bdd1 = Lsv_CutBDD_rec(Abc_ObjFanin1(pObj), dd, vBddnode);
+  bdd0 = Cudd_NotCond(bdd0, Abc_ObjFaninC0(pObj));
+  bdd1 = Cudd_NotCond(bdd1, Abc_ObjFaninC1(pObj));
+  DdNode* bdd = Cudd_bddAnd(dd, bdd0, bdd1);
+  Cudd_Ref(bdd);
+  // Cudd_RecursiveDeref(dd, bdd0);
+  // Cudd_RecursiveDeref(dd, bdd1);
+  vBddnode[Abc_ObjId(pObj)] = bdd;
+  Abc_NodeSetTravIdCurrent(pObj);
+  return bdd;
+}
+
+static DdNode* Lsv_CutBDD(Abc_Ntk_t*  pNtk, Abc_Obj_t* pRoot, DdManager* dd,
+                          const Lsv_Cut& cut,
+                          std::vector<DdNode*>& vBddnode) {
+  int nVars = cut.size();
+  Abc_NtkIncrementTravId(pNtk);
+  for (int j = 0; j < nVars; j++) {
+    Abc_Obj_t* pLeaf = Abc_NtkObj(pNtk, cut[j]);
+    vBddnode[cut[j]] = Cudd_bddIthVar(dd, j);
+    Abc_NodeSetTravIdCurrent(pLeaf);
+  }
+  return Lsv_CutBDD_rec(pRoot, dd, vBddnode);
+}
+
+static void Lsv_NtkCutBDDsize(Abc_Ntk_t* pNtk, int k) {
+  std::vector<Lsv_CutSet> vCuts;
+  Lsv_NtkEnumerateCuts(pNtk, k, vCuts);
+
+  std::vector<DdNode*> vBddnode(Abc_NtkObjNumMax(pNtk), nullptr);
+  Abc_Obj_t* pObj;
+  int i;
+  Abc_NtkForEachNode(pNtk, pObj, i) {
+    for (const Lsv_Cut& cut : vCuts[Abc_ObjId(pObj)]) {
+      DdManager* dd = Cudd_Init( cut.size(), 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0 );
+      // init the leaves' BDDs
+      std::vector<DdNode*> leafBdds(cut.size());
+      DdNode* tt = Lsv_CutBDD(pNtk, pObj, dd, cut, vBddnode);
+      Abc_Print(1, "%d:", Abc_ObjId(pObj));
+      for (int leaf : cut) Abc_Print(1, " %d", leaf);
+      Abc_Print(1, ": %d\n", Cudd_DagSize(tt));
+      Cudd_Quit(dd);
+    }
+  }
+}
+
+int Lsv_CommandPA1CutBDDsize(Abc_Frame_t* pAbc, int argc, char** argv) {
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  int c, k;
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    switch (c) {
+      case 'h':
+        goto usage;
+      default:
+        goto usage;
+    }
+  }
+  if (argc != globalUtilOptind + 1) goto usage;
+  k = atoi(argv[globalUtilOptind]);
+  if (k < 1 || k > 6) {
+    Abc_Print(-1, "k must be between 1 and 6.\n");
+    return 1;
+  }
+  if (!pNtk) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  if (!Abc_NtkIsStrash(pNtk)) {
+    Abc_Print(-1, "The network is not an AIG (run \"strash\" first).\n");
+    return 1;
+  }
+  Lsv_NtkCutBDDsize(pNtk, k);
+  return 0;
+
+usage:
+  Abc_Print(-2, "usage: lsv_cut_bdd [-h] <k>\n");
+  Abc_Print(-2, "\t        prints k-feasible cuts and their BDD sizes\n");
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
 }
