@@ -6,6 +6,7 @@
 #include "bdd/extrab/extraBdd.h"
 #endif
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <vector>
@@ -144,12 +145,25 @@ static uint64_t Lsv_MergeTt(const Lsv_Cut& c0, const Lsv_Cut& c1, int fCompl0,
   return tt;
 }
 
-static bool Lsv_CutExists(const std::vector<Lsv_Cut>& cuts,
-                          const std::vector<int>& leaves) {
+// Dominated cuts (strict supersets of another cut of the same node) are not
+// reported (TA clarification, LSV-PA issue #983). Returns false if `leaves` is
+// dominated by (or equal to) an existing cut; otherwise erases the existing cuts
+// that `leaves` dominates.
+static bool Lsv_AddIfUndominated(std::vector<Lsv_Cut>& cuts,
+                                 const std::vector<int>& leaves) {
   for (size_t i = 0; i < cuts.size(); i++) {
-    if (cuts[i].leaves == leaves) return true;
+    if (std::includes(leaves.begin(), leaves.end(), cuts[i].leaves.begin(),
+                      cuts[i].leaves.end()))
+      return false;
   }
-  return false;
+  size_t w = 0;
+  for (size_t i = 0; i < cuts.size(); i++) {
+    if (!std::includes(cuts[i].leaves.begin(), cuts[i].leaves.end(),
+                       leaves.begin(), leaves.end()))
+      cuts[w++] = cuts[i];
+  }
+  cuts.resize(w);
+  return true;
 }
 
 static void Lsv_EnumerateCuts(Abc_Ntk_t* pNtk, int k,
@@ -184,7 +198,7 @@ static void Lsv_EnumerateCuts(Abc_Ntk_t* pNtk, int k,
       for (size_t b = 0; b < cuts1.size(); b++) {
         std::vector<int> leaves;
         if (!Lsv_MergeLeaves(cuts0[a], cuts1[b], k, leaves)) continue;
-        if (Lsv_CutExists(cuts[id], leaves)) continue;
+        if (!Lsv_AddIfUndominated(cuts[id], leaves)) continue;
         Lsv_Cut cut;
         cut.leaves = leaves;
         cut.tt = Lsv_MergeTt(cuts0[a], cuts1[b], c0, c1, leaves);
