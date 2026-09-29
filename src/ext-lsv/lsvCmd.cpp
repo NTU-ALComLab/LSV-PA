@@ -3,9 +3,11 @@
 #include "base/main/mainInt.h"
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
+void Lsv_RegisterCutCommands(Abc_Frame_t* pAbc);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+  Lsv_RegisterCutCommands(pAbc);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
