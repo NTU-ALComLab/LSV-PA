@@ -1,11 +1,18 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "lsvCut.h"
+
+#include <cstdlib>
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandCutTt(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandCutTt, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandCutBddSize, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -56,5 +63,81 @@ usage:
   Abc_Print(-2, "usage: lsv_print_nodes [-h]\n");
   Abc_Print(-2, "\t        prints the nodes in the network\n");
   Abc_Print(-2, "\t-h    : print the command usage\n");
+  return 1;
+}
+
+int Lsv_CommandCutTt(Abc_Frame_t* pAbc, int argc, char** argv) {
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  int c;
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    switch (c) {
+      case 'h':
+        goto usage;
+      default:
+        goto usage;
+    }
+  }
+  if (argc != globalUtilOptind + 1) goto usage;
+  {
+    int nK = atoi(argv[globalUtilOptind]);
+    if (nK < 2 || nK > 6) {
+      Abc_Print(-1, "k must be an integer in [2, 6].\n");
+      return 1;
+    }
+    if (!pNtk) {
+      Abc_Print(-1, "Empty network.\n");
+      return 1;
+    }
+    if (!Abc_NtkIsStrash(pNtk)) {
+      Abc_Print(-1, "The current network is not an AIG. Run \"strash\".\n");
+      return 1;
+    }
+    Lsv_NtkCutTt(pNtk, nK);
+    return 0;
+  }
+
+usage:
+  Abc_Print(-2, "usage: lsv_cut_tt <k>\n");
+  Abc_Print(-2, "\t        enumerate k-feasible cuts of internal AIG nodes and print truth tables\n");
+  Abc_Print(-2, "\t<k>   : cut size bound (2 <= k <= 6)\n");
+  return 1;
+}
+
+int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc, char** argv) {
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  int c;
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    switch (c) {
+      case 'h':
+        goto usage;
+      default:
+        goto usage;
+    }
+  }
+  if (argc != globalUtilOptind + 1) goto usage;
+  {
+    int nK = atoi(argv[globalUtilOptind]);
+    if (nK < 2 || nK > 6) {
+      Abc_Print(-1, "k must be an integer in [2, 6].\n");
+      return 1;
+    }
+    if (!pNtk) {
+      Abc_Print(-1, "Empty network.\n");
+      return 1;
+    }
+    if (!Abc_NtkIsStrash(pNtk)) {
+      Abc_Print(-1, "The current network is not an AIG. Run \"strash\".\n");
+      return 1;
+    }
+    Lsv_NtkCutBddSize(pNtk, nK);
+    return 0;
+  }
+
+usage:
+  Abc_Print(-2, "usage: lsv_cut_bddsize <k>\n");
+  Abc_Print(-2, "\t        enumerate k-feasible cuts of internal AIG nodes and print ROBDD sizes\n");
+  Abc_Print(-2, "\t<k>   : cut size bound (2 <= k <= 6)\n");
   return 1;
 }
