@@ -3,11 +3,22 @@
 #include "base/main/mainInt.h"
 #include "lsvCut.h"
 
+#include <cerrno>
 #include <cstdlib>
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandCutTt(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc, char** argv);
+
+static int Lsv_ParseK(const char* pArg, int* pK) {
+  char* pEnd = NULL;
+  errno = 0;
+  long value = strtol(pArg, &pEnd, 10);
+  if (errno || pArg[0] == '\0' || pEnd[0] != '\0' || value < 2 || value > 6)
+    return 0;
+  *pK = (int)value;
+  return 1;
+}
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
@@ -80,8 +91,8 @@ int Lsv_CommandCutTt(Abc_Frame_t* pAbc, int argc, char** argv) {
   }
   if (argc != globalUtilOptind + 1) goto usage;
   {
-    int nK = atoi(argv[globalUtilOptind]);
-    if (nK < 2 || nK > 6) {
+    int nK;
+    if (!Lsv_ParseK(argv[globalUtilOptind], &nK)) {
       Abc_Print(-1, "k must be an integer in [2, 6].\n");
       return 1;
     }
@@ -118,8 +129,8 @@ int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc, char** argv) {
   }
   if (argc != globalUtilOptind + 1) goto usage;
   {
-    int nK = atoi(argv[globalUtilOptind]);
-    if (nK < 2 || nK > 6) {
+    int nK;
+    if (!Lsv_ParseK(argv[globalUtilOptind], &nK)) {
       Abc_Print(-1, "k must be an integer in [2, 6].\n");
       return 1;
     }

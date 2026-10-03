@@ -3,6 +3,7 @@
 #include <unordered_set>
 #include <vector>
 #include <cstring>
+#include <cinttypes>
 #include <cstdint>
 #include <cstdio>
 
@@ -64,36 +65,52 @@ static void Lsv_CutAdd(std::vector<Lsv_Cut_t>& vCuts,
   if (seen.insert(cut).second) vCuts.push_back(cut);
 }
 
-static int Lsv_EvalNode(Abc_Obj_t* pObj, const Lsv_Cut_t& cut, int assign,
-                        int* pMemo) {
+static uint64_t Lsv_CutMask(int nVars) {
+  int nBits = 1 << nVars;
+  return nBits == 64 ? UINT64_MAX : (((uint64_t)1 << nBits) - 1);
+}
+
+static uint64_t Lsv_VarTruth(int nVars, int iVar) {
+  uint64_t truth = 0;
+  int nAssign = 1 << nVars;
+  int shift = nVars - 1 - iVar;
+  for (int assign = 0; assign < nAssign; assign++)
+    if ((assign >> shift) & 1) truth |= ((uint64_t)1 << assign);
+  return truth;
+}
+
+static uint64_t Lsv_EvalNodeTruth(Abc_Obj_t* pObj, const Lsv_Cut_t& cut,
+                                  const uint64_t* pVarTruth, uint64_t mask,
+                                  uint64_t* pMemo, unsigned char* pValid) {
   int id = (int)Abc_ObjId(pObj);
-  for (int i = 0; i < cut.n; i++) {
-    if (cut.leaf[i] == id) return (assign >> (cut.n - 1 - i)) & 1;
-  }
-  if (pMemo[id] >= 0) return pMemo[id];
+  for (int i = 0; i < cut.n; i++)
+    if (cut.leaf[i] == id) return pVarTruth[i];
+  if (pValid[id]) return pMemo[id];
   if (Abc_AigNodeIsConst(pObj)) {
-    pMemo[id] = 1;
-    return 1;
+    pMemo[id] = mask;
+    pValid[id] = 1;
+    return mask;
   }
-  int v0 = Lsv_EvalNode(Abc_ObjFanin0(pObj), cut, assign, pMemo) ^
-           Abc_ObjFaninC0(pObj);
-  int v1 = Lsv_EvalNode(Abc_ObjFanin1(pObj), cut, assign, pMemo) ^
-           Abc_ObjFaninC1(pObj);
+  uint64_t v0 = Lsv_EvalNodeTruth(Abc_ObjFanin0(pObj), cut, pVarTruth, mask,
+                                  pMemo, pValid);
+  uint64_t v1 = Lsv_EvalNodeTruth(Abc_ObjFanin1(pObj), cut, pVarTruth, mask,
+                                  pMemo, pValid);
+  if (Abc_ObjFaninC0(pObj)) v0 ^= mask;
+  if (Abc_ObjFaninC1(pObj)) v1 ^= mask;
   pMemo[id] = v0 & v1;
+  pValid[id] = 1;
   return pMemo[id];
 }
 
 static uint64_t Lsv_CutTruth(Abc_Obj_t* pRoot, const Lsv_Cut_t& cut,
-                             std::vector<int>& memo) {
-  uint64_t tt = 0;
-  int nAssign = 1 << cut.n;
-  int nObj = (int)memo.size();
-  for (int i = 0; i < nAssign; i++) {
-    for (int j = 0; j < nObj; j++) memo[j] = -1;
-    if (Lsv_EvalNode(pRoot, cut, i, memo.data()))
-      tt |= ((uint64_t)1) << i;
-  }
-  return tt;
+                             std::vector<uint64_t>& memo,
+                             std::vector<unsigned char>& valid) {
+  uint64_t varTruth[6];
+  uint64_t mask = Lsv_CutMask(cut.n);
+  for (int i = 0; i < cut.n; i++) varTruth[i] = Lsv_VarTruth(cut.n, i);
+  memset(valid.data(), 0, valid.size() * sizeof(valid[0]));
+  return Lsv_EvalNodeTruth(pRoot, cut, varTruth, mask, memo.data(),
+                           valid.data());
 }
 
 static void Lsv_EnumerateCuts(Abc_Ntk_t* pNtk, int nK,
@@ -141,17 +158,18 @@ static void Lsv_EnumerateCuts(Abc_Ntk_t* pNtk, int nK,
 void Lsv_NtkCutTt(Abc_Ntk_t* pNtk, int nK) {
   std::vector<std::vector<Lsv_Cut_t> > vNodeCuts;
   Lsv_EnumerateCuts(pNtk, nK, vNodeCuts);
-  std::vector<int> memo(Abc_NtkObjNumMax(pNtk), -1);
+  std::vector<uint64_t> memo(Abc_NtkObjNumMax(pNtk), 0);
+  std::vector<unsigned char> valid(Abc_NtkObjNumMax(pNtk), 0);
   Abc_Obj_t* pObj;
   int i;
   Abc_AigForEachAnd(pNtk, pObj, i) {
     int id = (int)Abc_ObjId(pObj);
     const std::vector<Lsv_Cut_t>& cuts = vNodeCuts[id];
     for (size_t c = 0; c < cuts.size(); c++) {
-      uint64_t tt = Lsv_CutTruth(pObj, cuts[c], memo);
+      uint64_t tt = Lsv_CutTruth(pObj, cuts[c], memo, valid);
       printf("%d:", id);
       for (int t = 0; t < cuts[c].n; t++) printf(" %d", cuts[c].leaf[t]);
-      printf(": %lX\n", (unsigned long)tt);
+      printf(": %" PRIX64 "\n", tt);
     }
   }
 }
