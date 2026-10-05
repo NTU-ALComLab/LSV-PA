@@ -1,12 +1,14 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "bdd/cudd/cudd.h"
 #include <cstdlib>
 #include <set>
 #include <vector>
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t *pAbc, int argc, char **argv);
 static int Lsv_CommandCutTT(Abc_Frame_t *pAbc, int argc, char **argv);
+static int Lsv_CommandCutBDD(Abc_Frame_t *pAbc, int argc, char **argv);
 
 struct Lsv_CutTT_t
 {
@@ -14,10 +16,17 @@ struct Lsv_CutTT_t
     uint64_t TT;
 };
 
+struct Lsv_CutBDD_t
+{
+    std::set<int> cut_i;
+    DdNode *pBDD;
+};
+
 void init(Abc_Frame_t *pAbc)
 {
     Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
     Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandCutTT, 0);
+    Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandCutBDD, 0);
 }
 
 void destroy(Abc_Frame_t *pAbc)
@@ -184,6 +193,11 @@ int Lsv_CommandCutTT(Abc_Frame_t *pAbc, int argc, char **argv)
         Abc_Print(-1, "Must be a positive integer.\n");
         return 1;
     }
+    if (k > 6)
+    {
+        Abc_Print(-1, "Unable to enumerate k greater than 6.\n");
+        return 1;
+    }
     if (!pNtk)
     {
         Abc_Print(-1, "Empty network.\n");
@@ -196,5 +210,123 @@ int Lsv_CommandCutTT(Abc_Frame_t *pAbc, int argc, char **argv)
     }
 
     Lsv_NtkCutTT(pNtk, k);
+    return 0;
+}
+
+void Lsv_NtkCutBDD(Abc_Ntk_t *pNtk, int k)
+{
+    Abc_Obj_t *pObj;
+    DdManager *dd = Cudd_Init(k, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
+    std::vector<std::vector<Lsv_CutBDD_t>> data(Abc_NtkObjNum(pNtk));
+    int i;
+    Cudd_AutodynDisable(dd);
+
+    if (dd == NULL)
+        return;
+
+    Abc_NtkForEachObj(pNtk, pObj, i)
+    {
+        // all nodes have a cut of itself
+        data[i].push_back(Lsv_CutBDD_t{{i}, Cudd_bddIthVar(dd, 0)});
+        Cudd_Ref(data[i][0].pBDD);
+
+        // filter out non-nodes/POs
+        if (!(Abc_ObjIsNode(pObj) || Abc_ObjIsPo(pObj)) || Abc_ObjFanoutNum(pObj) == 0)
+            continue;
+
+        // fanin nodes
+        int fId0 = Abc_ObjFaninId0(pObj);
+        int fId1 = Abc_ObjFaninId1(pObj);
+        int fComp0 = Abc_ObjFaninC0(pObj);
+        int fComp1 = Abc_ObjFaninC1(pObj);
+
+        for (const Lsv_CutBDD_t &data0 : data[fId0])
+        {
+            for (const Lsv_CutBDD_t &data1 : data[fId1])
+            {
+                // union of cut_i
+                std::set<int> newCut = data0.cut_i;
+                newCut.insert(data1.cut_i.begin(), data1.cut_i.end());
+                int cutCount = newCut.size();
+
+                // cutoff greater feasible cuts
+                if (cutCount > k)
+                    continue;
+
+                // get mappings for TT
+                int j = 0, m0 = 0, m1 = 0;
+                int mapIndex0[k];
+                int mapIndex1[k];
+                for (int cut : newCut)
+                {
+                    if (data0.cut_i.count(cut))
+                        mapIndex0[m0++] = j;
+                    if (data1.cut_i.count(cut))
+                        mapIndex1[m1++] = j;
+                    ++j;
+                }
+
+                // generates BDD
+                DdNode *bdd0 = Cudd_bddPermute(dd, data0.pBDD, mapIndex0);
+                DdNode *bdd1 = Cudd_bddPermute(dd, data1.pBDD, mapIndex1);
+                Cudd_Ref(bdd0);
+                Cudd_Ref(bdd1);
+                if (fComp0)
+                    bdd0 = Cudd_Not(bdd0);
+                if (fComp1)
+                    bdd1 = Cudd_Not(bdd1);
+                DdNode *newBdd = Cudd_bddAnd(dd, bdd0, bdd1);
+                Cudd_Ref(newBdd);
+                Cudd_RecursiveDeref(dd, Cudd_Regular(bdd0));
+                Cudd_RecursiveDeref(dd, Cudd_Regular(bdd1));
+
+                // register data
+                data[i].push_back(Lsv_CutBDD_t{newCut, newBdd});
+            }
+        }
+
+        // output result
+        for (const Lsv_CutBDD_t &result : data[i])
+        {
+            printf("%d : ", i);
+            for (int cut : result.cut_i)
+                printf("%d ", cut);
+            printf(" : %d\n", Cudd_DagSize(result.pBDD));
+        }
+    }
+
+    Cudd_Quit(dd);
+}
+
+int Lsv_CommandCutBDD(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+    Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
+    if (argc != 2)
+    {
+        Abc_Print(-2, "usage: lsv_cut_bddsize <k>\n");
+        Abc_Print(-2, "\t        generates the k-feasible cut bdd size\n");
+        Abc_Print(-2, "\t <k>  : k-feasible cut, must be a positive integer\n");
+        return 1;
+    }
+
+    int k = std::atoi(argv[1]);
+
+    if (k < 1)
+    {
+        Abc_Print(-1, "Must be a positive integer.\n");
+        return 1;
+    }
+    if (!pNtk)
+    {
+        Abc_Print(-1, "Empty network.\n");
+        return 1;
+    }
+    if (Abc_NtkIsStrash(pNtk) != 1)
+    {
+        Abc_Print(-1, "Network not strashed.\n");
+        return 1;
+    }
+
+    Lsv_NtkCutBDD(pNtk, k);
     return 0;
 }
