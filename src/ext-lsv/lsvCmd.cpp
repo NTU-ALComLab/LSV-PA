@@ -12,12 +12,30 @@ static int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc,
                                  char** argv);
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandCutTruthTable(Abc_Frame_t* pAbc, int argc,
-                                    char** argv
-                                  );
+                                    char** argv);
 struct LsvCut {
   std::vector<int> leaves;
   uint64_t truth;
 };
+
+static void Lsv_InitializeLeafCuts(
+    Abc_Ntk_t* pNtk, std::vector<std::vector<LsvCut>>& cuts) {
+  Abc_Obj_t* pCi;
+  int i;
+  Abc_NtkForEachCi(pNtk, pCi, i) {
+    LsvCut cut;
+    cut.leaves.push_back(Abc_ObjId(pCi));
+    cut.truth = 0x2;
+    cuts[Abc_ObjId(pCi)].push_back(cut);
+  }
+
+  Abc_Obj_t* pConst = Abc_AigConst1(pNtk);
+  if (pConst != nullptr) {
+    LsvCut cut;
+    cut.truth = 0x1;
+    cuts[Abc_ObjId(pConst)].push_back(cut);
+  }
+}
 
 static void Lsv_PrintLeaves(const std::vector<int>& leaves) {
   for (size_t i = 0; i < leaves.size(); ++i) {
@@ -88,7 +106,8 @@ static uint64_t Lsv_ComputeTruth(Abc_Obj_t* root,
     std::vector<int> values(maxObjects, -1);
 
     for (size_t i = 0; i < leaves.size(); ++i) {
-      values[leaves[i]] = (assignment >> i) & 1;
+      size_t shift = leaves.size() - 1 - i;
+      values[leaves[i]] = (assignment >> shift) & 1;
     }
 
     int result = Lsv_EvalNode(root, values);
@@ -106,24 +125,17 @@ static DdNode* Lsv_BuildBdd(DdManager* dd,
                             uint64_t truth,
                             size_t position) {
   if (position == leaves.size()) {
-  DdNode* terminal =
-      (truth & 1) ? Cudd_ReadOne(dd) : Cudd_ReadLogicZero(dd);
-  Cudd_Ref(terminal);
-  return terminal;
-}
+    DdNode* terminal =
+        (truth & 1) ? Cudd_ReadOne(dd) : Cudd_ReadLogicZero(dd);
+    Cudd_Ref(terminal);
+    return terminal;
+  }
 
   size_t remaining = leaves.size() - position - 1;
-  uint64_t lowTruth = 0;
-  uint64_t highTruth = 0;
-
-  for (uint64_t i = 0; i < (1ULL << remaining); ++i) {
-    if ((truth >> (2 * i)) & 1) {
-      lowTruth |= (1ULL << i);
-    }
-    if ((truth >> (2 * i + 1)) & 1) {
-      highTruth |= (1ULL << i);
-    }
-  }
+  uint64_t halfSize = 1ULL << remaining;
+  uint64_t mask = (1ULL << halfSize) - 1;
+  uint64_t lowTruth = truth & mask;
+  uint64_t highTruth = (truth >> halfSize) & mask;
 
   DdNode* low = Lsv_BuildBdd(dd, leaves, lowTruth, position + 1);
 
@@ -222,6 +234,7 @@ static int Lsv_CommandCutTruthTable(Abc_Frame_t* pAbc, int argc,
   }
 
   std::vector<std::vector<LsvCut>> cuts(Abc_NtkObjNumMax(pNtk));
+  Lsv_InitializeLeafCuts(pNtk, cuts);
 
   Abc_Obj_t* pObj;
   int i;
@@ -232,7 +245,7 @@ static int Lsv_CommandCutTruthTable(Abc_Frame_t* pAbc, int argc,
     trivial.leaves.push_back(nodeId);
     trivial.truth = 0x2;
 
-       cuts[nodeId].push_back(trivial);
+    cuts[nodeId].push_back(trivial);
 
     Abc_Obj_t* fanin0 = Abc_ObjFanin0(pObj);
     Abc_Obj_t* fanin1 = Abc_ObjFanin1(pObj);
@@ -259,20 +272,20 @@ static int Lsv_CommandCutTruthTable(Abc_Frame_t* pAbc, int argc,
       }
     }
 
-   for (LsvCut& cut : cuts[nodeId]) {
-    cut.truth = Lsv_ComputeTruth(
-        pObj, cut.leaves, Abc_NtkObjNumMax(pNtk));
+    for (LsvCut& cut : cuts[nodeId]) {
+      cut.truth = Lsv_ComputeTruth(
+          pObj, cut.leaves, Abc_NtkObjNumMax(pNtk));
 
-    printf("%d: ", nodeId);
-    Lsv_PrintLeaves(cut.leaves);
-    printf(": %llX\n",
-         static_cast<unsigned long long>(cut.truth));
-  }
+      printf("%d: ", nodeId);
+      Lsv_PrintLeaves(cut.leaves);
+      printf(": %llX\n",
+             static_cast<unsigned long long>(cut.truth));
+    }
   }
 
   return 0;
 
-};
+}
 
 static int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc,
                                  char** argv) {
@@ -299,9 +312,9 @@ static int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc,
     return 1;
   }
 
-    DdManager* dd =
-    static_cast<DdManager*>(Abc_FrameReadManDd());
+  DdManager* dd = static_cast<DdManager*>(Abc_FrameReadManDd());
   std::vector<std::vector<LsvCut>> cuts(Abc_NtkObjNumMax(pNtk));
+  Lsv_InitializeLeafCuts(pNtk, cuts);
 
   Abc_Obj_t* pObj;
   int i;
@@ -343,8 +356,7 @@ static int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc,
       cut.truth = Lsv_ComputeTruth(
           pObj, cut.leaves, Abc_NtkObjNumMax(pNtk));
 
-      DdNode* bdd = Lsv_BuildBdd(
-      dd, cut.leaves, cut.truth, 0);
+      DdNode* bdd = Lsv_BuildBdd(dd, cut.leaves, cut.truth, 0);
 
       int bddSize = Cudd_DagSize(bdd);
 
