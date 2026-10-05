@@ -291,7 +291,7 @@ void Lsv_NtkCutBDD(Abc_Ntk_t *pNtk, int k)
             printf("%d : ", i);
             for (int cut : result.cut_i)
                 printf("%d ", cut);
-            printf(" : %d\n", Cudd_DagSize(result.pBDD));
+            printf(": %d\n", Cudd_DagSize(result.pBDD));
         }
     }
 
