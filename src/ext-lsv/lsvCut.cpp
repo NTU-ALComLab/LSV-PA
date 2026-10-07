@@ -5,13 +5,25 @@
 #include <cassert>
 #include <iostream>
 #include <iterator>
+#include <set>
+
+// 只有一個 leaf 的 cut（PI 和 trivial cut 用）
+static Cut Lsv_CutSingle(int id)
+{
+  Cut c;
+  c.leaves.push_back(id);
+  c.sign = (uint64_t)1 << (id % 64);
+  return c;
+}
 
 // 合併兩個排好序的 cut（聯集）, 並且去掉重複的節點並且排序好
-Cut Lsv_CutMerge(const Cut &a, const Cut &b)
+// 結果放進 u（重複使用同一個 vector，不用每次都向系統要新的記憶體）
+void Lsv_CutMerge(const Cut &a, const Cut &b, Cut &u)
 {
-  Cut u;
-  std::set_union(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(u));
-  return u;
+  u.leaves.clear();
+  std::set_union(a.leaves.begin(), a.leaves.end(), b.leaves.begin(), b.leaves.end(),
+                 std::back_inserter(u.leaves));
+  u.sign = a.sign | b.sign; // 聯集的簽名 = 兩邊簽名 OR 起來
 }
 
 // 由下往上算出每個節點的所有 k-feasible cut
@@ -28,7 +40,7 @@ CutTable Lsv_NtkEnumCuts(Abc_Ntk_t *pNtk, int k)
   // 所以下面的 { } 就是 for 迴圈本體，每一輪 pObj 指向一個 PI
   Abc_NtkForEachPi(pNtk, pObj, i)
   {
-    cuts[Abc_ObjId(pObj)].push_back(Cut{(int)Abc_ObjId(pObj)}); // 把自己算進cut裡面
+    cuts[Abc_ObjId(pObj)].push_back(Lsv_CutSingle(Abc_ObjId(pObj))); // 把自己算進cut裡面
   }
 
   // AND 節點：ID 由小到大，fanin 一定已經算好
@@ -44,17 +56,24 @@ CutTable Lsv_NtkEnumCuts(Abc_Ntk_t *pNtk, int k)
     assert(id0 < id && id1 < id);             // child 一定比 parent 先算好（strash 後保證）
     std::vector<Cut> &my = cuts[id];
 
-    my.push_back(Cut{id}); // trivial cut：自己
+    my.push_back(Lsv_CutSingle(id)); // trivial cut：自己
+    std::set<Cut> seen;    // 這個節點已經有的 cut，用來檢查重複
 
+    Cut u; // 放在迴圈外面重複使用
     for (const Cut &c0 : cuts[id0])
     {
       for (const Cut &c1 : cuts[id1])
       {
-        Cut u = Lsv_CutMerge(c0, c1);
-        if ((int)u.size() > k)
+        // 簽名快速篩選：兩個簽名 OR 起來，數有幾個 1（popcount）
+        // 超過 k 個 → 合併後一定超過 k 個 leaf，連合併都不用做
+        //（不同 ID 可能撞到同一個 bit，1 的個數只會少算、不會多算，所以不會誤刪）
+        if (__builtin_popcountll(c0.sign | c1.sign) > k)
+          continue;
+        Lsv_CutMerge(c0, c1, u);
+        if ((int)u.leaves.size() > k)
           continue; // 太大就丟
-        if (std::find(my.begin(), my.end(), u) != my.end())
-          continue; // 重複就丟
+        if (!seen.insert(u).second)
+          continue; // 重複就丟（insert 失敗代表已經有了）
         my.push_back(u);
       }
     }
@@ -85,7 +104,7 @@ static uint64_t Lsv_NodeTt(Abc_Obj_t *pObj, std::map<int, uint64_t> &leafTt)
 // 算 pRoot 以 cut 為輸入的真值表
 uint64_t Lsv_CutTt(Abc_Obj_t *pRoot, const Cut &cut)
 {
-  int m = cut.size(); // leaf 個數
+  int m = cut.leaves.size(); // leaf 個數
   int nRows = 1 << m; // 2^m 行
   std::map<int, uint64_t> leafTt;
 
@@ -97,7 +116,7 @@ uint64_t Lsv_CutTt(Abc_Obj_t *pRoot, const Cut &cut)
     for (int idx = 0; idx < nRows; idx++)
       if ((idx >> (m - 1 - j)) & 1) // 看第 (m-1-j) 個 bit 是不是 1
         pat |= (uint64_t)1 << idx;  // 這一行是 1 → 打開第 idx 位
-    leafTt[cut[j]] = pat;
+    leafTt[cut.leaves[j]] = pat;
   }
 
   // 第 2 步：從 root 往下遞迴，一次算完
@@ -121,7 +140,7 @@ void Lsv_NtkPrintCutTt(Abc_Ntk_t *pNtk, int k)
     for (const Cut &c : cuts[id])
     {
       std::cout << id << ":";
-      for (const int &x : c)
+      for (const int &x : c.leaves)
         std::cout << " " << x;
       // hex + uppercase：印成 2A 這種格式；印完切回 dec，不然下一行的 ID 也會變 hex
       std::cout << ": " << std::hex << std::uppercase << Lsv_CutTt(pObj, c)
@@ -163,11 +182,11 @@ int Lsv_CutBddSize(DdManager *dd, Abc_Obj_t *pRoot, const Cut &cut)
 
   // 第 1 步：cut 裡第 j 個 leaf → 第 j 個 BDD 變數
   // 沒有開 reordering，所以變數 j 就在第 j 層：ID 小的 j 小，靠近 root
-  for (int j = 0; j < (int)cut.size(); j++)
+  for (int j = 0; j < (int)cut.leaves.size(); j++)
   {
     DdNode *v = Cudd_bddIthVar(dd, j);
     Cudd_Ref(v); // 跟其他 BDD 一樣 Ref，最後才能統一 Deref
-    memo[cut[j]] = v;
+    memo[cut.leaves[j]] = v;
   }
 
   // 第 2 步：從 root 往下遞迴建 BDD
@@ -197,7 +216,7 @@ void Lsv_NtkPrintCutBddSize(Abc_Ntk_t *pNtk, int k)
     for (const Cut &c : cuts[id])
     {
       std::cout << id << ":";
-      for (const int &x : c)
+      for (const int &x : c.leaves)
         std::cout << " " << x;
       std::cout << ": " << Lsv_CutBddSize(dd, pObj, c) << "\n";
     }

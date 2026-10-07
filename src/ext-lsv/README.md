@@ -88,7 +88,7 @@ strash 後的 AIG 中，fanin 的 ID 一定小於節點本身（新節點的 ID 
 `src/base/abc/abcObj.c`），所以照 ID 順序走時 fanin 的 cut 一定已經算好；程式中以
 `assert(id0 < id && id1 < id)` 檢查。
 
-每個 cut 以排序好的 `std::vector<int>` 表示，`std::set_union` 合併後仍保持排序，
+每個 cut 的 leaf 以排序好的 `std::vector<int>` 表示，`std::set_union` 合併後仍保持排序，
 因此輸出直接符合「由小到大」的格式。
 
 ### Truth table — `Lsv_CutTt`
@@ -134,11 +134,50 @@ n7 = n5 & ~n6  = 0xAA & ~0xC0 = 0x2A
 `Cudd_NotCond` 用到的 `ptrint` 型別定義在 `bdd/cudd/cuddInt.h`，因此 `lsvCut.cpp`
 額外 include 了這個檔案。
 
-## 驗證
+## 優化
 
-- `example.blif`：兩個指令的輸出都與題目範例逐行相同。
-- `lsv/pa1/benchmarks/` 中的 adder、int2float、router、mem_ctrl，k = 2、4、6：
-  與另外寫的 Python 檢查程式結果完全一致。`lsv_cut_bddsize` 另外也驗證了 sqrt。
-  - truth table：逐行代入 2^m 種輸入（brute force），不使用 bit-parallel。
-  - BDD size：由 truth table 直接計算 ROBDD 節點數（相異且非常數的子函數個數，
-    f 與 f' 算同一個，再加 1 個終端），不使用 CUDD。
+為了加速，每個 cut 是一個 `struct Cut`，除了 leaf 之外多存一個簽名：
+
+```cpp
+struct Cut
+{
+  std::vector<int> leaves; // leaf 的節點 ID，由小到大
+  uint64_t sign = 0;       // 簽名
+};
+```
+
+一個節點的候選 cut 數是兩個 fanin 的 cut 數相乘，大電路在 k = 6 時一個節點可能有
+上萬對要合併，但**絕大多數合併後都超過 k、會被丟掉**。初版每一對都要建一個新的
+vector、完整合併、再檢查大小，log2 需要約 2 小時。優化後的流程：
+
+1. **簽名篩選**：每個 cut 帶一個 64 位元簽名 `sign`，每個 leaf 打開第 `ID % 64` 個 bit
+   （聯集的簽名 = 兩邊簽名 OR 起來）。合併前先算 `popcount(c0.sign | c1.sign)`，
+   大於 k 就代表合併後一定超過 k 個 leaf，**不用合併直接跳過**。
+   不同 ID 可能撞到同一個 bit，這只會讓 1 的個數少算、不會多算，所以不會誤刪合法的 cut。
+   大部分配對在這一步就被淘汰，是效果最大的優化。
+2. **重複使用暫存的 cut**：合併結果放進迴圈外的 `Cut u`，`clear()` 後再填，
+   不用每次都配置新的記憶體。
+3. **用 `std::set` 檢查重複**：原本用 `std::find` 和已有的 cut 逐一比較，
+   改成 `std::set::insert` 的回傳值判斷。
+
+對應的程式（`Lsv_NtkEnumCuts` 的雙層迴圈）：
+
+```cpp
+Cut u; // 放在迴圈外面重複使用（優化 2）
+for (const Cut &c0 : cuts[id0])
+{
+  for (const Cut &c1 : cuts[id1])
+  {
+    if (__builtin_popcountll(c0.sign | c1.sign) > k)
+      continue; // 簽名就知道太大，不用合併（優化 1）
+    Lsv_CutMerge(c0, c1, u);
+    if ((int)u.leaves.size() > k)
+      continue; // 太大就丟
+    if (!seen.insert(u).second)
+      continue; // 重複就丟（優化 3，seen 是 std::set<Cut>）
+    my.push_back(u);
+  }
+}
+```
+
+以 log2、k = 6 為例，`lsv_cut_tt` 從約 2 小時降到約 16 秒。
