@@ -8,11 +8,13 @@
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t *pAbc, int argc, char **argv);
 static int Lsv_CommandCutTt(Abc_Frame_t *pAbc, int argc, char **argv);
+static int Lsv_CommandCutBddSize(Abc_Frame_t *pAbc, int argc, char **argv);
 
 void init(Abc_Frame_t *pAbc)
 {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandCutTt, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandCutBddSize, 0);
 }
 
 void destroy(Abc_Frame_t *pAbc) {}
@@ -94,5 +96,27 @@ int Lsv_CommandCutTt(Abc_Frame_t *pAbc, int argc, char **argv)
     return 1;
   }
   Lsv_NtkPrintCutTt(pNtk, atoi(argv[1]));
+  return 0;
+}
+
+int Lsv_CommandCutBddSize(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+  Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
+  if (argc != 2)
+  {
+    Abc_Print(-2, "usage: lsv_cut_bddsize <k>\n");
+    return 1;
+  }
+  if (!pNtk)
+  {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  if (!Abc_NtkIsStrash(pNtk))
+  {
+    Abc_Print(-1, "Please run \"strash\" first.\n");
+    return 1;
+  }
+  Lsv_NtkPrintCutBddSize(pNtk, atoi(argv[1]));
   return 0;
 }

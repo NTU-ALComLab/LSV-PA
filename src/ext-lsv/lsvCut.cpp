@@ -1,4 +1,5 @@
 #include "lsvCut.h"
+#include "bdd/cudd/cuddInt.h" // Cudd_Not / Cudd_NotCond 用到的 ptrint 型別定義在這裡
 
 #include <algorithm>
 #include <cassert>
@@ -124,7 +125,85 @@ void Lsv_NtkPrintCutTt(Abc_Ntk_t *pNtk, int k)
         std::cout << " " << x;
       // hex + uppercase：印成 2A 這種格式；印完切回 dec，不然下一行的 ID 也會變 hex
       std::cout << ": " << std::hex << std::uppercase << Lsv_CutTt(pObj, c)
-                << std::dec << std::endl;
+                << std::dec << "\n"; // 用 "\n" 不用 endl：endl 每行都強制寫出，幾百萬行會很慢
     }
   }
+  std::cout << std::flush; // 最後一次寫出，避免跟 ABC 用 printf 印的東西順序錯亂
+}
+
+// ===================== PA1 4.2: cut BDD size =====================
+
+// 跟 Lsv_NodeTt 一樣的遞迴，只是把 uint64_t 換成 BDD
+// memo[ID] = 這個節點的 BDD；一開始只放 cut 的 leaf，碰到就停
+// 算過的節點也存進 memo，同一個節點被走到第二次時直接拿，不重算
+// memo 裡的每個 BDD 都有 Cudd_Ref，用完由呼叫的人統一 Deref
+// all bdd nodes, aig nodes, id->bdd node mapping
+static DdNode *Lsv_NodeBdd(DdManager *dd, Abc_Obj_t *pObj, std::map<int, DdNode *> &memo)
+{
+  auto it = memo.find(Abc_ObjId(pObj));
+  if (it != memo.end())
+    return it->second; // 是 leaf 或已經算過：直接回傳
+
+  assert(Abc_AigNodeIsAnd(pObj));                          // 不是 leaf 就一定是 AND（cut 會擋住所有往下的路）
+  DdNode *f0 = Lsv_NodeBdd(dd, Abc_ObjFanin0(pObj), memo); // 左 child 的 BDD
+  DdNode *f1 = Lsv_NodeBdd(dd, Abc_ObjFanin1(pObj), memo); // 右 child 的 BDD
+  f0 = Cudd_NotCond(f0, Abc_ObjFaninC0(pObj));             // 虛線：反相（CUDD 的 complemented edge，不用建新節點）
+  f1 = Cudd_NotCond(f1, Abc_ObjFaninC1(pObj));
+
+  DdNode *f = Cudd_bddAnd(dd, f0, f1); // AND = ite(f0, f1, 0)，CUDD 內部會自動化簡成 ROBDD
+  Cudd_Ref(f);                         // 告訴 CUDD「我還要用」，避免被回收
+  memo[Abc_ObjId(pObj)] = f;
+  return f;
+}
+
+// 建出 pRoot 以 cut 為輸入的 ROBDD，回傳 BDD 大小
+int Lsv_CutBddSize(DdManager *dd, Abc_Obj_t *pRoot, const Cut &cut)
+{
+  std::map<int, DdNode *> memo;
+
+  // 第 1 步：cut 裡第 j 個 leaf → 第 j 個 BDD 變數
+  // 沒有開 reordering，所以變數 j 就在第 j 層：ID 小的 j 小，靠近 root
+  for (int j = 0; j < (int)cut.size(); j++)
+  {
+    DdNode *v = Cudd_bddIthVar(dd, j);
+    Cudd_Ref(v); // 跟其他 BDD 一樣 Ref，最後才能統一 Deref
+    memo[cut[j]] = v;
+  }
+
+  // 第 2 步：從 root 往下遞迴建 BDD
+  DdNode *f = Lsv_NodeBdd(dd, pRoot, memo);
+
+  // 第 3 步：數節點（變數節點 + 1 個終端節點）
+  int size = Cudd_DagSize(f);
+
+  // 第 4 步：釋放這個 cut 用到的所有 BDD
+  for (auto &p : memo)
+    Cudd_RecursiveDeref(dd, p.second);
+  return size;
+}
+
+// lsv_cut_bddsize：印出每個 AND 節點的每個 cut 和它的 BDD 大小
+void Lsv_NtkPrintCutBddSize(Abc_Ntk_t *pNtk, int k)
+{
+  CutTable cuts = Lsv_NtkEnumCuts(pNtk, k);
+  // 整個指令共用一個 BDD manager（工作空間），每個 cut 用完就 Deref，不用每次重開
+  DdManager *dd = Cudd_Init(0, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
+  Abc_Obj_t *pObj;
+  int i;
+
+  Abc_NtkForEachNode(pNtk, pObj, i)
+  {
+    int id = Abc_ObjId(pObj);
+    for (const Cut &c : cuts[id])
+    {
+      std::cout << id << ":";
+      for (const int &x : c)
+        std::cout << " " << x;
+      std::cout << ": " << Lsv_CutBddSize(dd, pObj, c) << "\n";
+    }
+  }
+  std::cout << std::flush;
+
+  assert(Cudd_CheckZeroRef(dd) == 0); // 每個 Ref 都有對應的 Deref，沒有漏掉的記憶體
+  Cudd_Quit(dd);
 }
