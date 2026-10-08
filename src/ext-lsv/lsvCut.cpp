@@ -4,6 +4,11 @@
  * All cut-specific data structures and algorithms below are implemented here.
  * ABC supplies only network accessors; CUDD supplies general BDD operations.
  * No ABC cut-enumeration, cut truth-table, or cut-BDD helpers are used.
+ *
+ * Suggested reading order:
+ *   command entry points at the bottom -> ParseArguments -> EnumerateCuts
+ *   -> MergeCuts -> EvaluateTruthTable / EvaluateBddSize -> output printers.
+ * README_lsvCut.md walks through the same flow with the supplied example.
  */
 
 #include "base/abc/abc.h"
@@ -21,19 +26,22 @@
 
 namespace {
 
-constexpr int kMaxLeaves = 6;  // 2^6 assignments fit in one uint64_t.
+constexpr int kMaxCutLeaves = 6;  // 2^6 assignments fit in one uint64_t.
 
-// A cut is an ordered set of node IDs. Unused array entries stay zero, but
-// equality and hashing inspect only the first nLeaves entries.
+// A cut lists the boundary nodes where we stop walking toward the inputs.
+// Only leaves[0..leafCount-1] are meaningful, always in ascending ID order.
+// Example: leafCount = 2, leaves = {1, 2, ...} represents the cut {1, 2}.
 struct LsvCut {
-  int nLeaves = 0;
-  int leaves[kMaxLeaves] = {};
+  int leafCount = 0;
+  int leaves[kMaxCutLeaves] = {};
 };
+
+using CutList = std::vector<LsvCut>;
 
 struct CutEqual {
   bool operator()(const LsvCut& a, const LsvCut& b) const {
-    if (a.nLeaves != b.nLeaves) return false;
-    for (int j = 0; j < a.nLeaves; ++j)
+    if (a.leafCount != b.leafCount) return false;
+    for (int j = 0; j < a.leafCount; ++j)
       if (a.leaves[j] != b.leaves[j]) return false;
     return true;
   }
@@ -41,52 +49,67 @@ struct CutEqual {
 
 struct CutHash {
   size_t operator()(const LsvCut& cut) const {
-    size_t hash = static_cast<size_t>(cut.nLeaves);
-    for (int j = 0; j < cut.nLeaves; ++j)
+    size_t hash = static_cast<size_t>(cut.leafCount);
+    for (int j = 0; j < cut.leafCount; ++j)
       hash = hash * 131 + static_cast<size_t>(cut.leaves[j]);
     return hash;
   }
 };
 
-LsvCut TrivialCut(int id) {
+using CutSet = std::unordered_set<LsvCut, CutHash, CutEqual>;
+
+// The hash helps find candidates quickly; CutEqual still checks the complete
+// leaf set, so two cuts with the same hash cannot be mistaken for each other.
+void AddCutIfNew(const LsvCut& candidate, CutList& output, CutSet& seen) {
+  bool inserted = seen.insert(candidate).second;
+  if (inserted) output.push_back(candidate);
+}
+
+LsvCut MakeUnitCut(int id) {
   LsvCut cut;
-  cut.nLeaves = 1;
+  cut.leafCount = 1;
   cut.leaves[0] = id;
   return cut;
 }
 
 // Merge two sorted leaf sets, inserting a shared leaf only once. The operation
 // stops as soon as the union would exceed k; it never writes past the array.
-bool MergeCuts(const LsvCut& a, const LsvCut& b, int k, LsvCut& out) {
-  int i = 0, j = 0;
-  out.nLeaves = 0;
-  while (i < a.nLeaves || j < b.nLeaves) {
-    int id;
-    if (j == b.nLeaves || (i < a.nLeaves && a.leaves[i] < b.leaves[j])) {
-      id = a.leaves[i++];
-    } else if (i == a.nLeaves || b.leaves[j] < a.leaves[i]) {
-      id = b.leaves[j++];
+bool MergeCuts(const LsvCut& left, const LsvCut& right, int maxLeaves,
+               LsvCut& merged) {
+  int leftIndex = 0, rightIndex = 0;
+  merged.leafCount = 0;
+  while (leftIndex < left.leafCount || rightIndex < right.leafCount) {
+    int nextLeafId;
+    if (rightIndex == right.leafCount ||
+        (leftIndex < left.leafCount && left.leaves[leftIndex] < right.leaves[rightIndex])) {
+      nextLeafId = left.leaves[leftIndex++];
+    } else if (leftIndex == left.leafCount ||
+               right.leaves[rightIndex] < left.leaves[leftIndex]) {
+      nextLeafId = right.leaves[rightIndex++];
     } else {
-      id = a.leaves[i++];
-      ++j;
+      // The same leaf occurs in both cuts. Add it once and advance both lists.
+      nextLeafId = left.leaves[leftIndex++];
+      ++rightIndex;
     }
-    if (out.nLeaves == k) return false;
-    out.leaves[out.nLeaves++] = id;
+    if (merged.leafCount == maxLeaves) return false;
+    merged.leaves[merged.leafCount++] = nextLeafId;
   }
   return true;
 }
 
+enum class DfsState : unsigned char { NotVisited, OnStack, Ready };
+
 // Build a fanin-before-root order ourselves. A valid strashed network can have
 // fanins with larger IDs after rewriting, so numeric ID order is insufficient.
 // The explicit stack also avoids recursion limits on deep AIGs.
-bool BuildNodeOrder(Abc_Ntk_t* network, std::vector<Abc_Obj_t*>& order) {
-  std::vector<unsigned char> state(Abc_NtkObjNumMax(network), 0);
-  state[Abc_ObjId(Abc_AigConst1(network))] = 2;
+bool BuildTopologicalOrder(Abc_Ntk_t* network, std::vector<Abc_Obj_t*>& order) {
+  std::vector<DfsState> state(Abc_NtkObjNumMax(network), DfsState::NotVisited);
+  state[Abc_ObjId(Abc_AigConst1(network))] = DfsState::Ready;
   Abc_Obj_t* obj;
   int i;
   // A latch output is also a combinational input: cut computation does not
   // follow the feedback path through a latch into the previous time step.
-  Abc_NtkForEachCi(network, obj, i) state[Abc_ObjId(obj)] = 2;
+  Abc_NtkForEachCi(network, obj, i) state[Abc_ObjId(obj)] = DfsState::Ready;
   Abc_NtkForEachNode(network, obj, i) {
     if (Abc_ObjFaninNum(obj) != 2) {
       Abc_Print(-1, "Node %d is not a two-input AIG AND node.\n", Abc_ObjId(obj));
@@ -100,7 +123,7 @@ bool BuildNodeOrder(Abc_Ntk_t* network, std::vector<Abc_Obj_t*>& order) {
     while (!stack.empty()) {
       Abc_Obj_t* node = stack.back();
       int id = Abc_ObjId(node);
-      if (state[id] == 2) {
+      if (state[id] == DfsState::Ready) {
         stack.pop_back();
         continue;
       }
@@ -108,16 +131,17 @@ bool BuildNodeOrder(Abc_Ntk_t* network, std::vector<Abc_Obj_t*>& order) {
         Abc_Print(-1, "Unsupported AIG object %d.\n", id);
         return false;
       }
-      state[id] = 1;  // Active on this DFS path; seeing it as a child is a cycle.
+      // A node stays OnStack until both its fanins are Ready.
+      state[id] = DfsState::OnStack;
       bool descend = false;
       for (int edge = 0; edge < 2; ++edge) {
         Abc_Obj_t* child = Abc_ObjFanin(node, edge);
         int childId = Abc_ObjId(child);
-        if (state[childId] == 1) {
+        if (state[childId] == DfsState::OnStack) {
           Abc_Print(-1, "The AIG contains a combinational cycle at node %d.\n", childId);
           return false;
         }
-        if (state[childId] == 0) {
+        if (state[childId] == DfsState::NotVisited) {
           stack.push_back(child);
           descend = true;
           break;
@@ -125,7 +149,7 @@ bool BuildNodeOrder(Abc_Ntk_t* network, std::vector<Abc_Obj_t*>& order) {
       }
       if (!descend) {
         order.push_back(node);
-        state[id] = 2;
+        state[id] = DfsState::Ready;
         stack.pop_back();
       }
     }
@@ -133,102 +157,146 @@ bool BuildNodeOrder(Abc_Ntk_t* network, std::vector<Abc_Obj_t*>& order) {
   return true;
 }
 
-using CutVisitor = bool (*)(Abc_Obj_t*, const std::vector<LsvCut>&, void*);
+// A printer is a function we call after finding one node's complete cut list.
+// The truth-table printer ignores the manager; the BDD printer uses it.
+using CutPrinter = bool (*)(Abc_Obj_t*, const CutList&, DdManager*);
+
+void ReleaseCutList(CutList& cuts) {
+  // clear() would retain the vector's allocation. Swapping with an empty list
+  // releases that memory when the local empty list goes out of scope.
+  CutList empty;
+  cuts.swap(empty);
+}
 
 // Recurrence:
 //   cuts(input) = {{input}}, cuts(constant 1) = {empty set}
 //   cuts(node) = {{node}} union {a union b: a,b are fanin cuts, |a union b| <= k}
 // Only exact duplicates are discarded. Dropping supersets would omit cuts
 // requested by "all k-feasible cuts", especially in reconvergent networks.
-int EnumerateCuts(Abc_Ntk_t* network, int k, CutVisitor visit, void* user) {
+int EnumerateCuts(Abc_Ntk_t* network, int maxLeaves, CutPrinter printCuts,
+                  DdManager* bddManager) {
+  // Step 1: prepare a fanin-before-root order for the bottom-up recurrence.
   std::vector<Abc_Obj_t*> order;
-  if (!BuildNodeOrder(network, order)) return 1;
-  int nObjects = Abc_NtkObjNumMax(network);
-  std::vector<std::vector<LsvCut>> cuts(nObjects);
-  std::vector<int> remainingUses(nObjects, 0);
-  cuts[Abc_ObjId(Abc_AigConst1(network))].push_back(LsvCut());
+  if (!BuildTopologicalOrder(network, order)) return 1;
+  int objectCount = Abc_NtkObjNumMax(network);
+  // cutsByNode[id] is the list of cuts for that node, not one individual cut.
+  std::vector<CutList> cutsByNode(objectCount);
+  std::vector<int> remainingFanouts(objectCount, 0);
+
+  // Step 2: seed the boundaries. An input has its unit cut; constant 1 needs
+  // no input variables, hence its empty cut.
+  cutsByNode[Abc_ObjId(Abc_AigConst1(network))].push_back(LsvCut());
   Abc_Obj_t* obj;
   int i;
   Abc_NtkForEachCi(network, obj, i)
-    cuts[Abc_ObjId(obj)].push_back(TrivialCut(Abc_ObjId(obj)));
+    cutsByNode[Abc_ObjId(obj)].push_back(MakeUnitCut(Abc_ObjId(obj)));
 
+  // Count how many future AND nodes still need each cached cut list.
   for (Abc_Obj_t* node : order) {
-    ++remainingUses[Abc_ObjFaninId0(node)];
-    ++remainingUses[Abc_ObjFaninId1(node)];
+    ++remainingFanouts[Abc_ObjFaninId0(node)];
+    ++remainingFanouts[Abc_ObjFaninId1(node)];
   }
   for (Abc_Obj_t* node : order) {
-    int id = Abc_ObjId(node);
-    int id0 = Abc_ObjFaninId0(node), id1 = Abc_ObjFaninId1(node);
-    std::vector<LsvCut>& mine = cuts[id];
-    std::unordered_set<LsvCut, CutHash, CutEqual> seen;
-    mine.push_back(TrivialCut(id));
-    seen.insert(mine.back());
+    int nodeId = Abc_ObjId(node);
+    int fanin0Id = Abc_ObjFaninId0(node), fanin1Id = Abc_ObjFaninId1(node);
+    CutList& nodeCuts = cutsByNode[nodeId];
+    CutSet seen;
+
+    // Step 3: the root itself is a valid one-leaf boundary.
+    AddCutIfNew(MakeUnitCut(nodeId), nodeCuts, seen);
+
+    // Step 4: try every pair of fanin cuts, keeping each feasible union once.
     LsvCut merged;
-    for (const LsvCut& a : cuts[id0])
-      for (const LsvCut& b : cuts[id1])
-        if (MergeCuts(a, b, k, merged) && seen.insert(merged).second)
-          mine.push_back(merged);
-    if (!visit(node, mine, user)) return 1;
+    for (const LsvCut& leftCut : cutsByNode[fanin0Id]) {
+      for (const LsvCut& rightCut : cutsByNode[fanin1Id]) {
+        if (MergeCuts(leftCut, rightCut, maxLeaves, merged))
+          AddCutIfNew(merged, nodeCuts, seen);
+      }
+    }
+
+    // Step 5: the same enumeration feeds either truth-table or BDD output.
+    if (!printCuts(node, nodeCuts, bddManager)) return 1;
 
     // A fanin's cut set is needed only until its last AND fanout is processed.
     // Truth-table/BDD evaluation reads the AIG itself, not these cached sets.
-    if (--remainingUses[id0] == 0) std::vector<LsvCut>().swap(cuts[id0]);
-    if (--remainingUses[id1] == 0) std::vector<LsvCut>().swap(cuts[id1]);
-    if (remainingUses[id] == 0) std::vector<LsvCut>().swap(mine);
+    for (int edge = 0; edge < 2; ++edge) {
+      int faninId = Abc_ObjFaninId(node, edge);
+      --remainingFanouts[faninId];
+      if (remainingFanouts[faninId] == 0) ReleaseCutList(cutsByNode[faninId]);
+    }
+    if (remainingFanouts[nodeId] == 0) ReleaseCutList(nodeCuts);
   }
   return 0;
 }
 
 // Variable at binary digit d of an assignment counter. A cut's smallest ID is
 // the first input, hence its MOST significant digit, as in the PDF's 0x4 example.
-constexpr uint64_t kVariableTables[kMaxLeaves] = {
-    0xAAAAAAAAAAAAAAAAULL, 0xCCCCCCCCCCCCCCCCULL, 0xF0F0F0F0F0F0F0F0ULL,
-    0xFF00FF00FF00FF00ULL, 0xFFFF0000FFFF0000ULL, 0xFFFFFFFF00000000ULL};
+constexpr uint64_t kVariableTruthTables[kMaxCutLeaves] = {
+    0xAAAAAAAAAAAAAAAAULL,  // Digit 0: alternates 0,1 every assignment.
+    0xCCCCCCCCCCCCCCCCULL,  // Digit 1: alternates 0,0,1,1.
+    0xF0F0F0F0F0F0F0F0ULL,  // Digit 2: four zeros, then four ones.
+    0xFF00FF00FF00FF00ULL,  // Digit 3: eight zeros, then eight ones.
+    0xFFFF0000FFFF0000ULL,  // Digit 4: sixteen zeros, then sixteen ones.
+    0xFFFFFFFF00000000ULL}; // Digit 5: thirty-two zeros, then thirty-two ones.
 
-uint64_t TruthMask(int nLeaves) {
+uint64_t TruthMask(int leafCount) {
   // Shifting by 64 is undefined in C++; handle a six-input table separately.
-  return nLeaves == kMaxLeaves ? ~uint64_t(0)
-                             : (uint64_t(1) << (1U << nLeaves)) - 1;
+  if (leafCount == kMaxCutLeaves) return ~uint64_t(0);
+  unsigned assignmentCount = 1U << leafCount;
+  return (uint64_t(1) << assignmentCount) - 1;
 }
 
 // Leaves are preloaded into values and act as independent inputs. The walk
 // must stop there, even if a leaf is itself an AND node or its fanins appear
 // elsewhere in the cut. Re-evaluating that leaf would change the cut function.
 bool EvaluateTruthTable(Abc_Obj_t* root, const LsvCut& cut, uint64_t& table) {
-  std::unordered_map<int, uint64_t> values;
-  for (int j = 0; j < cut.nLeaves; ++j)
-    values[cut.leaves[j]] = kVariableTables[cut.nLeaves - 1 - j];
-  std::vector<Abc_Obj_t*> stack(1, root);
-  while (!stack.empty()) {
-    Abc_Obj_t* node = stack.back();
-    int id = Abc_ObjId(node);
-    if (values.find(id) != values.end()) {
-      stack.pop_back();
+  std::unordered_map<int, uint64_t> truthByNode;
+
+  // Step 1: assign one independent variable to each leaf. For {1,2}, the
+  // low four bits are leaf 1 = 1100 and leaf 2 = 1010 (MSB printed first).
+  for (int leafIndex = 0; leafIndex < cut.leafCount; ++leafIndex) {
+    int assignmentDigit = cut.leafCount - 1 - leafIndex;
+    truthByNode[cut.leaves[leafIndex]] = kVariableTruthTables[assignmentDigit];
+  }
+
+  // Step 2: revisit a pending node until both fanins have cached values.
+  // Preloaded leaves already have values, so their own fanins are never read.
+  std::vector<Abc_Obj_t*> pendingNodes(1, root);
+  while (!pendingNodes.empty()) {
+    Abc_Obj_t* node = pendingNodes.back();
+    int nodeId = Abc_ObjId(node);
+    if (truthByNode.find(nodeId) != truthByNode.end()) {
+      pendingNodes.pop_back();
     } else if (Abc_AigNodeIsConst(node)) {
-      values[id] = ~uint64_t(0);
-      stack.pop_back();
+      truthByNode[nodeId] = ~uint64_t(0);
+      pendingNodes.pop_back();
     } else {
       if (!Abc_ObjIsNode(node) || Abc_ObjFaninNum(node) != 2) {
-        Abc_Print(-1, "Cut at node %d does not cover input %d.\n", Abc_ObjId(root), id);
+        Abc_Print(-1, "Cut at node %d does not cover input %d.\n", Abc_ObjId(root), nodeId);
         return false;
       }
-      auto f0 = values.find(Abc_ObjFaninId0(node));
-      if (f0 == values.end()) {
-        stack.push_back(Abc_ObjFanin0(node));
+      auto fanin0Entry = truthByNode.find(Abc_ObjFaninId0(node));
+      if (fanin0Entry == truthByNode.end()) {
+        pendingNodes.push_back(Abc_ObjFanin0(node));
         continue;
       }
-      auto f1 = values.find(Abc_ObjFaninId1(node));
-      if (f1 == values.end()) {
-        stack.push_back(Abc_ObjFanin1(node));
+      auto fanin1Entry = truthByNode.find(Abc_ObjFaninId1(node));
+      if (fanin1Entry == truthByNode.end()) {
+        pendingNodes.push_back(Abc_ObjFanin1(node));
         continue;
       }
-      uint64_t a = Abc_ObjFaninC0(node) ? ~f0->second : f0->second;
-      uint64_t b = Abc_ObjFaninC1(node) ? ~f1->second : f1->second;
-      values[id] = a & b;
-      stack.pop_back();
+      // Step 3: an inverted edge negates its fanin's function before the AND.
+      // mapEntry->second is the cached value; its first field is the node ID.
+      uint64_t fanin0Table = fanin0Entry->second;
+      uint64_t fanin1Table = fanin1Entry->second;
+      if (Abc_ObjFaninC0(node)) fanin0Table = ~fanin0Table;
+      if (Abc_ObjFaninC1(node)) fanin1Table = ~fanin1Table;
+      truthByNode[nodeId] = fanin0Table & fanin1Table;
+      pendingNodes.pop_back();
     }
   }
-  table = values.at(Abc_ObjId(root)) & TruthMask(cut.nLeaves);
+  // Step 4: keep only the 2^leafCount assignments that belong to this cut.
+  table = truthByNode.at(Abc_ObjId(root)) & TruthMask(cut.leafCount);
   return true;
 }
 
@@ -237,72 +305,81 @@ bool EvaluateTruthTable(Abc_Obj_t* root, const LsvCut& cut, uint64_t& table) {
 // CUDD's reference operations regularize these pointers internally.
 bool EvaluateBddSize(DdManager* manager, Abc_Obj_t* root, const LsvCut& cut,
                      int& size) {
-  std::unordered_map<int, DdNode*> values;
+  std::unordered_map<int, DdNode*> bddByNode;
   bool success = true;
-  for (int j = 0; j < cut.nLeaves; ++j) {
-    DdNode* variable = Cudd_bddIthVar(manager, j);
+
+  // Step 1: use the same sorted leaves as the truth-table command. Variable
+  // index 0 tests the smallest leaf ID first; variable index 1 tests the next.
+  for (int leafIndex = 0; leafIndex < cut.leafCount; ++leafIndex) {
+    DdNode* variable = Cudd_bddIthVar(manager, leafIndex);
     if (!variable) {
       success = false;
       break;
     }
     Cudd_Ref(variable);
-    values[cut.leaves[j]] = variable;
+    bddByNode[cut.leaves[leafIndex]] = variable;
   }
-  std::vector<Abc_Obj_t*> stack(1, root);
-  while (success && !stack.empty()) {
-    Abc_Obj_t* node = stack.back();
-    int id = Abc_ObjId(node);
-    if (values.find(id) != values.end()) {
-      stack.pop_back();
+
+  // Step 2: the cone walk matches EvaluateTruthTable; cached values are now
+  // BDD pointers rather than 64-bit words. A cached leaf still stops the walk.
+  std::vector<Abc_Obj_t*> pendingNodes(1, root);
+  while (success && !pendingNodes.empty()) {
+    Abc_Obj_t* node = pendingNodes.back();
+    int nodeId = Abc_ObjId(node);
+    if (bddByNode.find(nodeId) != bddByNode.end()) {
+      pendingNodes.pop_back();
       continue;
     }
-    DdNode* value;
+    DdNode* nodeBdd;
     if (Abc_AigNodeIsConst(node)) {
-      value = Cudd_ReadOne(manager);
+      nodeBdd = Cudd_ReadOne(manager);
     } else {
       if (!Abc_ObjIsNode(node) || Abc_ObjFaninNum(node) != 2) {
-        Abc_Print(-1, "Cut at node %d does not cover input %d.\n", Abc_ObjId(root), id);
+        Abc_Print(-1, "Cut at node %d does not cover input %d.\n", Abc_ObjId(root), nodeId);
         success = false;
         break;
       }
-      auto f0 = values.find(Abc_ObjFaninId0(node));
-      if (f0 == values.end()) {
-        stack.push_back(Abc_ObjFanin0(node));
+      auto fanin0Entry = bddByNode.find(Abc_ObjFaninId0(node));
+      if (fanin0Entry == bddByNode.end()) {
+        pendingNodes.push_back(Abc_ObjFanin0(node));
         continue;
       }
-      auto f1 = values.find(Abc_ObjFaninId1(node));
-      if (f1 == values.end()) {
-        stack.push_back(Abc_ObjFanin1(node));
+      auto fanin1Entry = bddByNode.find(Abc_ObjFaninId1(node));
+      if (fanin1Entry == bddByNode.end()) {
+        pendingNodes.push_back(Abc_ObjFanin1(node));
         continue;
       }
-      DdNode* a = Cudd_NotCond(f0->second, Abc_ObjFaninC0(node));
-      DdNode* b = Cudd_NotCond(f1->second, Abc_ObjFaninC1(node));
-      value = Cudd_bddAnd(manager, a, b);
+      // Step 3: Cudd_NotCond applies an edge's complement flag, and bddAnd
+      // combines the two fanin functions into this node's reduced BDD.
+      DdNode* fanin0Bdd = Cudd_NotCond(fanin0Entry->second, Abc_ObjFaninC0(node));
+      DdNode* fanin1Bdd = Cudd_NotCond(fanin1Entry->second, Abc_ObjFaninC1(node));
+      nodeBdd = Cudd_bddAnd(manager, fanin0Bdd, fanin1Bdd);
     }
-    if (!value) {
+    if (!nodeBdd) {
       success = false;
       break;
     }
-    Cudd_Ref(value);  // Protect this result before another CUDD operation.
-    values[id] = value;
-    stack.pop_back();
+    Cudd_Ref(nodeBdd);  // Protect this result before another CUDD operation.
+    bddByNode[nodeId] = nodeBdd;
+    pendingNodes.pop_back();
   }
-  if (success) size = Cudd_DagSize(values.at(Abc_ObjId(root)));
+  // Step 4: measure before releasing the references that keep the BDD alive.
+  if (success) size = Cudd_DagSize(bddByNode.at(Abc_ObjId(root)));
   // Release on both success and failure, so a failed operation cannot leak
   // intermediate BDDs. Several AIG nodes can refer to the same BDD: each map
   // entry still contributes exactly one matching Ref/RecursiveDeref pair.
-  for (const auto& entry : values) Cudd_RecursiveDeref(manager, entry.second);
+  for (const auto& entry : bddByNode) Cudd_RecursiveDeref(manager, entry.second);
   if (!success) Abc_Print(-1, "Could not construct the cut BDD at node %d.\n", Abc_ObjId(root));
   return success;
 }
 
 void PrintPrefix(Abc_Obj_t* node, const LsvCut& cut) {
   std::printf("%d:", Abc_ObjId(node));
-  for (int j = 0; j < cut.nLeaves; ++j) std::printf(" %d", cut.leaves[j]);
+  for (int j = 0; j < cut.leafCount; ++j) std::printf(" %d", cut.leaves[j]);
   std::printf(": ");
 }
 
-bool PrintTruthTables(Abc_Obj_t* node, const std::vector<LsvCut>& cuts, void*) {
+bool PrintTruthTables(Abc_Obj_t* node, const CutList& cuts, DdManager*) {
   for (const LsvCut& cut : cuts) {
     uint64_t table;
     if (!EvaluateTruthTable(node, cut, table)) return false;
@@ -312,8 +389,7 @@ bool PrintTruthTables(Abc_Obj_t* node, const std::vector<LsvCut>& cuts, void*) {
   return true;
 }
 
-bool PrintBddSizes(Abc_Obj_t* node, const std::vector<LsvCut>& cuts, void* user) {
-  DdManager* manager = static_cast<DdManager*>(user);
+bool PrintBddSizes(Abc_Obj_t* node, const CutList& cuts, DdManager* manager) {
   for (const LsvCut& cut : cuts) {
     int size;
     if (!EvaluateBddSize(manager, node, cut, size)) return false;
@@ -332,8 +408,8 @@ int ParseArguments(Abc_Frame_t* frame, int argc, char** argv, Abc_Ntk_t*& networ
   char* end = nullptr;
   errno = 0;
   long k = std::strtol(argument, &end, 10);
-  if (end == argument || *end != '\0' || errno == ERANGE || k < 1 || k > kMaxLeaves) {
-    Abc_Print(-1, "k must be an integer between 1 and %d.\n", kMaxLeaves);
+  if (end == argument || *end != '\0' || errno == ERANGE || k < 1 || k > kMaxCutLeaves) {
+    Abc_Print(-1, "k must be an integer between 1 and %d.\n", kMaxCutLeaves);
     return -1;
   }
   network = Abc_FrameReadNtk(frame);
@@ -351,7 +427,7 @@ int ParseArguments(Abc_Frame_t* frame, int argc, char** argv, Abc_Ntk_t*& networ
 void PrintUsage(const char* name, const char* result) {
   Abc_Print(-2, "usage: %s [-h] <k>\n", name);
   Abc_Print(-2, "\tprints all unique k-feasible cuts of each AND node and %s\n", result);
-  Abc_Print(-2, "\t<k> : maximum number of leaves, 1 <= k <= %d (PA tests use 2..6)\n", kMaxLeaves);
+  Abc_Print(-2, "\t<k> : maximum number of leaves, 1 <= k <= %d (PA tests use 2..6)\n", kMaxCutLeaves);
   Abc_Print(-2, "\t-h  : print this usage\n");
 }
 
