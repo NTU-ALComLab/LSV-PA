@@ -59,10 +59,42 @@ static int Lsv_CutUnion(const Lsv_Cut_t& a, const Lsv_Cut_t& b, int nK,
   return 1;
 }
 
+static bool Lsv_CutIsSubset(const Lsv_Cut_t& a, const Lsv_Cut_t& b) {
+  if (a.n > b.n) return false;
+  int i = 0, j = 0;
+  while (i < a.n && j < b.n) {
+    if (a.leaf[i] == b.leaf[j]) {
+      i++;
+      j++;
+    } else if (a.leaf[i] > b.leaf[j]) {
+      j++;
+    } else {
+      return false;
+    }
+  }
+  return i == a.n;
+}
+
 static void Lsv_CutAdd(std::vector<Lsv_Cut_t>& vCuts,
                        std::unordered_set<Lsv_Cut_t, Lsv_CutHash_t>& seen,
                        const Lsv_Cut_t& cut) {
-  if (seen.insert(cut).second) vCuts.push_back(cut);
+  if (seen.find(cut) != seen.end()) return;
+
+  // Keep only non-dominated cuts.  A cut dominates another cut when its
+  // leaves are a subset of the other's leaves.
+  for (size_t i = 0; i < vCuts.size(); i++)
+    if (Lsv_CutIsSubset(vCuts[i], cut)) return;
+
+  for (size_t i = 0; i < vCuts.size();) {
+    if (Lsv_CutIsSubset(cut, vCuts[i])) {
+      seen.erase(vCuts[i]);
+      vCuts.erase(vCuts.begin() + i);
+    } else {
+      i++;
+    }
+  }
+  seen.insert(cut);
+  vCuts.push_back(cut);
 }
 
 static uint64_t Lsv_CutMask(int nVars) {
