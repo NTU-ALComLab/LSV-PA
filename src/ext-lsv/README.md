@@ -29,7 +29,8 @@ abc 04> lsv_cut_bddsize 3
 
 ### `lsv_cut_tt <k>` (4.1)
 
-Enumerates all k-feasible cuts of every AND node and prints the truth table of each cut in hexadecimal.
+Enumerates all k-feasible cuts of every AND node (dominated cuts omitted) and prints the truth
+table of each cut in hexadecimal.
 
 ```
 <node>: <cut leaves in ascending order>: <truth table>
@@ -51,7 +52,7 @@ Example (Fig. 1 of the assignment, `lsv/pa1/example.blif`):
 
 ### `lsv_cut_bddsize <k>` (4.2)
 
-Enumerates all k-feasible cuts of every AND node and prints the size of each cut's ROBDD
+Enumerates all k-feasible cuts of every AND node (dominated cuts omitted) and prints the size of each cut's ROBDD
 (`Cudd_DagSize`). Variables are ordered by node ID, with smaller IDs closer to the root.
 
 ```
@@ -82,7 +83,15 @@ Cuts are computed bottom-up and stored in `CutTable cuts` (`cuts[ID]` = all cuts
 2. AND nodes n (with fanins n0, n1) are processed in ascending ID order:
    - add the trivial cut `{n}`;
    - take the union (`Lsv_CutMerge`) of every pair in `cuts[n0] × cuts[n1]`;
-   - discard unions with more than k leaves and duplicates.
+   - discard unions with more than k leaves and duplicates;
+   - remove dominated cuts (`Lsv_RemoveDominated`).
+
+**Dominated cuts.** A cut that strictly contains another cut of the same node is dominated
+(e.g. `{10, 11, 91}` when `{10, 11}` is also a cut). Following the TA's answer in GitHub issue #983,
+dominated cuts are omitted. Filtering at every node loses no valid cut: if a fanin cut is
+dominated, merging the smaller cut instead yields a subset of the original union, so every
+non-dominated cut of the fanout is still produced. The subset test first compares signatures
+(`a.sign & ~b.sign` nonzero means a has a leaf that b lacks) and then uses `std::includes`.
 
 In a strashed AIG every fanin has a smaller ID than its fanout (a new object's ID is the
 current object count; see `src/base/abc/abcObj.c`), so the fanins' cuts are always ready when
