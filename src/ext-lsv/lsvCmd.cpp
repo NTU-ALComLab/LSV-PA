@@ -6,13 +6,11 @@
 
 static int Lsv_CommandCutTt(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc, char** argv);
-static int Lsv_Command(Abc_Frame_t* pAbc, int argc, char** argv);
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
-  Cmd_CommandAdd(pAbc, "LSV", "lsv", Lsv_Command, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandCutTt, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandCutBddSize, 0);
 }
@@ -24,18 +22,6 @@ Abc_FrameInitializer_t frame_initializer = {init, destroy};
 struct PackageRegistrationManager {
   PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer); }
 } lsvPackageRegistrationManager;
-
-static int Lsv_Command(Abc_Frame_t* pAbc, int argc, char** argv) {
-  if (argc == 4 && !strcmp(argv[1], "cut")) {
-    char* args[] = {argv[0], argv[3]};
-    if (!strcmp(argv[2], "tt"))
-      return Lsv_CommandCutTt(pAbc, 2, args);
-    if (!strcmp(argv[2], "bddsize"))
-      return Lsv_CommandCutBddSize(pAbc, 2, args);
-  }
-  Abc_Print(-2, "usage: lsv cut <tt|bddsize> <k>\n");
-  return 1;
-}
 
 void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
   Abc_Obj_t* pObj;
