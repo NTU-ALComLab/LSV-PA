@@ -26,7 +26,39 @@ void Lsv_CutMerge(const Cut &a, const Cut &b, Cut &u)
   u.sign = a.sign | b.sign; // signature of a union = OR of the two signatures
 }
 
-// Enumerate all k-feasible cuts of every node bottom-up
+// Is a a strict subset of b?
+static bool Lsv_CutIsStrictSubset(const Cut &a, const Cut &b)
+{
+  if (a.leaves.size() >= b.leaves.size())
+    return false;
+  if (a.sign & ~b.sign)
+    return false; // a has a signature bit that b lacks, so some leaf of a is not in b
+  return std::includes(b.leaves.begin(), b.leaves.end(), a.leaves.begin(), a.leaves.end());
+}
+
+// Remove dominated cuts: a cut that strictly contains another cut of the same node
+// (TA clarification in GitHub issue #983: dominated cuts should be omitted)
+// Filtering at every node loses nothing: if a fanin cut is dominated, merging the smaller cut instead
+// gives a subset of the original union, so every non-dominated cut is still produced.
+static void Lsv_RemoveDominated(std::vector<Cut> &cuts)
+{
+  std::vector<Cut> kept;
+  for (const Cut &c : cuts)
+  {
+    bool dominated = false;
+    for (const Cut &o : cuts)
+      if (Lsv_CutIsStrictSubset(o, c))
+      {
+        dominated = true;
+        break;
+      }
+    if (!dominated)
+      kept.push_back(c);
+  }
+  cuts.swap(kept);
+}
+
+// Enumerate all k-feasible cuts of every node bottom-up, without dominated cuts
 // In a strashed network every fanin is created before its fanout, so it has a smaller ID
 CutTable Lsv_NtkEnumCuts(Abc_Ntk_t *pNtk, int k)
 {
@@ -77,6 +109,7 @@ CutTable Lsv_NtkEnumCuts(Abc_Ntk_t *pNtk, int k)
         my.push_back(u);
       }
     }
+    Lsv_RemoveDominated(my);
   }
   return cuts;
 }
