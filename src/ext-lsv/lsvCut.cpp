@@ -1,3 +1,4 @@
+// several parts of this assingment is helped by codex
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
@@ -379,6 +380,7 @@ void PrintUsage(const char* name, const char* result) {
 
 }  // namespace
 
+// 4.1: enumerate cuts and print truth tables.
 int Lsv_CommandCutTt(Abc_Frame_t* frame, int argc, char** argv) {
   Abc_Ntk_t* network = nullptr;
   int k = ParseArguments(frame, argc, argv, network);
@@ -387,6 +389,7 @@ int Lsv_CommandCutTt(Abc_Frame_t* frame, int argc, char** argv) {
   return EnumerateCuts(network, k, PrintTruthTables, nullptr);
 }
 
+// 4.2: enumerate cuts and print BDD sizes.
 int Lsv_CommandCutBddSize(Abc_Frame_t* frame, int argc, char** argv) {
   Abc_Ntk_t* network = nullptr;
   int k = ParseArguments(frame, argc, argv, network);
