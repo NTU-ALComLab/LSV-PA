@@ -3,13 +3,11 @@
 #include "base/main/mainInt.h"
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
-// PA1 Exercise 4 entry points; the cut algorithms live in lsvCut.cpp.
 int Lsv_CommandCutTt(Abc_Frame_t* pAbc, int argc, char** argv);
 int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
-  // The final 0 marks these as commands that do not change the current network.
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandCutTt, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandCutBddSize, 0);
 }
