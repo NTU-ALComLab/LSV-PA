@@ -1,0 +1,22 @@
+.model mul
+.inputs a1 a0 b1 b0
+.outputs y3 y2 y1 y0
+.names a1 a0 b1 b0 y3
+1111 1
+.names a1 a0 b1 b0 y2
+1010 1
+1011 1
+1110 1
+.names a1 a0 b1 b0 y1
+0110 1
+0111 1
+1001 1
+1011 1
+1101 1
+1110 1
+.names a1 a0 b1 b0 y0
+0101 1
+0111 1
+1101 1
+1111 1
+.end
