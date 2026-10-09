@@ -1,0 +1,29 @@
+# Two-bit unsigned multiplier: (y3 y2 y1 y0) = (a1 a0) * (b1 b0)
+.model mul
+.inputs a1 a0 b1 b0
+.outputs y3 y2 y1 y0
+
+# Partial products, aligned by binary weight.
+.names a0 b0 y0
+11 1
+.names a1 b0 p10
+11 1
+.names a0 b1 p01
+11 1
+.names a1 b1 p11
+11 1
+
+# Weight 2: half-adder for the two cross products.
+.names p10 p01 y1
+10 1
+01 1
+.names p10 p01 c1
+11 1
+
+# Weight 4: half-adder for the high partial product and carry.
+.names p11 c1 y2
+10 1
+01 1
+.names p11 c1 y3
+11 1
+.end
