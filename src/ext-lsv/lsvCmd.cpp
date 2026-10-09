@@ -2,6 +2,10 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 
+#ifdef ABC_USE_CUDD
+#include "bdd/cudd/cudd.h"
+#endif
+
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
@@ -17,6 +21,7 @@ using Lsv_NodeCuts_t = std::map<int, Lsv_CutList_t>;
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandCutTruthTable(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc, char** argv);
 
 static void Lsv_CutSort(Lsv_Cut_t& cut);
 static Lsv_Cut_t Lsv_CutMerge(const Lsv_Cut_t& cut0, const Lsv_Cut_t& cut1, int k);
@@ -31,10 +36,17 @@ static int Lsv_TruthTableSimulateRec(Abc_Obj_t* pObj, std::map<int, int>& memo,
 static uint64_t Lsv_TruthTableCompute(Abc_Obj_t* pRoot, const Lsv_Cut_t& cut);
 static void Lsv_TruthTablePrintHex(uint64_t tt);
 static void Lsv_CutPrintAll(Abc_Ntk_t* pNtk, const Lsv_NodeCuts_t& nodeCuts);
+#ifdef ABC_USE_CUDD
+static DdNode* Lsv_BddBuildRec(DdManager* dd, Abc_Obj_t* pObj, std::map<int, DdNode*>& memo,
+                               const std::map<int, int>& leafVarIdx);
+static int Lsv_BddSizeCompute(Abc_Obj_t* pRoot, const Lsv_Cut_t& cut);
+#endif
+static void Lsv_CutPrintBddSizeAll(Abc_Ntk_t* pNtk, const Lsv_NodeCuts_t& nodeCuts);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandCutTruthTable, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandCutBddSize, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -263,6 +275,99 @@ static void Lsv_CutPrintAll(Abc_Ntk_t* pNtk, const Lsv_NodeCuts_t& nodeCuts) {
   }
 }
 
+#ifdef ABC_USE_CUDD
+// Step 4.2-3: build cut BDD by cone traversal (parallel to truth-table simulation).
+static DdNode* Lsv_BddBuildRec(DdManager* dd, Abc_Obj_t* pObj, std::map<int, DdNode*>& memo,
+                               const std::map<int, int>& leafVarIdx) {
+  pObj = Abc_ObjRegular(pObj);
+  const int id = Abc_ObjId(pObj);
+
+  auto leafIt = leafVarIdx.find(id);
+  if (leafIt != leafVarIdx.end()) {
+    return Cudd_bddIthVar(dd, leafIt->second);
+  }
+
+  auto memoIt = memo.find(id);
+  if (memoIt != memo.end()) {
+    return memoIt->second;
+  }
+
+  if (Abc_AigNodeIsConst(pObj)) {
+    DdNode* bFunc = dd->one;
+    Cudd_Ref(bFunc);
+    memo[id] = bFunc;
+    return bFunc;
+  }
+
+  if (Abc_AigNodeIsAnd(pObj)) {
+    DdNode* bFunc0 = Lsv_BddBuildRec(dd, Abc_ObjFanin0(pObj), memo, leafVarIdx);
+    DdNode* bFunc1 = Lsv_BddBuildRec(dd, Abc_ObjFanin1(pObj), memo, leafVarIdx);
+    Cudd_Ref(bFunc0);
+    Cudd_Ref(bFunc1);
+    bFunc0 = Cudd_NotCond(bFunc0, Abc_ObjFaninC0(pObj));
+    bFunc1 = Cudd_NotCond(bFunc1, Abc_ObjFaninC1(pObj));
+    DdNode* bFunc = Cudd_bddAnd(dd, bFunc0, bFunc1);
+    Cudd_Ref(bFunc);
+    Cudd_RecursiveDeref(dd, bFunc0);
+    Cudd_RecursiveDeref(dd, bFunc1);
+    memo[id] = bFunc;
+    return bFunc;
+  }
+
+  DdNode* bFunc = Cudd_ReadLogicZero(dd);
+  Cudd_Ref(bFunc);
+  memo[id] = bFunc;
+  return bFunc;
+}
+
+static int Lsv_BddSizeCompute(Abc_Obj_t* pRoot, const Lsv_Cut_t& cut) {
+  const int k = (int)cut.size();
+  DdManager* dd = Cudd_Init(k, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
+
+  std::map<int, int> leafVarIdx;
+  for (int j = 0; j < k; ++j) {
+    leafVarIdx[cut[j]] = j;
+  }
+
+  std::map<int, DdNode*> memo;
+  DdNode* bFunc = Lsv_BddBuildRec(dd, pRoot, memo, leafVarIdx);
+  const int size = Cudd_DagSize(bFunc);
+
+  for (const auto& entry : memo) {
+    Cudd_RecursiveDeref(dd, entry.second);
+  }
+  Cudd_Quit(dd);
+  return size;
+}
+#endif
+
+static void Lsv_CutPrintBddSizeAll(Abc_Ntk_t* pNtk, const Lsv_NodeCuts_t& nodeCuts) {
+  Abc_Obj_t* pObj;
+  int i;
+
+  Abc_AigForEachAnd(pNtk, pObj, i) {
+    const int nodeId = Abc_ObjId(pObj);
+    auto it = nodeCuts.find(nodeId);
+    if (it == nodeCuts.end()) {
+      continue;
+    }
+
+    for (const Lsv_Cut_t& cut : it->second) {
+      printf("%d:", nodeId);
+      for (int leaf : cut) {
+        printf(" %d", leaf);
+      }
+      printf(": ");
+#ifdef ABC_USE_CUDD
+      printf("%d", Lsv_BddSizeCompute(pObj, cut));
+#else
+      printf("0");
+#endif
+      printf("\n");
+    }
+  }
+}
+
 static int Lsv_CommandCutTruthTable(Abc_Frame_t* pAbc, int argc, char** argv) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   Lsv_NodeCuts_t nodeCuts;
@@ -290,6 +395,36 @@ static int Lsv_CommandCutTruthTable(Abc_Frame_t* pAbc, int argc, char** argv) {
 
   Lsv_CutEnumNtk(pNtk, k, nodeCuts);
   Lsv_CutPrintAll(pNtk, nodeCuts);
+  return 0;
+}
+
+static int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc, char** argv) {
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  int k;
+
+  if (!pNtk) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  if (!Abc_NtkIsStrash(pNtk)) {
+    Abc_Print(-1, "This command works only for AIGs (run \"strash\").\n");
+    return 1;
+  }
+  if (argc < 2) {
+    Abc_Print(-1, "Missing cut size parameter <k>.\n");
+    Abc_Print(-2, "usage: lsv_cut_bddsize <k>\n");
+    return 1;
+  }
+
+  k = atoi(argv[1]);
+  if (k < 2 || k > 6) {
+    Abc_Print(-1, "Invalid cut size k = %d (expected 2 <= k <= 6).\n", k);
+    return 1;
+  }
+
+  Lsv_NodeCuts_t nodeCuts;
+  Lsv_CutEnumNtk(pNtk, k, nodeCuts);
+  Lsv_CutPrintBddSizeAll(pNtk, nodeCuts);
   return 0;
 }
 
