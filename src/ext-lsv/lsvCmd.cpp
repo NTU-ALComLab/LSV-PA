@@ -2,8 +2,6 @@
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
 
-
-//************************************************** */
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
@@ -12,38 +10,22 @@
 #include <iterator>
 #include <vector>
 
-
 #include "bdd/cudd/cudd.h"
-///************************************************** */
-
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 
-
-
-//************************************************** */
 static int Lsv_CommandCutTT(Abc_Frame_t* frame, int argc, char** argv);
 
 static int Lsv_CommandCutBDDSize(Abc_Frame_t* frame, int argc, char** argv);
-///************************************************** */
-
-
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
 
-//************************************************** */
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandCutTT, 0);
 
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandCutBDDSize, 0);
 
-  
-///************************************************** */
-
 }
-
-
-
 
 void destroy(Abc_Frame_t* pAbc) {}
 
@@ -96,14 +78,6 @@ usage:
   return 1;
 }
 
-
-
-
-
-
-//************************************************** */
-
-
 struct MyCut { std::vector<int> leaves; };
 using CutList = std::vector<MyCut>;
 
@@ -120,6 +94,10 @@ static bool HasCut(const CutList& cuts, const MyCut& candidate) {
   return false;
 }
 
+static bool IsSubset(const MyCut& a, const MyCut& b) {
+  return std::includes(b.leaves.begin(), b.leaves.end(),
+                       a.leaves.begin(), a.leaves.end());
+}
 
 static void BuildCuts(Abc_Obj_t* node, int k,
                       std::vector<CutList>& all,
@@ -127,23 +105,40 @@ static void BuildCuts(Abc_Obj_t* node, int k,
   const int id = Abc_ObjId(node);
   if (visited[id]) return;
   visited[id] = 1;
-  all[id].push_back(MyCut{{id}}); 
+  all[id].push_back(MyCut{{id}});
   if (!Abc_ObjIsNode(node)) return;
 
   Abc_Obj_t* left = Abc_ObjFanin0(node);
   Abc_Obj_t* right = Abc_ObjFanin1(node);
   BuildCuts(left, k, all, visited);
   BuildCuts(right, k, all, visited);
+
   for (const MyCut& a : all[Abc_ObjId(left)]) {
     for (const MyCut& b : all[Abc_ObjId(right)]) {
       MyCut merged = MergeCuts(a, b);
-      if (merged.leaves.size() <= static_cast<size_t>(k) &&
-          !HasCut(all[id], merged))
-        all[id].push_back(merged);
+      if (merged.leaves.size() > static_cast<size_t>(k)) continue;
+      if (HasCut(all[id], merged)) continue;
+
+      bool dominated = false;
+      for (size_t j = 1; j < all[id].size(); ++j) {
+        if (IsSubset(all[id][j], merged)) {
+          dominated = true;
+          break;
+        }
+      }
+      if (dominated) continue;
+
+      for (size_t j = 1; j < all[id].size();) {
+        if (IsSubset(merged, all[id][j])) {
+          all[id].erase(all[id].begin() + j);
+        } else {
+          ++j;
+        }
+      }
+      all[id].push_back(merged);
     }
   }
 }
-
 
 static bool EvaluateNode(Abc_Obj_t* node, const MyCut& cut, unsigned assignment) {
   int id = Abc_ObjId(node);
@@ -172,17 +167,7 @@ static uint64_t GenerateTruthTable(Abc_Obj_t* root, const MyCut& cut) {
   return table;
 }
 
-
-
-
-
-
-
-
-
-
 static DdNode* BuildBDD(DdManager* manager, uint64_t table, int numVars, int level, unsigned assignment) {
-
 
   if (level == numVars) {
 
@@ -194,7 +179,6 @@ static DdNode* BuildBDD(DdManager* manager, uint64_t table, int numVars, int lev
 
     return terminal;
   }
-
 
   unsigned bit = 1u << (numVars - 1 - level);
 
@@ -227,18 +211,11 @@ static DdNode* BuildBDD(DdManager* manager, uint64_t table, int numVars, int lev
   return result;
 }
 
-
-
-
-
-
 static int GenerateBDDSize(DdManager* manager, Abc_Obj_t* root, const MyCut& cut) {
 
-  
   uint64_t table = GenerateTruthTable(root, cut);
 
   const int numVars = static_cast<int>(cut.leaves.size());
-
 
   DdNode* bdd = BuildBDD(manager, table, numVars, 0, 0);
 
@@ -252,14 +229,7 @@ static int GenerateBDDSize(DdManager* manager, Abc_Obj_t* root, const MyCut& cut
   return size;
 }
 
-
-
-
-
-
-
 static int RunCutCommand(Abc_Frame_t* frame, int argc, char** argv, bool isBDD) {
-
 
   if (argc != 2) {
 
@@ -271,7 +241,6 @@ static int RunCutCommand(Abc_Frame_t* frame, int argc, char** argv, bool isBDD) 
 
     return 1;
   }
-
 
   char* end = nullptr;
   long kLong = strtol(argv[1], &end, 10);
@@ -292,14 +261,11 @@ static int RunCutCommand(Abc_Frame_t* frame, int argc, char** argv, bool isBDD) 
     return 1;
   }
 
- 
   if (!Abc_NtkIsStrash(ntk)) {
     Abc_Print(-1, "Network must be a strashed AIG. Run strash first.\n");
 
     return 1;
   }
-
-
 
   const int n = Abc_NtkObjNumMax(ntk);
 
@@ -313,7 +279,6 @@ static int RunCutCommand(Abc_Frame_t* frame, int argc, char** argv, bool isBDD) 
     BuildCuts(node, k, all, visited);
   }
 
-
   DdManager* manager = nullptr;
 
   if (isBDD) {
@@ -326,8 +291,6 @@ static int RunCutCommand(Abc_Frame_t* frame, int argc, char** argv, bool isBDD) 
       return 1;
     }
   }
-
-
 
   bool failed = false;
 
@@ -381,20 +344,13 @@ static int RunCutCommand(Abc_Frame_t* frame, int argc, char** argv, bool isBDD) 
   return failed ? 1 : 0;
 }
 
-
-
-
 static int Lsv_CommandCutTT(Abc_Frame_t* frame, int argc, char** argv) {
 
   return RunCutCommand(frame, argc, argv, false);
 }
-
 
 static int Lsv_CommandCutBDDSize(Abc_Frame_t* frame, int argc, char** argv) {
 
   return RunCutCommand( frame, argc, argv, true);
 }
 
-
-
-///************************************************** */
