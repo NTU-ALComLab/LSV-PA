@@ -201,7 +201,9 @@ static unsigned long long TTOfCut(Abc_Obj_t *pObj, const std::vector<unsigned in
 
     // Combine the truth tables based on the type of gate (AND in this case)
     unsigned long long result_tt = (Abc_ObjFaninC0(pObj) ? ~tt0 : tt0) & (Abc_ObjFaninC1(pObj) ? ~tt1 : tt1);
-    result_tt &= (1ULL << (1ULL << cut_size)) - 1; // Mask to keep only the relevant bits
+    if (cut_size < 6) {
+        result_tt &= (1ULL << (1ULL << cut_size)) - 1; // Mask to keep only the relevant bits
+    }
     Debug_Print(2, "Combined truth table: %llX\n", result_tt);
     return result_tt;
 }
