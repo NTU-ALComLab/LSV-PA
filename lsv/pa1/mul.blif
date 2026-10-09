@@ -1,0 +1,33 @@
+# 2-bit Multiplier
+.model mul
+.inputs a1 a0 b1 b0
+.outputs y3 y2 y1 y0
+
+# y0 = a0 * b0
+.names a0 b0 y0
+11 1
+
+# y1, c2 = (a0 * b1) + (a1 * b0)
+.names a0 b1 p01
+11 1
+.names a1 b0 p10
+11 1
+.subckt half_adder a=p01 b=p10 s=y1 cout=c2
+
+# y2, y3 = (a1 * b1) + c2
+.names a1 b1 p11
+11 1
+.subckt half_adder a=p11 b=c2 s=y2 cout=y3
+.end
+
+# Sub-module: 1-bit Half Adder
+.model half_adder
+.inputs a b
+.outputs s cout
+
+.names a b s
+10 1
+01 1
+.names a b cout
+11 1
+.end
