@@ -1,0 +1,25 @@
+.model mul
+.inputs a1 a0 b1 b0
+.outputs y3 y2 y1 y0
+# Partial products
+.names a0 b0 y0
+11 1
+.names a1 b0 pp10
+11 1
+.names a0 b1 pp01
+11 1
+.names a1 b1 pp11
+11 1
+# y1 = pp10 XOR pp01; c1 = pp10 AND pp01
+.names pp10 pp01 y1
+10 1
+01 1
+.names pp10 pp01 c1
+11 1
+# y2 = pp11 XOR c1; y3 = pp11 AND c1
+.names pp11 c1 y2
+10 1
+01 1
+.names pp11 c1 y3
+11 1
+.end

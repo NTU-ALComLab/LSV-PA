@@ -210,3 +210,14 @@ Temporary Items
 # Local History for Visual Studio Code
 .history/
 abc.history
+
+# Local Graphviz / tooling (machine-specific)
+.local/
+
+# PA1 local artifacts (screenshots, ABC show outputs, local rc symlink)
+lsv/pa1/abc.rc
+lsv/pa1/abc.history
+lsv/pa1/*.svg
+lsv/pa1/*.dot
+lsv/pa1/p3a_shots/
+lsv/pa1/p3b_shots/
