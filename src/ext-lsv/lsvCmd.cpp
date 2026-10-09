@@ -255,19 +255,22 @@ usage:
   return 1;
 }
 
+// Builds the BDD of pObj in terms of the leaves' BDDs stored in vBddnode.
+// Every referenced intermediate BDD is appended to vCreated so the caller
+// can release it once the cut is done.
 static DdNode* Lsv_CutBDD_rec(Abc_Obj_t* pObj, DdManager* dd,
-                             std::vector<DdNode*>& vBddnode) {
+                             std::vector<DdNode*>& vBddnode,
+                             std::vector<DdNode*>& vCreated) {
   if (Abc_NodeIsTravIdCurrent(pObj)) {
     return vBddnode[Abc_ObjId(pObj)];
   }
-  DdNode* bdd0 = Lsv_CutBDD_rec(Abc_ObjFanin0(pObj), dd, vBddnode);
-  DdNode* bdd1 = Lsv_CutBDD_rec(Abc_ObjFanin1(pObj), dd, vBddnode);
+  DdNode* bdd0 = Lsv_CutBDD_rec(Abc_ObjFanin0(pObj), dd, vBddnode, vCreated);
+  DdNode* bdd1 = Lsv_CutBDD_rec(Abc_ObjFanin1(pObj), dd, vBddnode, vCreated);
   bdd0 = Cudd_NotCond(bdd0, Abc_ObjFaninC0(pObj));
   bdd1 = Cudd_NotCond(bdd1, Abc_ObjFaninC1(pObj));
   DdNode* bdd = Cudd_bddAnd(dd, bdd0, bdd1);
   Cudd_Ref(bdd);
-  // Cudd_RecursiveDeref(dd, bdd0);
-  // Cudd_RecursiveDeref(dd, bdd1);
+  vCreated.push_back(bdd);
   vBddnode[Abc_ObjId(pObj)] = bdd;
   Abc_NodeSetTravIdCurrent(pObj);
   return bdd;
@@ -275,7 +278,8 @@ static DdNode* Lsv_CutBDD_rec(Abc_Obj_t* pObj, DdManager* dd,
 
 static DdNode* Lsv_CutBDD(Abc_Ntk_t*  pNtk, Abc_Obj_t* pRoot, DdManager* dd,
                           const Lsv_Cut& cut,
-                          std::vector<DdNode*>& vBddnode) {
+                          std::vector<DdNode*>& vBddnode,
+                          std::vector<DdNode*>& vCreated) {
   int nVars = cut.size();
   Abc_NtkIncrementTravId(pNtk);
   for (int j = 0; j < nVars; j++) {
@@ -283,28 +287,30 @@ static DdNode* Lsv_CutBDD(Abc_Ntk_t*  pNtk, Abc_Obj_t* pRoot, DdManager* dd,
     vBddnode[cut[j]] = Cudd_bddIthVar(dd, j);
     Abc_NodeSetTravIdCurrent(pLeaf);
   }
-  return Lsv_CutBDD_rec(pRoot, dd, vBddnode);
+  return Lsv_CutBDD_rec(pRoot, dd, vBddnode, vCreated);
 }
 
 static void Lsv_NtkCutBDDsize(Abc_Ntk_t* pNtk, int k) {
   std::vector<Lsv_CutSet> vCuts;
   Lsv_NtkEnumerateCuts(pNtk, k, vCuts);
 
+  // One manager shared by all cuts: leaf j of every cut is variable j.
+  DdManager* dd = Cudd_Init(k, 0, CUDD_UNIQUE_SLOTS, 1 << 12, 0);
   std::vector<DdNode*> vBddnode(Abc_NtkObjNumMax(pNtk), nullptr);
+  std::vector<DdNode*> vCreated;
   Abc_Obj_t* pObj;
   int i;
   Abc_NtkForEachNode(pNtk, pObj, i) {
     for (const Lsv_Cut& cut : vCuts[Abc_ObjId(pObj)]) {
-      DdManager* dd = Cudd_Init( cut.size(), 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0 );
-      // init the leaves' BDDs
-      std::vector<DdNode*> leafBdds(cut.size());
-      DdNode* tt = Lsv_CutBDD(pNtk, pObj, dd, cut, vBddnode);
+      vCreated.clear();
+      DdNode* bdd = Lsv_CutBDD(pNtk, pObj, dd, cut, vBddnode, vCreated);
       Abc_Print(1, "%d:", Abc_ObjId(pObj));
       for (int leaf : cut) Abc_Print(1, " %d", leaf);
-      Abc_Print(1, ": %d\n", Cudd_DagSize(tt));
-      Cudd_Quit(dd);
+      Abc_Print(1, ": %d\n", Cudd_DagSize(bdd));
+      for (DdNode* n : vCreated) Cudd_RecursiveDeref(dd, n);
     }
   }
+  Cudd_Quit(dd);
 }
 
 int Lsv_CommandPA1CutBDDsize(Abc_Frame_t* pAbc, int argc, char** argv) {
