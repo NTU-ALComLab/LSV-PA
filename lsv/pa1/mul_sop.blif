@@ -1,0 +1,29 @@
+# Benchmark "mul" written by ABC on Fri Sep 18 15:15:36 2026
+.model mul
+.inputs a1 a0 b1 b0
+.outputs y3 y2 y1 y0
+.names a0 b1 new_n9
+11 1
+.names a1 b0 new_n10
+11 1
+.names new_n9 new_n10 new_n11
+11 1
+.names a1 b1 new_n12
+11 1
+.names new_n11 new_n12 y3
+11 1
+.names new_n11 new_n12 new_n14
+01 1
+.names new_n11 new_n12 new_n15
+10 1
+.names new_n14 new_n15 y2
+00 0
+.names new_n9 new_n10 new_n17
+01 1
+.names new_n9 new_n10 new_n18
+10 1
+.names new_n17 new_n18 y1
+00 0
+.names a0 b0 y0
+11 1
+.end
