@@ -245,7 +245,6 @@ int create_bdd_cut_size(Abc_Ntk_t* pNtk, Abc_Obj_t* pObj, Vec_Ptr_t * cut){
 
     
     while (pObj->pTemp == nullptr && Vec_PtrSize(left_to_add)>0){
-        // check si une entrée == -1
         Vec_PtrForEachEntry(Abc_Obj_t *, left_to_add, nodei, i){
             Abc_Obj_t * nodei_Fanin0 = Abc_ObjFanin0(nodei);
             Abc_Obj_t * nodei_Fanin1 = Abc_ObjFanin1(nodei);
@@ -279,7 +278,6 @@ int create_bdd_cut_size(Abc_Ntk_t* pNtk, Abc_Obj_t* pObj, Vec_Ptr_t * cut){
         return 0;
     }
 
-    // feioferioferio fioerj
     int result = Cudd_DagSize((DdNode *) (pObj->pTemp));
 
     Cudd_RecursiveDeref(bdd_cut, (DdNode *) (pObj->pTemp));
