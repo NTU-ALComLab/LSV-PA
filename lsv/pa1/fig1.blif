@@ -1,0 +1,10 @@
+.model fig1
+.inputs x0 x1 x2
+.outputs y0
+.names x0 x1 n5
+10 1
+.names x1 x2 n6
+11 1
+.names n5 n6 y0
+10 1
+.end

@@ -4,8 +4,13 @@
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 
+static int Lsv_CommandCut_TT(Abc_Frame_t * pAbc, int argc, char ** argv);
+static int Lsv_CommandCut_Bddsize(Abc_Frame_t * pAbc, int argc, char ** argv);
+
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandCut_TT, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandCut_Bddsize, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -57,4 +62,62 @@ usage:
   Abc_Print(-2, "\t        prints the nodes in the network\n");
   Abc_Print(-2, "\t-h    : print the command usage\n");
   return 1;
+}
+
+int Lsv_CommandCut_TT(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+    Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
+    if (!pNtk) {
+        Abc_Print(-1, "Empty network.\n");
+        return 1;
+    }
+
+    if (argc != 2) {
+        Abc_Print(-1, "Usage: lsv_cut_tt <k>\n");
+        return 1;
+    }
+
+    int k = atoi(argv[1]);
+    if (k <= 0) {
+        Abc_Print(-1, "Error: k must be a positive integer.\n");
+        return 1;
+    }
+
+    // check if the network is an AIG
+    if (!Abc_NtkIsStrash(pNtk)) {
+        Abc_Print(-1, "Error: The network is not an AIG.\n");
+        return 1;
+    }
+
+
+
+    return 0;
+}
+
+int Lsv_CommandCut_Bddsize(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+    Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
+    if (!pNtk) {
+        Abc_Print(-1, "Empty network.\n");
+        return 1;
+    }
+
+    if (argc != 2) {
+        Abc_Print(-1, "Usage: lsv_cut_bddsize <k>\n");
+        return 1;
+    }
+
+    int k = atoi(argv[1]);
+    if (k <= 0) {
+        Abc_Print(-1, "Error: k must be a positive integer.\n");
+        return 1;
+    }
+
+    // check if the network is an AIG
+    if (!Abc_NtkIsStrash(pNtk)) {
+        Abc_Print(-1, "Error: The network is not an AIG.\n");
+        return 1;
+    }
+
+    return 0;
 }
