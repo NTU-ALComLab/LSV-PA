@@ -1,6 +1,7 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "bdd/cudd/cudd.h"
 #include <vector>
 #include <algorithm>
 #include <cstdint>
@@ -9,10 +10,12 @@
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 static int Lsv_CommandCutTT(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandCutBDDSize(Abc_Frame_t* pAbc, int argc, char** argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandCutTT, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandCutBDDSize, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
@@ -137,6 +140,90 @@ void Lsv_NtkCutTT(Abc_Ntk_t* pNtk, int k) {
       printf(": %llX\n", (unsigned long long)Lsv_CutTruthTable(pObj, cut));
     }
   }
+}
+
+// Builds the BDD of pObj over the cut leaves already stored in memo.
+// Every node created here is referenced and must be dereferenced by the caller.
+static DdNode* Lsv_BuildBdd(Abc_Obj_t* pObj, std::unordered_map<int, DdNode*>& memo, DdManager* dd) {
+  int id = Abc_ObjId(pObj);
+  auto it = memo.find(id);
+  if (it != memo.end()) return it->second;
+
+  DdNode* f0 = Lsv_BuildBdd(Abc_ObjFanin0(pObj), memo, dd);
+  DdNode* f1 = Lsv_BuildBdd(Abc_ObjFanin1(pObj), memo, dd);
+  f0 = Cudd_NotCond(f0, Abc_ObjFaninC0(pObj));
+  f1 = Cudd_NotCond(f1, Abc_ObjFaninC1(pObj));
+
+  DdNode* r = Cudd_bddAnd(dd, f0, f1);
+  Cudd_Ref(r);
+  return memo[id] = r;
+}
+
+static int Lsv_CutBddSize(DdManager* dd, Abc_Obj_t* pRoot, const std::vector<int>& cut) {
+  std::unordered_map<int, DdNode*> memo;
+  for (size_t j = 0; j < cut.size(); j++) {
+    memo[cut[j]] = Cudd_bddIthVar(dd, j);  // cut[0] has the smallest ID and sits closest to the root
+  }
+  int size = Cudd_DagSize(Lsv_BuildBdd(pRoot, memo, dd));
+  for (const auto& entry : memo) {
+    if (std::find(cut.begin(), cut.end(), entry.first) == cut.end()) {
+      Cudd_RecursiveDeref(dd, entry.second);
+    }
+  }
+  return size;
+}
+
+void Lsv_NtkCutBDDSize(Abc_Ntk_t* pNtk, int k) {
+  std::vector<std::vector<std::vector<int>>> cuts;
+  Abc_Obj_t* pObj;
+  int i;
+  Lsv_EnumerateCuts(pNtk, k, cuts);
+  DdManager* dd = Cudd_Init(k, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
+  Abc_AigForEachAnd(pNtk, pObj, i) {
+    int id = Abc_ObjId(pObj);
+    for (const auto& cut : cuts[id]) {
+      printf("%d:", id);
+      for (int x : cut) printf(" %d", x);
+      printf(": %d\n", Lsv_CutBddSize(dd, pObj, cut));
+    }
+  }
+  Cudd_Quit(dd);
+}
+
+int Lsv_CommandCutBDDSize(Abc_Frame_t* pAbc, int argc, char** argv) {
+  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
+  int c, k;
+  Extra_UtilGetoptReset();
+  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
+    switch (c) {
+      case 'h':
+        goto usage;
+      default:
+        goto usage;
+    }
+  }
+  if (argc != globalUtilOptind + 1) goto usage;
+  k = atoi(argv[globalUtilOptind]);
+  if (k < 2 || k > 6) {
+    Abc_Print(-1, "k should be in [2, 6].\n");
+    return 1;
+  }
+  if (!pNtk) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  if (!Abc_NtkIsStrash(pNtk)) {
+    Abc_Print(-1, "The network is not an AIG. Run \"strash\" first.\n");
+    return 1;
+  }
+  Lsv_NtkCutBDDSize(pNtk, k);
+  return 0;
+
+usage:
+  Abc_Print(-2, "usage: lsv_cut_bddsize [-h] <k>\n");
+  Abc_Print(-2, "\t        enumerates k-feasible cuts and prints the BDD size of each cut\n");
+  Abc_Print(-2, "\t-h    : print the command usage\n");
+  return 1;
 }
 
 int Lsv_CommandCutTT(Abc_Frame_t* pAbc, int argc, char** argv) {
