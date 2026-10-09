@@ -69,24 +69,22 @@ usage:
   return 1;
 }
 
-typedef std::vector<int> Cut;      // leaf IDs of one cut, ascending
-typedef std::vector<Cut> CutList;  // all cuts of one node
+typedef std::vector<int> Cut;  // sorted leaf IDs
+typedef std::vector<Cut> CutList;
 
-// Is node x a leaf of the cut?
 static bool Lsv_CutHas(const Cut& cut, int x) {
   for (int leaf : cut)
     if (leaf == x) return true;
   return false;
 }
 
-// Is every leaf of a also a leaf of b?
+// a inside b
 static bool Lsv_CutIsSubset(const Cut& a, const Cut& b) {
   for (int leaf : a)
     if (!Lsv_CutHas(b, leaf)) return false;
   return true;
 }
 
-// Store the union of a and b in c, ascending.
 static void Lsv_CutUnion(const Cut& a, const Cut& b, Cut& c) {
   c = a;
   for (int leaf : b)
@@ -94,28 +92,25 @@ static void Lsv_CutUnion(const Cut& a, const Cut& b, Cut& c) {
   std::sort(c.begin(), c.end());
 }
 
-// Add cut c to the list so that no cut in the list contains another.
 static void Lsv_CutAdd(CutList& cuts, const Cut& c) {
-  // skip c if it contains (or equals) a cut already in the list
+  // duplicate or dominated
   for (const Cut& old : cuts)
     if (Lsv_CutIsSubset(old, c)) return;
-  // remove the cuts that contain c
+  // dominated by c
   for (int i = cuts.size() - 1; i >= 0; i--)
     if (Lsv_CutIsSubset(c, cuts[i])) cuts.erase(cuts.begin() + i);
   cuts.push_back(c);
 }
 
-// Cuts with at most k leaves for every input and AND node, indexed by ID.
 static std::vector<CutList> Lsv_NtkEnumCuts(Abc_Ntk_t* pNtk, int k) {
   std::vector<CutList> cuts(Abc_NtkObjNumMax(pNtk));
   Abc_Obj_t* pObj;
   int i;
-  // an input has one cut: itself
   Abc_NtkForEachCi(pNtk, pObj, i) {
     int id = Abc_ObjId(pObj);
     cuts[id].push_back({id});
   }
-  // AND nodes are visited in ID order, so both fanins are done first
+  // topological order
   Abc_NtkForEachNode(pNtk, pObj, i) {
     int id = Abc_ObjId(pObj);
     cuts[id].push_back({id});
@@ -130,12 +125,11 @@ static std::vector<CutList> Lsv_NtkEnumCuts(Abc_Ntk_t* pNtk, int k) {
   return cuts;
 }
 
-// Truth table of the input that is bit p of the row number.
+// variable truth tables
 static const uint64_t Lsv_VarTruth[6] = {
     0xAAAAAAAAAAAAAAAA, 0xCCCCCCCCCCCCCCCC, 0xF0F0F0F0F0F0F0F0,
     0xFF00FF00FF00FF00, 0xFFFF0000FFFF0000, 0xFFFFFFFF00000000};
 
-// Truth table of a node; tt already holds the cut leaves.
 static uint64_t Lsv_CutTruth_rec(Abc_Obj_t* pObj,
                                  std::map<int, uint64_t>& tt) {
   int id = Abc_ObjId(pObj);
@@ -148,20 +142,18 @@ static uint64_t Lsv_CutTruth_rec(Abc_Obj_t* pObj,
   return tt[id];
 }
 
-// Truth table of pRoot in terms of the cut leaves.
 static uint64_t Lsv_CutTruth(Abc_Obj_t* pRoot, const Cut& cut) {
   int n = cut.size();
   std::map<int, uint64_t> tt;
-  // the first leaf is the highest bit of the row number
+  // first leaf = MSB
   for (int i = 0; i < n; i++) tt[cut[i]] = Lsv_VarTruth[n - 1 - i];
   uint64_t truth = Lsv_CutTruth_rec(pRoot, tt);
-  // keep only the 2^n rows that are used
+  // 2^n bits used
   int nRows = 1 << n;
   if (nRows < 64) truth &= (1ULL << nRows) - 1;
   return truth;
 }
 
-// BDD of a node; bdd already holds the cut leaves.
 static DdNode* Lsv_CutBdd_rec(DdManager* dd, Abc_Obj_t* pObj,
                               std::map<int, DdNode*>& bdd) {
   int id = Abc_ObjId(pObj);
@@ -175,25 +167,21 @@ static DdNode* Lsv_CutBdd_rec(DdManager* dd, Abc_Obj_t* pObj,
   return bdd[id];
 }
 
-// Number of BDD nodes of pRoot in terms of the cut leaves.
 static int Lsv_CutBddSize(DdManager* dd, Abc_Obj_t* pRoot, const Cut& cut) {
   int n = cut.size();
   std::map<int, DdNode*> bdd;
-  // leaf i is BDD variable i, so a smaller ID is closer to the BDD root
+  // leaf i = BDD variable i
   for (int i = 0; i < n; i++) {
     bdd[cut[i]] = Cudd_bddIthVar(dd, i);
     Cudd_Ref(bdd[cut[i]]);
   }
   int size = Cudd_DagSize(Lsv_CutBdd_rec(dd, pRoot, bdd));
-  // release every BDD that was built
   for (auto& entry : bdd) Cudd_RecursiveDeref(dd, entry.second);
   return size;
 }
 
-// Print "<node>: <cut>: <truth table or BDD size>" for every AND node.
 static void Lsv_NtkPrintCuts(Abc_Ntk_t* pNtk, int k, int fBdd) {
   std::vector<CutList> cuts = Lsv_NtkEnumCuts(pNtk, k);
-  // k BDD variables in the fixed order 0, 1, ..., k-1
   DdManager* dd = NULL;
   if (fBdd) dd = Cudd_Init(k, 0, CUDD_UNIQUE_SLOTS, CUDD_CACHE_SLOTS, 0);
   Abc_Obj_t* pObj;
@@ -211,7 +199,7 @@ static void Lsv_NtkPrintCuts(Abc_Ntk_t* pNtk, int k, int fBdd) {
   if (fBdd) Cudd_Quit(dd);
 }
 
-// Shared by both commands: fBdd = 0 prints truth tables, 1 prints BDD sizes.
+// fBdd: 0 = truth table, 1 = BDD size
 static int Lsv_CommandCut(Abc_Frame_t* pAbc, int argc, char** argv, int fBdd) {
   Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
   int k = 0;
