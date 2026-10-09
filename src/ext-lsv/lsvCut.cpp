@@ -136,8 +136,7 @@ std::uint64_t computeTruthTable(Abc_Obj_t *root, const Cut &cut)
 }
 
 #ifdef ABC_USE_CUDD
-DdNode *buildBdd(DdManager *manager, std::uint64_t truth,
-                 int remainingVariables, int variableIndex)
+DdNode *buildBdd(DdManager *manager, std::uint64_t truth, int remainingVariables, int variableIndex)
 {
 
   if (remainingVariables == 0)
@@ -233,8 +232,5 @@ bool Lsv_RunCutBddSizes(Abc_Ntk_t *pNtk, int k)
     }
   }
   return true;
-#else
-  Abc_Print(-1, "lsv_cut_bddsize requires CUDD support.\n");
-  return false;
 #endif
 }
