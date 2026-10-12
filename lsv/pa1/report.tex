@@ -1,0 +1,89 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{float}
+
+\title{LSV PA1 Report\\Exercises 2--3}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Exercise 2: Using ABC}
+
+\subsection*{2(a) Two-bit multiplier BLIF}
+File: \texttt{mul.blif}. Inputs $A=(a_1 a_0)$, $B=(b_1 b_0)$; outputs $Y=(y_3 y_2 y_1 y_0)=A\cdot B$.
+Partial products $p_0{=}a_0b_0$, $p_1{=}a_0b_1$, $p_2{=}a_1b_0$, $p_3{=}a_1b_1$, then
+$y_0{=}p_0$, $y_1{=}p_1\oplus p_2$, $y_2{=}p_3\oplus(p_1p_2)$, $y_3{=}p_3(p_1p_2)$.
+
+\subsection*{2(b) ABC session on \texttt{mul.blif}}
+Commands: \texttt{read} $\rightarrow$ \texttt{print\_stats} $\rightarrow$ \texttt{show} $\rightarrow$ \texttt{strash} $\rightarrow$ \texttt{show} $\rightarrow$ \texttt{collapse} $\rightarrow$ \texttt{show bdd -g}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{screenshots/net.png}
+\caption{Logic network after \texttt{read} (\texttt{show}).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{screenshots/aig.png}
+\caption{AIG after \texttt{strash} (\texttt{show}).}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{screenshots/bdd.png}
+\caption{Collapsed BDDs after \texttt{collapse} (\texttt{show bdd -g}).}
+\end{figure}
+
+\texttt{print\_stats} after read: $i/o{=}4/4$, $nd{=}9$, $lev{=}3$.
+After \texttt{strash}: $and{=}12$, $lev{=}4$.
+
+\section{Exercise 3: Boolean Function Representations}
+
+\subsection*{3(a) Comparisons}
+
+\paragraph{AIG (\texttt{aig}) vs structurally hashed AIG (\texttt{strash}).}
+\texttt{aig} rewrites each node's local function into an AIG while keeping the original network topology ($nd{=}9$, reported $aig{=}12$, $lev{=}3$).
+\texttt{strash} builds a single structurally hashed AIG; duplicate AND nodes are shared ($and{=}12$, $lev{=}4$).
+So \texttt{strash} is the global hashed DAG; \texttt{aig} is local AIG functions on the old netlist.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.45\textwidth]{screenshots/ex3_aig.png}
+\hfill
+\includegraphics[width=0.45\textwidth]{screenshots/ex3_strash.png}
+\caption{Left: after \texttt{aig}. Right: after \texttt{strash}.}
+\end{figure}
+
+\paragraph{BDD (\texttt{bdd}) vs collapsed BDD (\texttt{collapse}).}
+\texttt{bdd} attaches a local BDD to each logic node ($nd{=}9$, $bdd{=}16$, $lev{=}3$).
+\texttt{collapse} builds global BDDs for the POs and replaces the network by those functions ($nd{=}4$, $bdd{=}14$, $lev{=}1$).
+Collapsed BDDs remove intermediate nodes and expose the full I/O function.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.45\textwidth]{screenshots/ex3_bdd.png}
+\hfill
+\includegraphics[width=0.45\textwidth]{screenshots/ex3_collapse.png}
+\caption{Left: after \texttt{bdd} (\texttt{show}). Right: after \texttt{collapse} (\texttt{show bdd -g}).}
+\end{figure}
+
+\subsection*{3(b) Strashed AIG $\rightarrow$ SOP logic network}
+Command sequence used:
+\begin{lstlisting}
+read mul.blif
+strash
+logic
+sop
+print_stats
+print_factor
+\end{lstlisting}
+\texttt{logic} converts the AIG back to a logic network; \texttt{sop} expresses each node in sum-of-products.
+Result: $nd{=}12$, $cube{=}12$, $lev{=}4$, with factored forms printable by \texttt{print\_factor}.
+
+\end{document}
