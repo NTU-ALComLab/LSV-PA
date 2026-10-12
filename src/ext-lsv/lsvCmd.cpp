@@ -1,60 +1,68 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "lsvCut.h"
 
-static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
+static int Lsv_CommandPrintNodes(Abc_Frame_t* frame, int argc, char** argv);
 
-void init(Abc_Frame_t* pAbc) {
-  Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+// Register commands at ABC startup; the final argument 0 marks them as read-only.
+// lsvCut.cpp implements both Q4 commands; lsv_print_nodes retains node inspection.
+void init(Abc_Frame_t* frame) {
+  Cmd_CommandAdd(frame, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+  Cmd_CommandAdd(frame, "LSV", "lsv_cut_tt", Lsv_CommandCutTt, 0);
+  Cmd_CommandAdd(frame, "LSV", "lsv_cut_bddsize", Lsv_CommandCutBddSize, 0);
 }
 
-void destroy(Abc_Frame_t* pAbc) {}
+void destroy(Abc_Frame_t* frame) {}
 
+// Use the existing module initialization mechanism to register init and destroy with ABC.
 Abc_FrameInitializer_t frame_initializer = {init, destroy};
 
 struct PackageRegistrationManager {
-  PackageRegistrationManager() { Abc_FrameAddInitializer(&frame_initializer); }
+  PackageRegistrationManager() {
+    Abc_FrameAddInitializer(&frame_initializer);
+  }
 } lsvPackageRegistrationManager;
 
-void Lsv_NtkPrintNodes(Abc_Ntk_t* pNtk) {
-  Abc_Obj_t* pObj;
-  int i;
-  Abc_NtkForEachNode(pNtk, pObj, i) {
-    printf("Object Id = %d, name = %s\n", Abc_ObjId(pObj), Abc_ObjName(pObj));
-    Abc_Obj_t* pFanin;
-    int j;
-    Abc_ObjForEachFanin(pObj, pFanin, j) {
-      printf("  Fanin-%d: Id = %d, name = %s\n", j, Abc_ObjId(pFanin),
-             Abc_ObjName(pFanin));
+// Print each internal node's ID, name, and fanins, plus its function for SOP networks.
+void Lsv_NtkPrintNodes(Abc_Ntk_t* network) {
+  Abc_Obj_t* node;
+  int node_index;
+  Abc_NtkForEachNode(network, node, node_index) {
+    printf("Object Id = %d, name = %s\n", Abc_ObjId(node), Abc_ObjName(node));
+
+    Abc_Obj_t* fanin;
+    int fanin_index;
+    Abc_ObjForEachFanin(node, fanin, fanin_index) {
+      printf("  Fanin-%d: Id = %d, name = %s\n", fanin_index, Abc_ObjId(fanin),
+             Abc_ObjName(fanin));
     }
-    if (Abc_NtkHasSop(pNtk)) {
-      printf("The SOP of this node:\n%s", (char*)pObj->pData);
+    if (Abc_NtkHasSop(network)) {
+      printf("The SOP of this node:\n%s", static_cast<char*>(node->pData));
     }
   }
 }
 
-int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv) {
-  Abc_Ntk_t* pNtk = Abc_FrameReadNtk(pAbc);
-  int c;
-  Extra_UtilGetoptReset();
-  while ((c = Extra_UtilGetopt(argc, argv, "h")) != EOF) {
-    switch (c) {
-      case 'h':
-        goto usage;
-      default:
-        goto usage;
-    }
-  }
-  if (!pNtk) {
-    Abc_Print(-1, "Empty network.\n");
-    return 1;
-  }
-  Lsv_NtkPrintNodes(pNtk);
-  return 0;
-
-usage:
+static void PrintNodesUsage() {
   Abc_Print(-2, "usage: lsv_print_nodes [-h]\n");
   Abc_Print(-2, "\t        prints the nodes in the network\n");
   Abc_Print(-2, "\t-h    : print the command usage\n");
-  return 1;
+}
+
+// Preserve the original arguments and error messages; inspect nodes after validation.
+int Lsv_CommandPrintNodes(Abc_Frame_t* frame, int argc, char** argv) {
+  Abc_Ntk_t* network = Abc_FrameReadNtk(frame);
+  Extra_UtilGetoptReset();
+  const int option = Extra_UtilGetopt(argc, argv, "h");
+  if (option != EOF) {
+    PrintNodesUsage();
+    return 1;
+  }
+  if (!network) {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+
+  Lsv_NtkPrintNodes(network);
+  return 0;
 }
