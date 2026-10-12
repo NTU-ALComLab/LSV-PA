@@ -4,8 +4,13 @@
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
 
+extern "C" int Lsv_CommandCutTt(Abc_Frame_t* pAbc, int argc, char** argv);
+extern "C" int Lsv_CommandCutBddSize(Abc_Frame_t* pAbc, int argc, char** argv);
+
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandCutTt, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandCutBddSize, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}
