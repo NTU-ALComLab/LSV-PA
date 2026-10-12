@@ -1,0 +1,64 @@
+ABC command line: "source setup.rc; read mul.blif; strash; logic; print_stats; lsv_print_nodes".
+
+Loading resource file "/Users/ooyang/Downloads/2026/LSV/LSV-PA/abc.rc".
+mul                           : i/o =    4/    4  lat =    0  nd =    12  edge =     24  cube =    12  lev = 4
+Object Id = 9, name = n9
+  Fanin-0: Id = 1, name = a1
+  Fanin-1: Id = 3, name = b1
+The SOP of this node:
+11 1
+Object Id = 10, name = n10
+  Fanin-0: Id = 2, name = a0
+  Fanin-1: Id = 3, name = b1
+The SOP of this node:
+11 1
+Object Id = 11, name = n11
+  Fanin-0: Id = 1, name = a1
+  Fanin-1: Id = 4, name = b0
+The SOP of this node:
+11 1
+Object Id = 12, name = n12
+  Fanin-0: Id = 10, name = n10
+  Fanin-1: Id = 11, name = n11
+The SOP of this node:
+11 1
+Object Id = 13, name = n13
+  Fanin-0: Id = 9, name = n9
+  Fanin-1: Id = 12, name = n12
+The SOP of this node:
+11 1
+Object Id = 14, name = n14
+  Fanin-0: Id = 9, name = n9
+  Fanin-1: Id = 12, name = n12
+The SOP of this node:
+01 1
+Object Id = 15, name = n15
+  Fanin-0: Id = 9, name = n9
+  Fanin-1: Id = 12, name = n12
+The SOP of this node:
+10 1
+Object Id = 16, name = n16
+  Fanin-0: Id = 14, name = n14
+  Fanin-1: Id = 15, name = n15
+The SOP of this node:
+00 0
+Object Id = 17, name = n17
+  Fanin-0: Id = 10, name = n10
+  Fanin-1: Id = 11, name = n11
+The SOP of this node:
+01 1
+Object Id = 18, name = n18
+  Fanin-0: Id = 10, name = n10
+  Fanin-1: Id = 11, name = n11
+The SOP of this node:
+10 1
+Object Id = 19, name = n19
+  Fanin-0: Id = 17, name = n17
+  Fanin-1: Id = 18, name = n18
+The SOP of this node:
+00 0
+Object Id = 20, name = n20
+  Fanin-0: Id = 2, name = a0
+  Fanin-1: Id = 4, name = b0
+The SOP of this node:
+11 1
