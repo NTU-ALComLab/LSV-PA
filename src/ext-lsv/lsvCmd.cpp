@@ -1,11 +1,24 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "base/main/mainInt.h"
+#include "bdd/cudd/cudd.h"
+
+#include <algorithm>
+#include <cstdlib>
+#include <vector>
+
+using std::vector;
+
+typedef vector<int> Lsv_Cut;
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
+int Lsv_CutTt(Abc_Frame_t* pAbc, int argc, char** argv);
+int Lsv_CutBddSize(Abc_Frame_t *pAbc, int argc, char **argv);
 
 void init(Abc_Frame_t* pAbc) {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CutTt, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CutBddSize, 0);
 }
 
 void destroy(Abc_Frame_t* pAbc) {}

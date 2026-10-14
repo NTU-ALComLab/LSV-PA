@@ -9,7 +9,7 @@
   Synopsis    [External declarations.]
 
   Author      [Alan Mishchenko]
-  
+
   Affiliation [UC Berkeley]
 
   Date        [Ver. 1.0. Started - June 20, 2005.]
