@@ -1,0 +1,20 @@
+ABC command line: "strash; lsv_pa1_checker -k 6 -m tt lsv/pa1/out/int2float_lsv_cut_tt_6.txt".
+
+[CHECK] WRONG      25: 1 2 5 9 23 got FFFFFFFFFC0C5555 expected FC0C5555
+[CHECK] WRONG      26: 1 2 5 7 9 19 got F0B0A0B expected A0B0A0B0F000000
+[CHECK] WRONG      26: 1 2 5 7 9 23 got A0B0F0B expected 30F030A0A0A0A
+[CHECK] WRONG      26: 1 2 5 7 9 24 got A0B0F0B expected A0B0F0B0A0A0A0A
+[CHECK] WRONG      26: 1 2 5 7 19 20 got F0E0E0E expected E0E0E0E0F000000
+[CHECK] WRONG      26: 1 2 5 7 20 23 got E0E0F0E expected C0C0F0C0A0A0A0A
+[CHECK] WRONG      26: 1 2 5 7 20 24 got E0E0F0E expected E0E0F0E0A0A0A0A
+[CHECK] WRONG      26: 1 5 7 9 19 23 got EE00EF expected CC00CF00AA00AA
+[CHECK] WRONG      26: 1 5 7 9 19 24 got EE00EF expected EE00EF00AA00AA
+[CHECK] WRONG      27: 1 2 5 7 8 9 got 3010301 expected 1030103000000
+[CHECK] mode=tt k=6 strict=0
+[CHECK] reference irredundant cuts : 2556
+[CHECK] student lines (total/parsed): 2652 / 2650
+[CHECK] ignored lines (format/root) : 1 / 0
+[CHECK] dominated cuts printed      : 94 (value unchecked: 0)
+[CHECK] repeated identical lines   : 0
+[CHECK] missing=0 wrong=1022 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+Fail!

@@ -1,0 +1,20 @@
+ABC command line: "strash; lsv_pa1_checker -k 6 -m bdd lsv/pa1/out/adder_lsv_cut_bddsize_6.txt".
+
+[CHECK] DUPLICATE  476: 54 55 182 183 258 467 (conflicting values)
+[CHECK] DUPLICATE  476: 54 55 182 183 467 468 (conflicting values)
+[CHECK] DUPLICATE  476: 54 55 182 183 467 468 (conflicting values)
+[CHECK] DUPLICATE  476: 54 55 182 183 467 471 (conflicting values)
+[CHECK] DUPLICATE  476: 54 55 182 183 467 472 (conflicting values)
+[CHECK] DUPLICATE  476: 54 55 182 183 469 471 (conflicting values)
+[CHECK] DUPLICATE  476: 54 55 182 183 469 471 (conflicting values)
+[CHECK] DUPLICATE  476: 54 55 182 183 469 472 (conflicting values)
+[CHECK] DUPLICATE  476: 54 55 182 183 469 473 (conflicting values)
+[CHECK] DUPLICATE  476: 54 182 258 259 466 473 (conflicting values)
+[CHECK] mode=bdd k=6 strict=0
+[CHECK] reference irredundant cuts : 2288
+[CHECK] student lines (total/parsed): 3610 / 3608
+[CHECK] ignored lines (format/root) : 1 / 0
+[CHECK] dominated cuts printed      : 1198 (value unchecked: 52)
+[CHECK] repeated identical lines   : 70
+[CHECK] missing=0 wrong=13 not-a-cut=0 unsorted=0 too-large=0 duplicate=52 bad-value=0
+Fail!

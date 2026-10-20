@@ -1,0 +1,26 @@
+Benchmark,Command,k,Result,Reason
+adder,lsv_cut_tt,3,Pass,
+adder,lsv_cut_bddsize,3,Pass,
+adder,lsv_cut_tt,6,Fail,missing=0 wrong=1607 not-a-cut=0 unsorted=0 too-large=0 duplicate=118 bad-value=0
+adder,lsv_cut_bddsize,6,Fail,missing=0 wrong=13 not-a-cut=0 unsorted=0 too-large=0 duplicate=52 bad-value=0
+int2float,lsv_cut_tt,3,Pass,
+int2float,lsv_cut_bddsize,3,Pass,
+int2float,lsv_cut_tt,6,Fail,missing=0 wrong=1022 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+int2float,lsv_cut_bddsize,6,Pass,
+router,lsv_cut_tt,3,Pass,
+router,lsv_cut_bddsize,3,Pass,
+router,lsv_cut_tt,6,Fail,missing=0 wrong=6948 not-a-cut=0 unsorted=0 too-large=0 duplicate=5533 bad-value=0
+router,lsv_cut_bddsize,6,Fail,missing=0 wrong=397 not-a-cut=0 unsorted=0 too-large=0 duplicate=3993 bad-value=0
+mem_ctrl,lsv_cut_tt,3,Pass,
+mem_ctrl,lsv_cut_bddsize,3,Pass,
+mem_ctrl,lsv_cut_tt,6,Pass,
+mem_ctrl,lsv_cut_bddsize,6,Pass,
+div,lsv_cut_tt,3,Pass,
+div,lsv_cut_bddsize,3,Pass,
+log2,lsv_cut_tt,3,Fail,missing=0 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=3500 bad-value=0
+log2,lsv_cut_bddsize,3,Fail,missing=0 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=1750 bad-value=0
+sqrt,lsv_cut_tt,3,Pass,
+sqrt,lsv_cut_bddsize,3,Pass,
+square,lsv_cut_tt,3,Fail,missing=0 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=1278 bad-value=0
+square,lsv_cut_bddsize,3,Fail,missing=0 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=639 bad-value=0
+Score,,,62,compile 16/16 + lsv_cut_tt defined 8/8 + lsv_cut_bddsize defined 8/8 + cases (lsv_cut_tt 7/12 AC + lsv_cut_bddsize 8/12 AC)
