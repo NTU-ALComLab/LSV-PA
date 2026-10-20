@@ -1,0 +1,10 @@
+ABC command line: "strash; lsv_pa1_checker -k 3 -m tt lsv/pa1/out/log2_lsv_cut_tt_3.txt".
+
+[CHECK] mode=tt k=3 strict=0
+[CHECK] reference irredundant cuts : 154294
+[CHECK] student lines (total/parsed): 154296 / 154294
+[CHECK] ignored lines (format/root) : 1 / 0
+[CHECK] dominated cuts printed      : 0 (value unchecked: 0)
+[CHECK] repeated identical lines   : 0
+[CHECK] missing=0 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+Pass!
