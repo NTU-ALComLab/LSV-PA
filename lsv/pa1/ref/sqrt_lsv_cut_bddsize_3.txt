@@ -1,0 +1,21 @@
+ABC command line: "strash; lsv_pa1_checker -k 3 -m bdd lsv/pa1/out/sqrt_lsv_cut_bddsize_3.txt".
+
+[CHECK] MISSING    193: 127 128
+[CHECK] MISSING    193: 193
+[CHECK] MISSING    194: 127 128
+[CHECK] MISSING    194: 194
+[CHECK] MISSING    195: 127 128
+[CHECK] MISSING    195: 127 193
+[CHECK] MISSING    195: 195
+[CHECK] MISSING    196: 125 126
+[CHECK] MISSING    196: 196
+[CHECK] MISSING    197: 125 126 195
+[CHECK] mode=bdd k=3 strict=0
+[CHECK] reference irredundant cuts : 100044
+[CHECK] student lines (total/parsed): 2 / 0
+[CHECK] ignored lines (format/root) : 1 / 0
+[CHECK] dominated cuts printed      : 0 (value unchecked: 0)
+[CHECK] repeated identical lines   : 0
+[CHECK] missing=100044 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+Fail!
+[CHECK] Timeout (180s)
