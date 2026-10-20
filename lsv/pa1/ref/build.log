@@ -1,0 +1,99 @@
+Using CC=gcc
+Using CXX=g++
+Using AR=ar
+Using LD=g++
+Compiling with CUDD
+Using libreadline
+Using pthreads
+Found GCC_VERSION 16.0.0
+Found GCC_MAJOR>=5
+Using CFLAGS=-Wall -Wno-unused-function -Wno-write-strings -Wno-sign-compare -DLIN64 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -DSIZEOF_INT=4 -DABC_MEMALIGN=4 -DABC_USE_CUDD=1 -DABC_USE_READLINE  -DABC_USE_PTHREADS -Wno-unused-but-set-variable
+`` Generating dependency: /src/ext-lsv/lsvCmd.cpp
+`` Generating dependency: /src/ext-lsv/lsvCut.cpp
+Using CC=gcc
+Using CXX=g++
+Using AR=ar
+Using LD=g++
+Compiling with CUDD
+Using libreadline
+Using pthreads
+Found GCC_VERSION 16.0.0
+Found GCC_MAJOR>=5
+Using CFLAGS=-Wall -Wno-unused-function -Wno-write-strings -Wno-sign-compare -DLIN64 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -DSIZEOF_INT=4 -DABC_MEMALIGN=4 -DABC_USE_CUDD=1 -DABC_USE_READLINE  -DABC_USE_PTHREADS -Wno-unused-but-set-variable
+`` Compiling: /src/ext-lsv/lsvCut.cpp
+`` Compiling: /src/ext-lsv/lsvCmd.cpp
+In file included from src/ext-lsv/lsvCut.cpp:1:
+In file included from ./src/base/abc/abc.h:34:
+In file included from ./src/misc/vec/vec.h:29:
+./src/misc/util/abc_global.h:295:153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  295 | staticIn file included from src/ext-lsv/lsvCmd.cpp:1:
+In file included from ./src/base/abc/abc.h:34 inlin:
+In file included from ./src/misc/vec/vec.h:29:
+./src/misc/util/abc_global.he: 295c:h153a:r  warning: *'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations] 
+  Abc_UtilStrsavTw  o295( |  scthaatri c*  isn,l icnhea rc h* aa )r * {  A bchar * r; ifc_UtilStrsavTwo (!a) (r ecthuarrn  *A bsc,_ UcthialrS t*r saa v)({s )c;h arr  * r; =if (! aA) retuBrCn Ab_cA_LULtOiClStrsav(s); r = AB(char, strlC_ALLOC(char,e strlen(s)+strn(s)+lsetn(a)rlen+1); sprintf((ar),+1); sprintf(r, " "%s%s", s, a %);s %rs", est,urn r; }
+      |                                                                                                                                                         ^
+ a ); return /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.hr:;274 :}
+1      :|                                                                                                                                                          ^note: 
+'sprintf' has been explicitly marked deprecated here/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  
+274 | __deprecated  274 | ___dmeprecastged_ms(g("T"hTis functihis foun is provided fornction is  comppraotviibdield for compatiibtiy relasity ons onlyreasons only.  Du.  Duee  ttoo secur securitityy  concerncs ioncerns innhherent in theer ednesign oft sprin itn the def(3), siitg nis highly reco mmendedof sprintf(3), it  tihsa t yhoiu use snpgrhilntf(3) instead.y") 
+r      e| c^o
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.hmmended that: 218you use snprin:t48f:(3) instead." )
+      | ^note: expanded from macro '__deprecated_msg'
+  218 |         #define __d
+eprecated_msg(_msg) /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         _#de_faittribute__((_n_ed epreca_te_dd_e_(_msg)))
+      |                                                       ^
+precated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/ext-lsv/lsvCmd.cpp:1:
+In file included from ./src/base/abc/abc.h:34:
+In file included from ./src/misc/vec/vec.h:29:
+In file included from ./src/misc/util/abc_global.hsrc/ext-lsv/lsvCut.cpp::2961::
+153In file included from :./src/base/abc/abc.h :warning: 34'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]:
+
+In file included from ./src/misc/vec/vec.h:29:
+./src/misc/util/abc_global.h:296  :296153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+ | sta  296 | stic inline chtatic inline char * ar *   Ab  Abc_UtilSc_UtitlSrstrsavNum( char * s, avNiunmt(  char n*  )s, int   n  {)   { ch chaar * r; if r * r; if (!s) return NUL(L!;             s )r = ABC_ALL return NULL;O  C (ch ar, strlen(s)+12          +r1 = AB);        C_ALLOC(schapr,r isnttrfl(ern,( s"%s%d", s)+12+1);        sprintf, n )(; return r; }
+      |                                                                                                                                                         ^r
+, "%s%d", /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+s, n ); re  274t | __deprecatedu_rn r; }
+      |                                                                                                                                                         ^
+m/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: snote: 'sprintf' has been explicitly marked deprecated hereg("T
+his fun  ction is provid274 | __deprecateed_msg("This function d for ciompatibisl ity reaprovideds for coons omnplatibilityy .r  Due to seaesconurity s only.  Dconcuee to srecurity concerns innherents inherent in t in the dhe design eof sspirginntf( 3), it ios highly rf spriecommentf(3nded that), it is h ighlyy recou use osmmendednprintf(3) instead. that you use s"n)p
+r      i| ntf(3) instead.")
+      | ^
+^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h :note: expanded from macro '__deprecated_msg'218:48: note: expanded from macro '__deprecated_msg'
+
+  218 |         #define  218 |         #define __de __pdreprecated_msge(c_amtseg) d__attribute__((___depmrsegc(a_tmesdg)__(_msg)))
+      |                                                       ^ 
+__attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/ext-lsv/lsvCmd.cpp:1:
+In file included from ./src/base/abc/abc.h:34:
+In file included from ./src/misc/vec/vec.h:39:
+./src/misc/vec/vecMem.h:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  461 |     sprintf( pFileName, "tt_%s_%02d.txt", pName ? pName : NULL, nLutSize );
+      |     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(In file included from 3src/ext-lsv/lsvCut.cpp:1:
+In file included from )./src/base/abc/abc.h, it is high:l34y recommende:
+d In file included from ./src/misc/vec/vec.h:39:
+that y./src/misc/vec/vecMem.ho:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+u use snprint  f(3) inste461 |     sparintf( pFidl.")
+      | ^
+eNa/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:m48: note: expanded from macro '__deprecated_msg'
+e, "tt_%s_%02  218 |         #defind.txt", peN a_me ? pName : NU_deprecLaLt,ed nLutSize )_m;s
+g      |     ^
+(_m/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:s1g:) note: 'sprintf' has been explicitly marked deprecated here
+  274 _ | _attribute__(_(___ddeprecated_msg("This fepurnction ecated__(_msigs provided for)))
+      |                                                       ^
+ compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+3 warnings generated.
+3 warnings generated.
+`` Building binary: abc
