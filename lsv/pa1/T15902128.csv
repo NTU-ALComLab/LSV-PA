@@ -1,0 +1,26 @@
+Benchmark,Command,k,Result,Reason
+adder,lsv_cut_tt,3,Fail,missing=0 wrong=444 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+adder,lsv_cut_bddsize,3,Fail,missing=0 wrong=55 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+adder,lsv_cut_tt,6,Fail,missing=0 wrong=3160 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+adder,lsv_cut_bddsize,6,Fail,missing=0 wrong=1931 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+int2float,lsv_cut_tt,3,Fail,missing=0 wrong=460 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+int2float,lsv_cut_bddsize,3,Fail,missing=0 wrong=37 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+int2float,lsv_cut_tt,6,Fail,missing=0 wrong=2283 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+int2float,lsv_cut_bddsize,6,Fail,missing=0 wrong=1392 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+router,lsv_cut_tt,3,Fail,missing=0 wrong=662 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+router,lsv_cut_bddsize,3,Fail,missing=0 wrong=152 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+router,lsv_cut_tt,6,Fail,missing=0 wrong=10995 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+router,lsv_cut_bddsize,6,Fail,missing=0 wrong=7644 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+mem_ctrl,lsv_cut_tt,3,Fail,missing=0 wrong=6 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+mem_ctrl,lsv_cut_bddsize,3,Fail,missing=0 wrong=1 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+mem_ctrl,lsv_cut_tt,6,Fail,missing=0 wrong=6 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+mem_ctrl,lsv_cut_bddsize,6,Fail,missing=0 wrong=1 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+div,lsv_cut_tt,3,Fail,missing=0 wrong=86451 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+div,lsv_cut_bddsize,3,Fail,missing=0 wrong=7880 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+log2,lsv_cut_tt,3,Fail,missing=0 wrong=120932 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+log2,lsv_cut_bddsize,3,Fail,missing=0 wrong=15361 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+sqrt,lsv_cut_tt,3,Fail,missing=0 wrong=75422 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+sqrt,lsv_cut_bddsize,3,Fail,missing=0 wrong=6780 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+square,lsv_cut_tt,3,Fail,missing=0 wrong=69565 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+square,lsv_cut_bddsize,3,Fail,missing=0 wrong=7821 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+Score,,,32,compile 16/16 + lsv_cut_tt defined 8/8 + lsv_cut_bddsize defined 8/8 + cases (lsv_cut_tt 0/12 AC + lsv_cut_bddsize 0/12 AC)

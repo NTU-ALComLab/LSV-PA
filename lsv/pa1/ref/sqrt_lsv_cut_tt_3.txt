@@ -1,0 +1,20 @@
+ABC command line: "strash; lsv_pa1_checker -k 3 -m tt lsv/pa1/out/sqrt_lsv_cut_tt_3.txt".
+
+[CHECK] WRONG      193: 127 128 got 8 expected 1
+[CHECK] WRONG      195: 127 128 got 8 expected C
+[CHECK] WRONG      195: 127 193 got 8 expected 4
+[CHECK] WRONG      196: 125 126 got 8 expected 1
+[CHECK] WRONG      197: 125 126 195 got 80 expected 54
+[CHECK] WRONG      197: 127 128 196 got 80 expected 5
+[CHECK] WRONG      197: 127 193 196 got 80 expected 45
+[CHECK] WRONG      197: 195 196 got 8 expected 1
+[CHECK] WRONG      198: 127 128 196 got 80 expected 3A
+[CHECK] WRONG      198: 127 128 197 got 80 expected 15
+[CHECK] mode=tt k=3 strict=0
+[CHECK] reference irredundant cuts : 100044
+[CHECK] student lines (total/parsed): 100046 / 100044
+[CHECK] ignored lines (format/root) : 1 / 0
+[CHECK] dominated cuts printed      : 0 (value unchecked: 0)
+[CHECK] repeated identical lines   : 0
+[CHECK] missing=0 wrong=75422 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+Fail!

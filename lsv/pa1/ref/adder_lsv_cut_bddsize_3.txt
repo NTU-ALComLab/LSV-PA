@@ -1,0 +1,20 @@
+ABC command line: "strash; lsv_pa1_checker -k 3 -m bdd lsv/pa1/out/adder_lsv_cut_bddsize_3.txt".
+
+[CHECK] WRONG      314: 2 130 311 got 4 expected 5
+[CHECK] WRONG      317: 3 131 314 got 4 expected 5
+[CHECK] WRONG      320: 4 132 317 got 4 expected 5
+[CHECK] WRONG      323: 5 133 320 got 4 expected 5
+[CHECK] WRONG      326: 6 134 323 got 4 expected 5
+[CHECK] WRONG      329: 7 135 326 got 4 expected 5
+[CHECK] WRONG      332: 8 136 329 got 4 expected 5
+[CHECK] WRONG      335: 9 137 332 got 4 expected 5
+[CHECK] WRONG      338: 10 138 335 got 4 expected 5
+[CHECK] WRONG      341: 11 139 338 got 4 expected 5
+[CHECK] mode=bdd k=3 strict=0
+[CHECK] reference irredundant cuts : 714
+[CHECK] student lines (total/parsed): 720 / 718
+[CHECK] ignored lines (format/root) : 1 / 0
+[CHECK] dominated cuts printed      : 4 (value unchecked: 0)
+[CHECK] repeated identical lines   : 0
+[CHECK] missing=0 wrong=55 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+Fail!

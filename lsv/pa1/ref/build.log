@@ -1,0 +1,1212 @@
+Using CC=gcc
+Using CXX=g++
+Using AR=ar
+Using LD=g++
+Compiling with CUDD
+Using libreadline
+Using pthreads
+Found GCC_VERSION 16.0.0
+Found GCC_MAJOR>=5
+Using CFLAGS=-Wall -Wno-unused-function -Wno-write-strings -Wno-sign-compare -DLIN64 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -DSIZEOF_INT=4 -DABC_MEMALIGN=4 -DABC_USE_CUDD=1 -DABC_USE_READLINE  -DABC_USE_PTHREADS -Wno-unused-but-set-variable
+`` Generating dependency: /src/bdd/llb/llb4Nonlin.c
+`` Generating dependency: /src/bdd/cas/casCore.c
+`` Generating dependency: /src/bdd/extrab/extraBddThresh.c
+`` Generating dependency: /src/aig/gia/giaUtil.c
+`` Generating dependency: /src/aig/gia/giaSwitch.c
+`` Generating dependency: /src/aig/gia/giaTranStoch.c
+`` Generating dependency: /src/aig/gia/giaSweeper.c
+`` Generating dependency: /src/aig/gia/giaSupps.c
+`` Generating dependency: /src/aig/gia/giaStoch.c
+`` Generating dependency: /src/aig/gia/giaScript.c
+`` Generating dependency: /src/aig/gia/giaPf.c
+`` Generating dependency: /src/aig/gia/giaOf.c
+`` Generating dependency: /src/aig/gia/giaNf.c
+`` Generating dependency: /src/aig/gia/giaMinLut2.c
+`` Generating dependency: /src/aig/gia/giaMinLut.c
+`` Generating dependency: /src/aig/gia/giaMini.c
+`` Generating dependency: /src/aig/gia/giaIf.c
+`` Generating dependency: /src/aig/gia/giaDeep.c
+`` Generating dependency: /src/aig/gia/giaAiger.c
+`` Generating dependency: /src/aig/saig/saigSwitch.c
+`` Generating dependency: /src/aig/saig/saigSimFast.c
+`` Generating dependency: /src/aig/saig/saigIso.c
+`` Generating dependency: /src/proof/ssw/sswRarity.c
+`` Generating dependency: /src/proof/cec/cecSatG2.c
+`` Generating dependency: /src/proof/live/combination.c
+`` Generating dependency: /src/proof/live/kLiveConstraints.c
+`` Generating dependency: /src/proof/live/arenaViolation.c
+`` Generating dependency: /src/proof/live/disjunctiveMonotone.c
+`` Generating dependency: /src/proof/live/monotone.c
+`` Generating dependency: /src/proof/live/kliveness.c
+`` Generating dependency: /src/proof/live/ltl_parser.c
+`` Generating dependency: /src/proof/live/liveness_sim.c
+`` Generating dependency: /src/proof/live/liveness.c
+`` Generating dependency: /src/proof/abs/absVta.c
+`` Generating dependency: /src/proof/abs/absGla.c
+`` Generating dependency: /src/proof/abs/absGlaOld.c
+`` Generating dependency: /src/proof/pdr/pdrInv.c
+`` Generating dependency: /src/proof/pdr/pdrIncr.c
+`` Generating dependency: /src/proof/pdr/pdrCore.c
+`` Generating dependency: /src/bool/dec/decUtil.c
+`` Generating dependency: /src/bool/dec/decPrint.c
+`` Generating dependency: /src/bool/dec/decMan.c
+`` Generating dependency: /src/bool/dec/decFactor.c
+`` Generating dependency: /src/bool/dec/decAbc.c
+`` Generating dependency: /src/sat/bmc/bmcMaj.c
+`` Generating dependency: /src/sat/bmc/bmcExpand.c
+`` Generating dependency: /src/sat/csat/csat_apis.c
+`` Generating dependency: /src/opt/sbd/sbdWin.c
+`` Generating dependency: /src/opt/sbd/sbdSat.c
+`` Generating dependency: /src/opt/sbd/sbdLut.c
+`` Generating dependency: /src/opt/sbd/sbdPath.c
+`` Generating dependency: /src/opt/sbd/sbdCut2.c
+`` Generating dependency: /src/opt/sbd/sbdCut.c
+`` Generating dependency: /src/opt/sbd/sbdCore.c
+`` Generating dependency: /src/opt/sbd/sbdCnf.c
+`` Generating dependency: /src/opt/sbd/sbd.c
+`` Generating dependency: /src/opt/sfm/sfmWin.c
+`` Generating dependency: /src/opt/sfm/sfmMit.c
+`` Generating dependency: /src/opt/sfm/sfmTim.c
+`` Generating dependency: /src/opt/sfm/sfmSat.c
+`` Generating dependency: /src/opt/sfm/sfmNtk.c
+`` Generating dependency: /src/opt/sfm/sfmLib.c
+`` Generating dependency: /src/opt/sfm/sfmDec.c
+`` Generating dependency: /src/opt/sfm/sfmCore.c
+`` Generating dependency: /src/opt/sfm/sfmArea.c
+`` Generating dependency: /src/opt/sfm/sfmCnf.c
+`` Generating dependency: /src/opt/rar/rewireRar.c
+`` Generating dependency: /src/opt/rar/rewireMap.c
+`` Generating dependency: /src/opt/rar/rewireRng.c
+`` Generating dependency: /src/opt/lpk/lpkSets.c
+`` Generating dependency: /src/opt/lpk/lpkMux.c
+`` Generating dependency: /src/opt/lpk/lpkMulti.c
+`` Generating dependency: /src/opt/lpk/lpkMap.c
+`` Generating dependency: /src/opt/lpk/lpkMan.c
+`` Generating dependency: /src/opt/lpk/lpkCut.c
+`` Generating dependency: /src/opt/lpk/lpkAbcUtil.c
+`` Generating dependency: /src/opt/lpk/lpkAbcDsd.c
+`` Generating dependency: /src/opt/lpk/lpkAbcMux.c
+`` Generating dependency: /src/opt/lpk/lpkAbcDec.c
+`` Generating dependency: /src/opt/lpk/lpkCore.c
+`` Generating dependency: /src/opt/res/resWin.c
+`` Generating dependency: /src/opt/res/resStrash.c
+`` Generating dependency: /src/opt/res/resSim.c
+`` Generating dependency: /src/opt/res/resSat.c
+`` Generating dependency: /src/opt/res/resFilter.c
+`` Generating dependency: /src/opt/res/resDivs.c
+`` Generating dependency: /src/opt/res/resCore.c
+`` Generating dependency: /src/opt/fret/fretTime.c
+`` Generating dependency: /src/opt/fret/fretInit.c
+`` Generating dependency: /src/opt/fret/fretFlow.c
+`` Generating dependency: /src/opt/fret/fretMain.c
+`` Generating dependency: /src/opt/ret/retLvalue.c
+`` Generating dependency: /src/opt/ret/retInit.c
+`` Generating dependency: /src/opt/ret/retIncrem.c
+`` Generating dependency: /src/opt/ret/retFlow.c
+`` Generating dependency: /src/opt/ret/retDelay.c
+`` Generating dependency: /src/opt/ret/retCore.c
+`` Generating dependency: /src/opt/ret/retArea.c
+`` Generating dependency: /src/opt/sim/simUtils.c
+`` Generating dependency: /src/opt/sim/simSymStr.c
+`` Generating dependency: /src/opt/sim/simSymSat.c
+`` Generating dependency: /src/opt/sim/simSymSim.c
+`` Generating dependency: /src/opt/sim/simSym.c
+`` Generating dependency: /src/opt/sim/simSwitch.c
+`` Generating dependency: /src/opt/sim/simSupp.c
+`` Generating dependency: /src/opt/sim/simSeq.c
+`` Generating dependency: /src/opt/sim/simMan.c
+`` Generating dependency: /src/opt/mfs/mfsWin.c
+`` Generating dependency: /src/opt/mfs/mfsStrash.c
+`` Generating dependency: /src/opt/mfs/mfsSat.c
+`` Generating dependency: /src/opt/mfs/mfsResub.c
+`` Generating dependency: /src/opt/mfs/mfsMan.c
+`` Generating dependency: /src/opt/mfs/mfsInter.c
+`` Generating dependency: /src/opt/mfs/mfsDiv.c
+`` Generating dependency: /src/opt/mfs/mfsCore.c
+`` Generating dependency: /src/opt/rwr/rwrUtil.c
+`` Generating dependency: /src/opt/rwr/rwrPrint.c
+`` Generating dependency: /src/opt/rwr/rwrLib.c
+`` Generating dependency: /src/opt/rwr/rwrMan.c
+`` Generating dependency: /src/opt/rwr/rwrExp.c
+`` Generating dependency: /src/opt/rwr/rwrEva.c
+`` Generating dependency: /src/opt/rwr/rwrDec.c
+`` Generating dependency: /src/opt/fxch/FxchSCHashTable.c
+`` Generating dependency: /src/opt/fxch/FxchMan.c
+`` Generating dependency: /src/opt/fxch/FxchDiv.c
+`` Generating dependency: /src/opt/fxch/Fxch.c
+`` Generating dependency: /src/opt/fxu/fxuUpdate.c
+`` Generating dependency: /src/opt/fxu/fxuSingle.c
+`` Generating dependency: /src/opt/fxu/fxuSelect.c
+`` Generating dependency: /src/opt/fxu/fxuReduce.c
+`` Generating dependency: /src/opt/fxu/fxuPrint.c
+`` Generating dependency: /src/opt/fxu/fxuPair.c
+`` Generating dependency: /src/opt/fxu/fxuMatrix.c
+`` Generating dependency: /src/opt/fxu/fxuList.c
+`` Generating dependency: /src/opt/fxu/fxuHeapS.c
+`` Generating dependency: /src/opt/fxu/fxuHeapD.c
+`` Generating dependency: /src/opt/fxu/fxuCreate.c
+`` Generating dependency: /src/opt/fxu/fxu.c
+`` Generating dependency: /src/misc/bar/bar.c
+`` Generating dependency: /src/misc/extra/extraUtilProgress.c
+`` Generating dependency: /src/map/mpm/mpmGates.c
+`` Generating dependency: /src/map/scl/sclUtil.c
+`` Generating dependency: /src/map/scl/sclUpsize.c
+`` Generating dependency: /src/map/scl/sclSize.c
+`` Generating dependency: /src/map/scl/sclDnsize.c
+`` Generating dependency: /src/map/scl/sclLoad.c
+`` Generating dependency: /src/map/scl/sclBuffer.c
+`` Generating dependency: /src/map/scl/sclBufSize.c
+`` Generating dependency: /src/map/scl/scl.c
+`` Generating dependency: /src/map/cov/covMinSop.c
+`` Generating dependency: /src/map/cov/covMinUtil.c
+`` Generating dependency: /src/map/cov/covMinMan.c
+`` Generating dependency: /src/map/cov/covMinEsop.c
+`` Generating dependency: /src/map/cov/covMan.c
+`` Generating dependency: /src/map/cov/covCore.c
+`` Generating dependency: /src/map/cov/covBuild.c
+`` Generating dependency: /src/map/amap/amapCore.c
+`` Generating dependency: /src/map/amap/amapRead.c
+`` Generating dependency: /src/map/if/ifLibLut.c
+`` Generating dependency: /src/map/if/ifLibBox.c
+`` Generating dependency: /src/map/if/ifCom.c
+`` Generating dependency: /src/map/super/superGate.c
+`` Generating dependency: /src/map/super/superAnd.c
+`` Generating dependency: /src/map/super/super.c
+`` Generating dependency: /src/map/mio/mioUtils.c
+`` Generating dependency: /src/map/mio/mioRead.c
+`` Generating dependency: /src/map/mio/mio.c
+`` Generating dependency: /src/map/mapper/mapperVec.c
+`` Generating dependency: /src/map/mapper/mapperUtils.c
+`` Generating dependency: /src/map/mapper/mapperTruth.c
+`` Generating dependency: /src/map/mapper/mapperTree.c
+`` Generating dependency: /src/map/mapper/mapperTime.c
+`` Generating dependency: /src/map/mapper/mapperTable.c
+`` Generating dependency: /src/map/mapper/mapperSuper.c
+`` Generating dependency: /src/map/mapper/mapperSwitch.c
+`` Generating dependency: /src/map/mapper/mapperRefs.c
+`` Generating dependency: /src/map/mapper/mapperMatch.c
+`` Generating dependency: /src/map/mapper/mapperLib.c
+`` Generating dependency: /src/map/mapper/mapperCutUtils.c
+`` Generating dependency: /src/map/mapper/mapperCut.c
+`` Generating dependency: /src/map/mapper/mapperCore.c
+`` Generating dependency: /src/map/mapper/mapperCreate.c
+`` Generating dependency: /src/map/mapper/mapper.c
+`` Generating dependency: /src/map/mapper/mapperCanon.c
+`` Generating dependency: /src/base/test/test.c
+`` Generating dependency: /src/base/pla/plaWrite.c
+`` Generating dependency: /src/base/pla/plaRead.c
+`` Generating dependency: /src/base/pla/plaSimple.c
+`` Generating dependency: /src/base/pla/plaMerge.c
+`` Generating dependency: /src/base/pla/plaMan.c
+`` Generating dependency: /src/base/pla/plaHash.c
+`` Generating dependency: /src/base/pla/plaCom.c
+`` Generating dependency: /src/base/cba/cbaWriteVer.c
+`` Generating dependency: /src/base/cba/cbaWriteBlif.c
+`` Generating dependency: /src/base/cba/cbaNtk.c
+`` Generating dependency: /src/base/cba/cbaCom.c
+`` Generating dependency: /src/base/cba/cbaBlast.c
+`` Generating dependency: /src/base/bac/bacWriteVer.c
+`` Generating dependency: /src/base/bac/bacWriteBlif.c
+`` Generating dependency: /src/base/bac/bacPtrAbc.c
+`` Generating dependency: /src/base/bac/bacPtr.c
+`` Generating dependency: /src/base/bac/bacPrsBuild.c
+`` Generating dependency: /src/base/bac/bacCom.c
+`` Generating dependency: /src/base/bac/bacBlast.c
+`` Generating dependency: /src/base/acb/acbUtil.c
+`` Generating dependency: /src/base/acb/acbTest.c
+`` Generating dependency: /src/base/acb/acbFunc.c
+`` Generating dependency: /src/base/acb/acbCom.c
+`` Generating dependency: /src/base/acb/acbAbc.c
+`` Generating dependency: /src/base/wln/wlnWlc.c
+`` Generating dependency: /src/base/wln/wlnCom.c
+`` Generating dependency: /src/base/wln/wlnRtl.c
+`` Generating dependency: /src/base/wln/wlnBlast.c
+`` Generating dependency: /src/base/wlc/wlcWriteVer.c
+`` Generating dependency: /src/base/wlc/wlcWin.c
+`` Generating dependency: /src/base/wlc/wlcUif.c
+`` Generating dependency: /src/base/wlc/wlcStdin.c
+`` Generating dependency: /src/base/wlc/wlcShow.c
+`` Generating dependency: /src/base/wlc/wlcSim.c
+`` Generating dependency: /src/base/wlc/wlcReadVer.c
+`` Generating dependency: /src/base/wlc/wlcReadSmt.c
+`` Generating dependency: /src/base/wlc/wlcNtk.c
+`` Generating dependency: /src/base/wlc/wlcNdr.c
+`` Generating dependency: /src/base/wlc/wlcMem.c
+`` Generating dependency: /src/base/wlc/wlcJson.c
+`` Generating dependency: /src/base/wlc/wlcGraft.c
+`` Generating dependency: /src/base/wlc/wlcCom.c
+`` Generating dependency: /src/base/wlc/wlcBlast.c
+`` Generating dependency: /src/base/wlc/wlcPth.c
+`` Generating dependency: /src/base/wlc/wlcAbc.c
+`` Generating dependency: /src/base/wlc/wlcAbs2.c
+`` Generating dependency: /src/base/wlc/wlcAbs.c
+`` Generating dependency: /src/base/ver/verStream.c
+`` Generating dependency: /src/base/ver/verParse.c
+`` Generating dependency: /src/base/ver/verFormula.c
+`` Generating dependency: /src/base/ver/verCore.c
+`` Generating dependency: /src/base/exor/exor.c
+`` Generating dependency: /src/base/main/mainUtils.c
+`` Generating dependency: /src/base/main/libSupport.c
+`` Generating dependency: /src/base/main/mainReal.c
+`` Generating dependency: /src/base/main/mainLib.c
+`` Generating dependency: /src/base/main/mainInit.c
+`` Generating dependency: /src/base/main/mainFrame.c
+`` Generating dependency: /src/base/io/ioWriteSmv.c
+`` Generating dependency: /src/base/io/ioWriteVerilog.c
+`` Generating dependency: /src/base/io/ioWritePla.c
+`` Generating dependency: /src/base/io/ioWriteList.c
+`` Generating dependency: /src/base/io/ioWriteHMetis.c
+`` Generating dependency: /src/base/io/ioWriteGml.c
+`` Generating dependency: /src/base/io/ioWriteEdgelist.c
+`` Generating dependency: /src/base/io/ioWriteEqn.c
+`` Generating dependency: /src/base/io/ioWriteDot.c
+`` Generating dependency: /src/base/io/ioWriteCnf.c
+`` Generating dependency: /src/base/io/ioWriteBook.c
+`` Generating dependency: /src/base/io/ioWriteBlifMv.c
+`` Generating dependency: /src/base/io/ioWriteBlif.c
+`` Generating dependency: /src/base/io/ioWriteBench.c
+`` Generating dependency: /src/base/io/ioWriteBblif.c
+`` Generating dependency: /src/base/io/ioWriteBaf.c
+`` Generating dependency: /src/base/io/ioWriteAiger.c
+`` Generating dependency: /src/base/io/ioUtil.c
+`` Generating dependency: /src/base/io/ioReadVerilog.c
+`` Generating dependency: /src/base/io/ioReadPlaMo.c
+`` Generating dependency: /src/base/io/ioReadEqn.c
+`` Generating dependency: /src/base/io/ioReadPla.c
+`` Generating dependency: /src/base/io/ioReadEdif.c
+`` Generating dependency: /src/base/io/ioReadDsd.c
+`` Generating dependency: /src/base/io/ioReadBlifMv.c
+`` Generating dependency: /src/base/io/ioReadBlifAig.c
+`` Generating dependency: /src/base/io/ioReadBlif.c
+`` Generating dependency: /src/base/io/ioReadBench.c
+`` Generating dependency: /src/base/io/ioReadAiger.c
+`` Generating dependency: /src/base/io/ioReadBaf.c
+`` Generating dependency: /src/base/io/ioReadBblif.c
+`` Generating dependency: /src/base/io/ioJsonc.c
+`` Generating dependency: /src/base/io/ioJson.c
+`` Generating dependency: /src/base/io/io.c
+`` Generating dependency: /src/base/cmd/cmdUtils.c
+`` Generating dependency: /src/base/cmd/cmdPlugin.c
+`` Generating dependency: /src/base/cmd/cmdLoad.c
+`` Generating dependency: /src/base/cmd/cmdHist.c
+`` Generating dependency: /src/base/cmd/cmdFlag.c
+`` Generating dependency: /src/base/cmd/cmdAlias.c
+`` Generating dependency: /src/base/cmd/cmdApi.c
+`` Generating dependency: /src/base/cmd/cmd.c
+`` Generating dependency: /src/base/abci/abcXsim.c
+`` Generating dependency: /src/base/abci/abcVerify.c
+`` Generating dependency: /src/base/abci/abcUnreach.c
+`` Generating dependency: /src/base/abci/abcUnate.c
+`` Generating dependency: /src/base/abci/abcTiming.c
+`` Generating dependency: /src/base/abci/abcTim.c
+`` Generating dependency: /src/base/abci/abcSymm.c
+`` Generating dependency: /src/base/abci/abcSweep.c
+`` Generating dependency: /src/base/abci/abcStrash.c
+`` Generating dependency: /src/base/abci/abcSpeedup.c
+`` Generating dependency: /src/base/abci/abcSense.c
+`` Generating dependency: /src/base/abci/abcScorr.c
+`` Generating dependency: /src/base/abci/abcSaucy.c
+`` Generating dependency: /src/base/abci/abcSat.c
+`` Generating dependency: /src/base/abci/abcRunGen.c
+`` Generating dependency: /src/base/abci/abcRr.c
+`` Generating dependency: /src/base/abci/abcRewrite.c
+`` Generating dependency: /src/base/abci/abcRestruct.c
+`` Generating dependency: /src/base/abci/abcResub.c
+`` Generating dependency: /src/base/abci/abcReorder.c
+`` Generating dependency: /src/base/abci/abcRenode.c
+`` Generating dependency: /src/base/abci/abcRefactor.c
+`` Generating dependency: /src/base/abci/abcReach.c
+`` Generating dependency: /src/base/abci/abcReconv.c
+`` Generating dependency: /src/base/abci/abcRec3.c
+`` Generating dependency: /src/base/abci/abcQuant.c
+`` Generating dependency: /src/base/abci/abcQbf.c
+`` Generating dependency: /src/base/abci/abcProve.c
+`` Generating dependency: /src/base/abci/abcPrint.c
+`` Generating dependency: /src/base/abci/abcPart.c
+`` Generating dependency: /src/base/abci/abcOrder.c
+`` Generating dependency: /src/base/abci/abcOdc.c
+`` Generating dependency: /src/base/abci/abcOrchestration.c
+`` Generating dependency: /src/base/abci/abcNpnSave.c
+`` Generating dependency: /src/base/abci/abcNtbdd.c
+`` Generating dependency: /src/base/abci/abcMulti.c
+`` Generating dependency: /src/base/abci/abcMiter.c
+`` Generating dependency: /src/base/abci/abcMini.c
+`` Generating dependency: /src/base/abci/abcMfs.c
+`` Generating dependency: /src/base/abci/abcMerge.c
+`` Generating dependency: /src/base/abci/abcMap.c
+`` Generating dependency: /src/base/abci/abcLutmin.c
+`` Generating dependency: /src/base/abci/abcLut.c
+`` Generating dependency: /src/base/abci/abcLog.c
+`` Generating dependency: /src/base/abci/abcIvy.c
+`` Generating dependency: /src/base/abci/abcIfMux.c
+`` Generating dependency: /src/base/abci/abcIfif.c
+`` Generating dependency: /src/base/abci/abcIf.c
+`` Generating dependency: /src/base/abci/abcHaig.c
+`` Generating dependency: /src/base/abci/abcGen.c
+`` Generating dependency: /src/base/abci/abcFx.c
+`` Generating dependency: /src/base/abci/abcFxu.c
+`` Generating dependency: /src/base/abci/abcFraig.c
+`` Generating dependency: /src/base/abci/abcExtract.c
+`` Generating dependency: /src/base/abci/abcExact.c
+`` Generating dependency: /src/base/abci/abcEco.c
+`` Generating dependency: /src/base/abci/abcDsd.c
+`` Generating dependency: /src/base/abci/abcDress3.c
+`` Generating dependency: /src/base/abci/abcDress2.c
+`` Generating dependency: /src/base/abci/abcDress.c
+`` Generating dependency: /src/base/abci/abcDetect.c
+`` Generating dependency: /src/base/abci/abcDebug.c
+`` Generating dependency: /src/base/abci/abcDar.c
+`` Generating dependency: /src/base/abci/abcCut.c
+`` Generating dependency: /src/base/abci/abcCollapse.c
+`` Generating dependency: /src/base/abci/abcCascade.c
+`` Generating dependency: /src/base/abci/abcCas.c
+`` Generating dependency: /src/base/abci/abcBmc.c
+`` Generating dependency: /src/base/abci/abcBm.c
+`` Generating dependency: /src/base/abci/abcBidec.c
+`` Generating dependency: /src/base/abci/abcBalance.c
+`` Generating dependency: /src/base/abci/abcAuto.c
+`` Generating dependency: /src/base/abci/abcAttach.c
+`` Generating dependency: /src/base/abci/abc.c
+`` Generating dependency: /src/base/abc/abcUtil.c
+`` Generating dependency: /src/base/abc/abcSop.c
+`` Generating dependency: /src/base/abc/abcShow.c
+`` Generating dependency: /src/base/abc/abcRefs.c
+`` Generating dependency: /src/base/abc/abcObj.c
+`` Generating dependency: /src/base/abc/abcNtk.c
+`` Generating dependency: /src/base/abc/abcNetlist.c
+`` Generating dependency: /src/base/abc/abcNames.c
+`` Generating dependency: /src/base/abc/abcMinBase.c
+`` Generating dependency: /src/base/abc/abcLib.c
+`` Generating dependency: /src/base/abc/abcLatch.c
+`` Generating dependency: /src/base/abc/abcHieNew.c
+`` Generating dependency: /src/base/abc/abcHieGia.c
+`` Generating dependency: /src/base/abc/abcHieCec.c
+`` Generating dependency: /src/base/abc/abcFunc.c
+`` Generating dependency: /src/base/abc/abcFanOrder.c
+`` Generating dependency: /src/base/abc/abcHie.c
+`` Generating dependency: /src/base/abc/abcFanio.c
+`` Generating dependency: /src/base/abc/abcDfs.c
+`` Generating dependency: /src/base/abc/abcCheck.c
+`` Generating dependency: /src/base/abc/abcBlifMv.c
+`` Generating dependency: /src/base/abc/abcBarBuf.c
+`` Generating dependency: /src/base/abc/abcAig.c
+`` Generating dependency: /src/aig/gia/giaRrr.cpp
+`` Generating dependency: /src/sat/glucose2/AbcGlucoseCmd2.cpp
+`` Generating dependency: /src/sat/glucose2/AbcGlucose2.cpp
+`` Generating dependency: /src/sat/glucose/AbcGlucoseCmd.cpp
+`` Generating dependency: /src/sat/glucose/AbcGlucose.cpp
+`` Generating dependency: /src/opt/rar/rewireMiaig.cpp
+`` Generating dependency: /src/ext-lsv/lsvCutBddSize.cpp
+`` Generating dependency: /src/ext-lsv/lsvCutTt.cpp
+`` Generating dependency: /src/ext-lsv/lsvCuts.cpp
+`` Generating dependency: /src/ext-lsv/lsvCmd.cpp
+Using CC=gcc
+Using CXX=g++
+Using AR=ar
+Using LD=g++
+Compiling with CUDD
+Using libreadline
+Using pthreads
+Found GCC_VERSION 16.0.0
+Found GCC_MAJOR>=5
+Using CFLAGS=-Wall -Wno-unused-function -Wno-write-strings -Wno-sign-compare -DLIN64 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -DSIZEOF_INT=4 -DABC_MEMALIGN=4 -DABC_USE_CUDD=1 -DABC_USE_READLINE  -DABC_USE_PTHREADS -Wno-unused-but-set-variable
+`` Compiling: /src/ext-lsv/lsvCuts.cpp
+`` Compiling: /src/ext-lsv/lsvCmd.cpp
+`` Compiling: /src/ext-lsv/lsvCutBddSize.cpp
+`` Compiling: /src/ext-lsv/lsvCutTt.cpp
+`` Compiling: /src/sat/glucose/AbcGlucose.cpp
+`` Compiling: /src/sat/glucose/AbcGlucoseCmd.cpp
+`` Compiling: /src/opt/rar/rewireMiaig.cpp
+`` Compiling: /src/sat/glucose2/AbcGlucose2.cpp
+In file included from src/sat/glucose/AbcGlucoseCmd.cpp:21:
+In file included from ./src/aig/gia/gia.h:34:
+In file included from ./src/misc/vec/vec.h:29:
+./src/misc/util/abc_global.h:295:153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  295 | static inline char *   Abc_UtilStrsavTwo( char * s, char * a ){ char * r; if (!a) return Abc_UtilStrsav(s); r = ABC_ALLOC(char, strlen(s)+strlen(a)+1); sprintf(r, "%s%s", s, a ); return r; }
+      |                                                                                                                                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/sat/glucose/AbcGlucoseCmd.cpp:21:
+In file included from ./src/aig/gia/gia.h:34:
+In file included from ./src/misc/vec/vec.h:29:
+./src/misc/util/abc_global.h:296:153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  296 | static inline char *   Abc_UtilStrsavNum( char * s, int n )   { char * r; if (!s) return NULL;              r = ABC_ALLOC(char, strlen(s)+12+1);        sprintf(r, "%s%d", s, n ); return r; }
+      |                                                                                                                                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it In file included from is src/ext-lsv/lsvCuts.cpp:1:
+In file included from src/ext-lsv/lsvCuts.h:4:
+In file included from ./src/base/abc/abc.h:34:
+highly In file included from r./src/misc/vec/vec.hecomm:ended 29t:
+h./src/misc/util/abc_global.ha:t yo295u: 153u: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+se In file included from sn  prsrc/ext-lsv/lsvCutBddSize.cpp:2951:
+In file included from src/ext-lsv/lsvCuts.h:4:
+In file included from ./src/base/abc/abc.hi | ntf(:s34:
+In file included from ./src/misc/vec/vec.h:29:
+t./src/misc/util/abc_global.ha:t295i:c153 :i3nl)i nien sctheaard *   Abc_Ut.il"Strs awarning: v'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]Two( char * )s
+,       | c^h
+ar * a ){/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h :c218h:
+48: note: expanded from macro '__deprecated_msg'
+ar * r; if   (!a) retur218n Abc_  U295til | Sst | ta        #dteifci nirnsav(sl)i;ne __de er  charp r*e c a tAeb=d_m sAgBc_Ut(_msg) __ilStrCs_aavTwttribouAt(e_ _L((__deprecLaOC(cthaerd,_ _s(t_rmsg)))
+clhaern (*s )s+,s      t| rl en(ac)h+a1r)                                                       ^; 
+sp*r ian t)f(r, "%s%s{" ,c hsar * r;, a ); re tiurn r; }
+      |                                                                                                                                                         ^
+f (!a) return Ab/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.hc:_274U:til1: note: 'sprintf' has been explicitly marked deprecated here
+Strsav(s); r =  274 | _ _ABCd_eprecaAtLeLd_msg(O"CT(chhar,is funct ion isstrle np(s)+strlreon(a)+1); spvrinided In file included from tfsrc/opt/rar/rewireMiaig.cpp(r, "%fso%s", s, ar c: ); r21e:
+tuorn r; }
+      m| paIn file included from tsrc/opt/rar/rewireRar.h:28i:
+bility rIn file included from easons only                                                                                                                                                        ^../src/base/abc/abc.h:34:
+In file included from ./src/misc/vec/vec.h:29
+:
+./src/misc/util/abc_global.h :295:153: Due/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h :t274o:  s1: note: 'sprintf' has been explicitly marked deprecated here
+ecuwarning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+ri  274 | _t  295 | ys tcat_icd eopnrceecrantiendl_s inheimne chraesr g*( "nt   Abc_Tihis fUutnil nthe deSsign of sptrsavTrwion(t fc(hcart i*o ns ,i s providec3ha)d,  fiotr  icsom phighly raetciobmmended rt * a ){ hiatl iytoychua rr e*a  r;s if (!a) retuons only.r n Due to ussecurit y eAbc _sUntpirlStrsav(s);i ntfrconc(3e)r ns = ABC_ALLin Oinhersteadent. C"i)n the 
+(      c| h^d
+esign/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.ha:218 :o48f: rs,  strplrintfnote: en(expanded from macro '__deprecated_msg'
+(3), it is   218 | s        #h)i+dsefine g__dhelty rrleecn(a)+1); sprointf(r,p "%recast%esdm_mmsegn(_msgd) e_d_"a,  tshat yto,u  a );t rreituurse sbnn ru;t p}
+      |                                                                                                                                                         ^
+e__((__deprecated__(_msg/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h):r274i:n1tf(3))
+:       | note:                                                       ^'sprintf' has been explicitly marked deprecated here)
+ ins
+tead.")  274 | __
+d      ep| re^c
+ated/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h_:m218:sg("Th48: note: expanded from macro '__deprecated_msg'
+is In file included from f  218 |         #usrc/ext-lsv/lsvCutTt.cpp:1:
+In file included from ./src/base/abc/abc.h:34:
+In file included from n./src/misc/vec/vec.hc:t29ion is provid:
+deefd ./src/misc/util/abc_global.hfo:rine __de295 precacom:p153atibilit:y tedwarning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]_
+msg( rea_sons In file included from m  s295go)n l_y_attribu | ts.  Dusrc/ext-lsv/lsvCuts.cpp:e1:
+In file included from tsrc/ext-lsv/lsvCuts.h :to4 eastei:
+c inl_iIn file included from n./src/base/abc/abc.he: cchuarri_t y((*_ _depr34eca  Abc ct:
+_eod_n_c(e_rmIn file included from ./src/misc/vec/vec.h:29:
+Untsi liStrsasvgTn./src/misc/util/abc_global.hhe:r296e:n153t:  )warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations])w)
+o( char
+in the d      e|                                                       ^s ign   of spri
+ntf(296 | stati3*) s, c inlin, it isceha rc h*a ra highly  r e*c o m mAebncded t)ha{t  c_har * yr; Uift i(loSutrsav!Nuam)(  ruesteu rsnnprintf(3)  i cAhbacr_ U*t isl,S tirnt n )   { nssteachaav(s);r * dr;. "i)f
+       (| !^s )r  r=e tAuBrCIn file included from n src/ext-lsv/lsvCutBddSize.cppN:U1L:
+LIn file included from 
+src/ext-lsv/lsvCuts.h:4:
+In file included from ./src/base/abc/abc.h:_ALLOC/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h;: 218 : 48 :   note:  34:
+In file included from ./src/misc/vec/vec.h:29expanded from macro '__deprecated_msg':
+
+./src/misc/util/abc_global.h :  296218: 153(char, s t r   r =:l ewarning:  | 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+        #den (s)f  A296B | Cs_tAaLtLiO+Ci(nchar, ssttrrlleen e_n_(dae)p+r1e)c(ast;e cspd i_nm)sr+ign(tli1n2In file included from _msg) +f1()_; e    c h src/ext-lsv/lsvCmd.cpp  :s1p:
+rir_,a t"t%ns%s"a, sr, iab u)r; tIn file included from e./src/base/abc/abc.htrfe(tr_:34:
+ In file included from u./src/misc/vec/vec.h*_ ( ( _A_bdcerpn: 29:
+rrec;a t}e
+d_./src/misc/util/abc_global.hU      t| _                                                                                                                                                        ^_(
+i,_ml:St295r:s/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.hav:Nsum(  "c274harg%)))s
+% 153*: 1s:,  note: i'sprintf' has been explicitly marked deprecated heren:t dn 
+)   warning:  'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]{
+ c"ha, s, r   274n |       __* r ; )i;|    r                                                      ^295
+ | stdateifce  itnpreca(!tueld_msg(r"nTi nre;  c}h
+a      rhis)|  r                                                                                                                                                        ^s
+ func teitoun/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:r1n:  Nnote:  'sprintf' has been explicitly marked deprecated here*
+U L L ;Ais pro   b274c | __U_tdielpvr i d e dStecate d_rmssagv(T"w o   (f ocrh aTrh is *f s     cru n=c ABoC_mApLaLtOiCb(iclhi, cIn file included from asrc/opt/rar/rewireMiaig.cppr:,21t:
+In file included from src/opt/rar/rewireRar.h:yh arr  28*e :
+aasstorIn file included from l./src/base/abc/abc.h:34:
+In file included from ./src/misc/vec/vec.h n)s{t icohna ri  *o nrs; eprno(vsi)d+e1d2 +i1f) ;(   f o r : 29 :
+ ./src/misc/util/abc_global.h ly.s!pcroinatf)( returr:, "%ns %Ambpca_td " DueUitb296i litiol Ssterctuyrsitayv:(153s:) ;warning:  'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]r  =c oA,B 
+nC_AL LOrCesa  s,o 296 | nstan(s contchearr,n si c itnlines  irnhlen(ce)r;e nrthsaleytu rin t.hne  rd;e s}i
+g      n|                                                                                                                                                          ^o
+f )sp rr D+us/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.ht :274*: i r lAeb ct_oU tsielcen1(n:t fS(tar)s+note: 1)u;r istp'sprintf' has been explicitly marked deprecated hereravyNu mc(o ncch
+arerns iinnhtefr(r *   e274, | 3_)_, nidt t in  i"s% sh%ise"t, hgeh sde,ssip,r  inag ectat enn  )l  y  dr)o;ecfom mse n{dreeptruirn_tfm(s3n  cdhgarr *) ,t h(;" T}hiit  irs;s i ff u(n!s ) reac
+t      h| t                                                                                                                                                        ^u
+ioingtr n /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.hNhUlLyy :o274uL ; r i s   pr:ov ieucs1e:  snote: de d o 'sprintf' has been explicitly marked deprecated here      n mprinrtf
+mfeo(r3 cn  d274e | d_o m=p ABC_ AtLhLaOtC _ydoeuparte cautse)d_imbeil  sinnpsitteya dr.r"i)e
+      a(sng(| "cThha^r,
+ sst/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.hi:218s: 48f:utnfc(tornls  oennote: lexpanded from macro '__deprecated_msg'yi. n (Dsu)e+31)2 +1t)o  s
+eo;ni nisst epardo.v"i)d
+e      dc ufr  i218t | y         o#rdefine | c o   ^ 
+    csopmrpnatib_i/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.hl:i218i:n48t:t ynote:  expanded from macro '__deprecated_msg'r
+eacsoe  r218n | sn fi        n(#r_,dheepr e"n%tr esca toendd_emfslgs(%_dm"sign) yt.  Dui nhee  d__attreisbiugtn_ _odeep f,retcaet eds_,m_sg_((_(m ssgp)r  _n ); retiu_nattft(ri_brunot es_3 r;e }c
+d      e| p                                                                                                                                                        ^ruecra),i_t_y(t(e_d__ _c(o_ndcee rnist  imnhs
+gpirs/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h :h274iegc)at)edh_l_y( _)mes:
+      |                                                       ^r
+1e: note: 'sprintf' has been explicitly marked deprecated herer
+commendeendt  tihna ttgh)  ))274
+ |       _|  e_ d                                                      ^eprdeesigny of spricated_
+ontf(3)mu use , ist gi(s" Tshinsp rfiuhncitgiholnyn tr is provifd(e3d)e icnosmtmea df.o"r) 
+e      nded that yocu use sn| p^o
+mIn file included from /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.hrsrc/ext-lsv/lsvCutTt.cppip:a218t:i48b:n note: tf(3):i1:
+lit yi nrsetaesaoIn file included from n./src/base/abc/abc.h:34expanded from macro '__deprecated_msg':
+ds." )o
+n      l| y^.
+In file included from 
+./src/misc/vec/vec.h:29 :
+ ./src/misc/util/abc_global.hD:u296e:  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h218:218: 48:t note: expanded from macro '__deprecated_msg'
+o s | ec        u#  d218e | f        i#nre i_t_yd ecp153:d owarning: nrceeceaft'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]edr_nmss gi(nh
+erent ii_nmne t h_e_ dd  es296i | ssgtgane opfr escpartie)d __m_sg(antttf(i3c) , i_t missg )htiribu te____a(t(t_r_idbeuiten_l_i(g(p_r_edceaphrelcya tneed _c_ha(r_ m*s gr))e)c
+o      | t                                                      ^
+  Aed_m_(mebndc_U_tmislgS)t)e)
+d that yo      r|                                                       ^
+u savNumu(se snpr char * is,n tifn(3) insteatd n )   { char * r.")
+      | ^
+; if /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+(!s)   218 |         #derfeitnuer n_ _NdUeLpLr;       e c a t e d  r = A_BmCs_gA(_msg) _LLOC(ch_aart,t strlenr(isb)u+te__((__1In file included from src/ext-lsv/lsvCmd.cpp:1:
+d2+e1p)r;e c aIn file included from ./src/base/abc/abc.h:34:
+In file included from ./src/misc/vec/vec.h:29 :
+t./src/misc/util/abc_global.hed__   (_:msg ) spr296int))
+      | :153:f(r, "%s%d", s,                                                      ^
+ warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+ n ); return r; }  
+296       | | s                                                                                                                                                        ^t
+atic inli/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.hn:e274 :c1h:a rnote:  'sprintf' has been explicitly marked deprecated here*
+   Abc_UtilStrsavNum(   c274har * s,  | i_n_deprecatte n )   d_msg("{T hcihsa rf u*n crtion is ;p riofv i(d!esd)  froert ucronm pNaUtLiLb;i l        ity reas o n s   orn l=y .A B CD_uAeL LtOoC (scehcaurr,i tsyt rcloennc(esr)n+s1 2i+n1h)e;r e n t   i n   tshper idnetsfi(grn,  o"f% ss%pdr"i,n tsf,( 3n) ,) ;i tr eitsu rhni grh;l y} 
+r      e| c                                                                                                                                                        ^o
+mmende/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.hd: 274t:h1a:t  note: y'sprintf' has been explicitly marked deprecated hereo
+u use snprintf(3)  274 | __de pinstead.")
+      | recated_msg("This f^u
+nction/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h :i218s: 48p:r onote: vexpanded from macro '__deprecated_msg'i
+ded for   c218o | m        p#adteifbiinlei t_y_depreca reasoted_msg(_msg) __attribute__((_ns only_.d e pDrueec attoed__(_ms gs)e)c)u
+r      i| t                                                      ^y
+ concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/sat/glucose2/AbcGlucose2.cpp:22:
+In file included from ./src/sat/glucose2/ParseUtils.h:28:
+In file included from ./src/misc/zlib/zlib.h:42:
+./src/misc/util/abc_global.h:295:153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  295 | static inline char *   Abc_UtilStrsavTwo( char * s, char * a ){ char * r; if (!a) return Abc_UtilStrsav(s); r = ABC_ALLOC(char, strlen(s)+strlen(a)+1); sprintf(r, "%s%s", s, a ); return r; }
+      |                                                                                                                                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/sat/glucose2/AbcGlucose2.cpp:22:
+In file included from ./src/sat/glucose2/ParseUtils.h:28:
+In file included from ./src/misc/zlib/zlib.h:42:
+./src/misc/util/abc_global.h:296:153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  296 | static inline char *   Abc_UtilStrsavNum( char * s, int n )   { char * r; if (!s) return NULL;              r = ABC_ALLOC(char, strlen(s)+12+1);        sprintf(r, "%s%d", s, n ); return r; }
+      |                                                                                                                                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/sat/glucose/AbcGlucoseCmd.cpp:21:
+In file included from ./src/aig/gia/gia.h:34:
+In file included from ./src/misc/vec/vec.h:39:
+./src/misc/vec/vecMem.h:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  461 |     sprintf( pFileName, "tt_%s_%02d.txt", pName ? pName : NULL, nLutSize );
+      |     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/ext-lsv/lsvCmd.cpp:1:
+In file included from ./src/base/abc/abc.h:34:
+In file included from ./src/misc/vec/vec.h:39:
+./src/misc/vec/vecMem.h:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  461 |     sprintf( pFileName, "tt_%s_%02d.txt", pName ? pName : NULL, nLutSize );
+      |     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/opt/rar/rewireMiaig.cpp:21:
+In file included from src/opt/rar/rewireRar.h:28:
+In file included from ./src/base/abc/abc.h:34:
+In file included from ./src/misc/vec/vec.h:39:
+./src/misc/vec/vecMem.h:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  461 |     sprintf( pFileName, "tt_%s_%02d.txt", pName ? pName : NULL, nLutSize );
+      |     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/ext-lsv/lsvCuts.cpp:1:
+In file included from src/ext-lsv/lsvCuts.h:4:
+In file included from ./src/base/abc/abc.h:34:
+In file included from ./src/misc/vec/vec.h:39:
+./src/misc/vec/vecMem.h:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  461 |     sprintf( pFileName, "tt_%s_%02d.txt", pName ? pName : NULL, nLutSize );
+      |     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/ext-lsv/lsvCutTt.cpp:1:
+In file included from ./src/base/abc/abc.h:34:
+In file included from ./src/misc/vec/vec.h:39:
+./src/misc/vec/vecMem.h:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  461 |     sprintf( pFileName, "tt_%s_%02d.txt", pName ? pName : NULL, nLutSize );
+      |     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/sat/glucose/AbcGlucose.cpp:22:
+In file included from ./src/sat/glucose/ParseUtils.h:28:
+In file included from ./src/misc/zlib/zlib.h:42:
+./src/misc/util/abc_global.h:295:153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  295 | static inline char *   Abc_UtilStrsavTwo( char * s, char * a ){ char * r; if (!a) return Abc_UtilStrsav(s); r = ABC_ALLOC(char, strlen(s)+strlen(a)+1); sprintf(r, "%s%s", s, a ); return r; }
+      |                                                                                                                                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/sat/glucose/AbcGlucose.cpp:22:
+In file included from ./src/sat/glucose/ParseUtils.h:28:
+In file included from ./src/misc/zlib/zlib.h:42:
+./src/misc/util/abc_global.h:296:153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  296 | static inline char *   Abc_UtilStrsavNum( char * s, int n )   { char * r; if (!s) return NULL;              r = ABC_ALLOC(char, strlen(s)+12+1);        sprintf(r, "%s%d", s, n ); return r; }
+      |                                                                                                                                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/ext-lsv/lsvCutBddSize.cpp:1:
+In file included from src/ext-lsv/lsvCuts.h:4:
+In file included from ./src/base/abc/abc.h:34:
+In file included from ./src/misc/vec/vec.h:39:
+./src/misc/vec/vecMem.h:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  461 |     sprintf( pFileName, "tt_%s_%02d.txt", pName ? pName : NULL, nLutSize );
+      |     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/sat/glucose2/AbcGlucose2.cpp:27:
+In file included from ./src/sat/glucose2/AbcGlucose2.h:28:
+In file included from ./src/aig/gia/gia.h:34:
+In file included from ./src/misc/vec/vec.h:39:
+./src/misc/vec/vecMem.h:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  461 |     sprintf( pFileName, "tt_%s_%02d.txt", pName ? pName : NULL, nLutSize );
+      |     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/sat/glucose/AbcGlucose.cpp:27:
+In file included from ./src/sat/glucose/AbcGlucose.h:28:
+In file included from ./src/aig/gia/gia.h:34:
+In file included from ./src/misc/vec/vec.h:39:
+./src/misc/vec/vecMem.h:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  461 |     sprintf( pFileName, "tt_%s_%02d.txt", pName ? pName : NULL, nLutSize );
+      |     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+3 warnings generated.
+`` Compiling: /src/sat/glucose2/AbcGlucoseCmd2.cpp
+In file included from src/sat/glucose2/AbcGlucoseCmd2.cpp:21:
+In file included from ./src/aig/gia/gia.h:34:
+In file included from ./src/misc/vec/vec.h:29:
+./src/misc/util/abc_global.h:295:153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  295 | static inline char *   Abc_UtilStrsavTwo( char * s, char * a ){ char * r; if (!a) return Abc_UtilStrsav(s); r = ABC_ALLOC(char, strlen(s)+strlen(a)+1); sprintf(r, "%s%s", s, a ); return r; }
+      |                                                                                                                                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/sat/glucose2/AbcGlucoseCmd2.cpp:21:
+In file included from ./src/aig/gia/gia.h:34:
+In file included from ./src/misc/vec/vec.h:29:
+./src/misc/util/abc_global.h:296:153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  296 | static inline char *   Abc_UtilStrsavNum( char * s, int n )   { char * r; if (!s) return NULL;              r = ABC_ALLOC(char, strlen(s)+12+1);        sprintf(r, "%s%d", s, n ); return r; }
+      |                                                                                                                                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/sat/glucose2/AbcGlucoseCmd2.cpp:21:
+In file included from ./src/aig/gia/gia.h:34:
+In file included from ./src/misc/vec/vec.h:39:
+./src/misc/vec/vecMem.h:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  461 |     sprintf( pFileName, "tt_%s_%02d.txt", pName ? pName : NULL, nLutSize );
+      |     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+3 warnings generated.
+`` Compiling: /src/aig/gia/giaRrr.cpp
+3 warnings generated.
+3 warnings generated.
+In file included from src/aig/gia/giaRrr.cpp:1:
+In file included from ./src/aig/gia/gia.h:34:
+In file included from ./src/misc/vec/vec.h:29:
+./src/misc/util/abc_global.h:295:153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  295 | static inline char *   Abc_UtilStrsavTwo( char * s, char * a ){ char * r; if (!a) return Abc_UtilStrsav(s); r = ABC_ALLOC(char, strlen(s)+strlen(a)+1); sprintf(r, "%s%s", s, a ); return r; }
+      |                                                                                                                                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+In file included from src/aig/gia/giaRrr.cpp:1:
+In file included from ./src/aig/gia/gia.h:34:
+In file included from ./src/misc/vec/vec.h:29:
+./src/misc/util/abc_global.h:296:153: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  296 | static inline char *   Abc_UtilStrsavNum( char * s, int n )   { char * r; if (!s) return NULL;              r = ABC_ALLOC(char, strlen(s)+12+1);        sprintf(r, "%s%d", s, n ); return r; }
+      |                                                                                                                                                         ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+`` Compiling: /src/base/abc/abcAig.c
+3 warnings generated.
+`` Compiling: /src/base/abc/abcBarBuf.c
+In file included from src/aig/gia/giaRrr.cpp:1:
+In file included from ./src/aig/gia/gia.h:34:
+In file included from ./src/misc/vec/vec.h:39:
+./src/misc/vec/vecMem.h:461:5: warning: 'sprintf' is deprecated: This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead. [-Wdeprecated-declarations]
+  461 |     sprintf( pFileName, "tt_%s_%02d.txt", pName ? pName : NULL, nLutSize );
+      |     ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:274:1: note: 'sprintf' has been explicitly marked deprecated here
+  274 | __deprecated_msg("This function is provided for compatibility reasons only.  Due to security concerns inherent in the design of sprintf(3), it is highly recommended that you use snprintf(3) instead.")
+      | ^
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h:218:48: note: expanded from macro '__deprecated_msg'
+  218 |         #define __deprecated_msg(_msg) __attribute__((__deprecated__(_msg)))
+      |                                                       ^
+`` Compiling: /src/base/abc/abcBlifMv.c
+3 warnings generated.
+`` Compiling: /src/base/abc/abcCheck.c
+3 warnings generated.
+`` Compiling: /src/base/abc/abcDfs.c
+`` Compiling: /src/base/abc/abcFanio.c
+3 warnings generated.
+`` Compiling: /src/base/abc/abcFanOrder.c
+`` Compiling: /src/base/abc/abcFunc.c
+`` Compiling: /src/base/abc/abcHie.c
+`` Compiling: /src/base/abc/abcHieCec.c
+`` Compiling: /src/base/abc/abcHieGia.c
+`` Compiling: /src/base/abc/abcHieNew.c
+`` Compiling: /src/base/abc/abcLatch.c
+`` Compiling: /src/base/abc/abcLib.c
+`` Compiling: /src/base/abc/abcMinBase.c
+`` Compiling: /src/base/abc/abcNames.c
+`` Compiling: /src/base/abc/abcNetlist.c
+`` Compiling: /src/base/abc/abcNtk.c
+`` Compiling: /src/base/abc/abcObj.c
+`` Compiling: /src/base/abc/abcRefs.c
+`` Compiling: /src/base/abc/abcShow.c
+`` Compiling: /src/base/abc/abcSop.c
+3 warnings generated.
+`` Compiling: /src/base/abc/abcUtil.c
+`` Compiling: /src/base/abci/abc.c
+`` Compiling: /src/base/abci/abcAttach.c
+`` Compiling: /src/base/abci/abcAuto.c
+`` Compiling: /src/base/abci/abcBalance.c
+`` Compiling: /src/base/abci/abcBidec.c
+`` Compiling: /src/base/abci/abcBm.c
+`` Compiling: /src/base/abci/abcBmc.c
+`` Compiling: /src/base/abci/abcCas.c
+`` Compiling: /src/base/abci/abcCascade.c
+`` Compiling: /src/base/abci/abcCollapse.c
+`` Compiling: /src/base/abci/abcCut.c
+`` Compiling: /src/base/abci/abcDar.c
+`` Compiling: /src/base/abci/abcDebug.c
+`` Compiling: /src/base/abci/abcDetect.c
+`` Compiling: /src/base/abci/abcDress.c
+`` Compiling: /src/base/abci/abcDress2.c
+`` Compiling: /src/base/abci/abcDress3.c
+`` Compiling: /src/base/abci/abcDsd.c
+`` Compiling: /src/base/abci/abcEco.c
+`` Compiling: /src/base/abci/abcExact.c
+`` Compiling: /src/base/abci/abcExtract.c
+`` Compiling: /src/base/abci/abcFraig.c
+`` Compiling: /src/base/abci/abcFx.c
+`` Compiling: /src/base/abci/abcFxu.c
+`` Compiling: /src/base/abci/abcGen.c
+`` Compiling: /src/base/abci/abcHaig.c
+`` Compiling: /src/base/abci/abcIf.c
+`` Compiling: /src/base/abci/abcIfif.c
+`` Compiling: /src/base/abci/abcIfMux.c
+`` Compiling: /src/base/abci/abcIvy.c
+`` Compiling: /src/base/abci/abcLog.c
+`` Compiling: /src/base/abci/abcLut.c
+`` Compiling: /src/base/abci/abcLutmin.c
+`` Compiling: /src/base/abci/abcMap.c
+`` Compiling: /src/base/abci/abcMerge.c
+`` Compiling: /src/base/abci/abcMfs.c
+`` Compiling: /src/base/abci/abcMini.c
+`` Compiling: /src/base/abci/abcMiter.c
+`` Compiling: /src/base/abci/abcMulti.c
+`` Compiling: /src/base/abci/abcNtbdd.c
+`` Compiling: /src/base/abci/abcNpnSave.c
+`` Compiling: /src/base/abci/abcOrchestration.c
+`` Compiling: /src/base/abci/abcOdc.c
+`` Compiling: /src/base/abci/abcOrder.c
+src/base/abci/abcOrchestration.c:5560:36: warning: equality comparison with extraneous parentheses [-Wparentheses-equality]
+ 5560 |     else if ((Valid_Ops->pArray[r] == 1)){
+      |               ~~~~~~~~~~~~~~~~~~~~~^~~~
+src/base/abci/abcOrchestration.c:5560:36: note: remove extraneous parentheses around the comparison to silence this warning
+ 5560 |     else if ((Valid_Ops->pArray[r] == 1)){
+      |              ~                     ^   ~
+src/base/abci/abcOrchestration.c:5560:36: note: use '=' to turn this equality comparison into an assignment
+ 5560 |     else if ((Valid_Ops->pArray[r] == 1)){
+      |                                    ^~
+      |                                    =
+src/base/abci/abcOrchestration.c:5572:36: warning: equality comparison with extraneous parentheses [-Wparentheses-equality]
+ 5572 |     else if ((Valid_Ops->pArray[r] == 2)){
+      |               ~~~~~~~~~~~~~~~~~~~~~^~~~
+src/base/abci/abcOrchestration.c:5572:36: note: remove extraneous parentheses around the comparison to silence this warning
+ 5572 |     else if ((Valid_Ops->pArray[r] == 2)){
+      |              ~                     ^   ~
+src/base/abci/abcOrchestration.c:5572:36: note: use '=' to turn this equality comparison into an assignment
+ 5572 |     else if ((Valid_Ops->pArray[r] == 2)){
+      |                                    ^~
+      |                                    =
+`` Compiling: /src/base/abci/abcPart.c
+`` Compiling: /src/base/abci/abcPrint.c
+`` Compiling: /src/base/abci/abcProve.c
+`` Compiling: /src/base/abci/abcQbf.c
+`` Compiling: /src/base/abci/abcQuant.c
+src/base/abci/abcPrint.c:1193:83: warning: adding 'char' to a string pointer does not append to the string [-Wstring-plus-char]
+ 1193 |                     fprintf( pFile, " %s%c", *pCur == '0' ? "!" : "",  (char)('a' + pCur-pCube) );
+      |                                                                               ~~~~^~~~~~
+src/base/abci/abcPrint.c:1193:83: note: use array indexing to silence this warning
+`` Compiling: /src/base/abci/abcRec3.c
+`` Compiling: /src/base/abci/abcReconv.c
+`` Compiling: /src/base/abci/abcReach.c
+`` Compiling: /src/base/abci/abcRefactor.c
+`` Compiling: /src/base/abci/abcRenode.c
+1 warning generated.
+`` Compiling: /src/base/abci/abcReorder.c
+`` Compiling: /src/base/abci/abcRestruct.c
+`` Compiling: /src/base/abci/abcResub.c
+2 warnings generated.
+`` Compiling: /src/base/abci/abcRewrite.c
+`` Compiling: /src/base/abci/abcRr.c
+`` Compiling: /src/base/abci/abcRunGen.c
+`` Compiling: /src/base/abci/abcSat.c
+`` Compiling: /src/base/abci/abcSaucy.c
+`` Compiling: /src/base/abci/abcScorr.c
+`` Compiling: /src/base/abci/abcSense.c
+`` Compiling: /src/base/abci/abcSpeedup.c
+`` Compiling: /src/base/abci/abcStrash.c
+`` Compiling: /src/base/abci/abcSweep.c
+`` Compiling: /src/base/abci/abcSymm.c
+`` Compiling: /src/base/abci/abcTim.c
+`` Compiling: /src/base/abci/abcTiming.c
+`` Compiling: /src/base/abci/abcUnate.c
+`` Compiling: /src/base/abci/abcUnreach.c
+`` Compiling: /src/base/abci/abcVerify.c
+`` Compiling: /src/base/abci/abcXsim.c
+`` Compiling: /src/base/cmd/cmd.c
+`` Compiling: /src/base/cmd/cmdAlias.c
+`` Compiling: /src/base/cmd/cmdApi.c
+`` Compiling: /src/base/cmd/cmdFlag.c
+`` Compiling: /src/base/cmd/cmdHist.c
+`` Compiling: /src/base/cmd/cmdLoad.c
+`` Compiling: /src/base/cmd/cmdPlugin.c
+`` Compiling: /src/base/cmd/cmdUtils.c
+`` Compiling: /src/base/io/io.c
+`` Compiling: /src/base/io/ioJson.c
+`` Compiling: /src/base/io/ioJsonc.c
+`` Compiling: /src/base/io/ioReadAiger.c
+`` Compiling: /src/base/io/ioReadBaf.c
+`` Compiling: /src/base/io/ioReadBblif.c
+`` Compiling: /src/base/io/ioReadBench.c
+`` Compiling: /src/base/io/ioReadBlif.c
+`` Compiling: /src/base/io/ioReadBlifAig.c
+`` Compiling: /src/base/io/ioReadBlifMv.c
+`` Compiling: /src/base/io/ioReadDsd.c
+`` Compiling: /src/base/io/ioReadEdif.c
+`` Compiling: /src/base/io/ioReadEqn.c
+`` Compiling: /src/base/io/ioReadPla.c
+`` Compiling: /src/base/io/ioReadPlaMo.c
+`` Compiling: /src/base/io/ioReadVerilog.c
+`` Compiling: /src/base/io/ioUtil.c
+`` Compiling: /src/base/io/ioWriteAiger.c
+`` Compiling: /src/base/io/ioWriteBaf.c
+`` Compiling: /src/base/io/ioWriteBblif.c
+`` Compiling: /src/base/io/ioWriteBench.c
+`` Compiling: /src/base/io/ioWriteBlif.c
+`` Compiling: /src/base/io/ioWriteBlifMv.c
+`` Compiling: /src/base/io/ioWriteBook.c
+`` Compiling: /src/base/io/ioWriteCnf.c
+`` Compiling: /src/base/io/ioWriteDot.c
+`` Compiling: /src/base/io/ioWriteEqn.c
+`` Compiling: /src/base/io/ioWriteEdgelist.c
+`` Compiling: /src/base/io/ioWriteGml.c
+`` Compiling: /src/base/io/ioWriteHMetis.c
+`` Compiling: /src/base/io/ioWriteList.c
+`` Compiling: /src/base/io/ioWritePla.c
+`` Compiling: /src/base/io/ioWriteVerilog.c
+`` Compiling: /src/base/io/ioWriteSmv.c
+`` Compiling: /src/base/main/mainFrame.c
+`` Compiling: /src/base/main/mainInit.c
+`` Compiling: /src/base/main/mainLib.c
+`` Compiling: /src/base/main/mainReal.c
+`` Compiling: /src/base/main/libSupport.c
+`` Compiling: /src/base/main/mainUtils.c
+`` Compiling: /src/base/exor/exor.c
+`` Compiling: /src/base/ver/verCore.c
+`` Compiling: /src/base/ver/verFormula.c
+`` Compiling: /src/base/ver/verParse.c
+`` Compiling: /src/base/ver/verStream.c
+`` Compiling: /src/base/wlc/wlcAbs.c
+`` Compiling: /src/base/wlc/wlcAbs2.c
+`` Compiling: /src/base/wlc/wlcAbc.c
+`` Compiling: /src/base/wlc/wlcPth.c
+`` Compiling: /src/base/wlc/wlcBlast.c
+`` Compiling: /src/base/wlc/wlcCom.c
+`` Compiling: /src/base/wlc/wlcGraft.c
+`` Compiling: /src/base/wlc/wlcJson.c
+`` Compiling: /src/base/wlc/wlcMem.c
+`` Compiling: /src/base/wlc/wlcNdr.c
+`` Compiling: /src/base/wlc/wlcNtk.c
+`` Compiling: /src/base/wlc/wlcReadSmt.c
+`` Compiling: /src/base/wlc/wlcReadVer.c
+`` Compiling: /src/base/wlc/wlcSim.c
+`` Compiling: /src/base/wlc/wlcShow.c
+`` Compiling: /src/base/wlc/wlcStdin.c
+`` Compiling: /src/base/wlc/wlcUif.c
+`` Compiling: /src/base/wlc/wlcWin.c
+`` Compiling: /src/base/wlc/wlcWriteVer.c
+`` Compiling: /src/base/wln/wlnBlast.c
+`` Compiling: /src/base/wln/wlnCom.c
+`` Compiling: /src/base/wln/wlnWlc.c
+`` Compiling: /src/base/wln/wlnRtl.c
+`` Compiling: /src/base/acb/acbAbc.c
+`` Compiling: /src/base/acb/acbCom.c
+`` Compiling: /src/base/acb/acbFunc.c
+`` Compiling: /src/base/acb/acbTest.c
+`` Compiling: /src/base/acb/acbUtil.c
+`` Compiling: /src/base/bac/bacBlast.c
+`` Compiling: /src/base/bac/bacCom.c
+`` Compiling: /src/base/bac/bacPrsBuild.c
+`` Compiling: /src/base/bac/bacPtr.c
+`` Compiling: /src/base/bac/bacPtrAbc.c
+`` Compiling: /src/base/bac/bacWriteBlif.c
+`` Compiling: /src/base/bac/bacWriteVer.c
+`` Compiling: /src/base/cba/cbaBlast.c
+`` Compiling: /src/base/cba/cbaCom.c
+`` Compiling: /src/base/cba/cbaNtk.c
+`` Compiling: /src/base/cba/cbaWriteBlif.c
+`` Compiling: /src/base/cba/cbaWriteVer.c
+`` Compiling: /src/base/pla/plaCom.c
+`` Compiling: /src/base/pla/plaHash.c
+`` Compiling: /src/base/pla/plaMan.c
+`` Compiling: /src/base/pla/plaMerge.c
+`` Compiling: /src/base/pla/plaSimple.c
+`` Compiling: /src/base/pla/plaRead.c
+`` Compiling: /src/base/pla/plaWrite.c
+`` Compiling: /src/base/test/test.c
+`` Compiling: /src/map/mapper/mapper.c
+`` Compiling: /src/map/mapper/mapperCanon.c
+`` Compiling: /src/map/mapper/mapperCore.c
+`` Compiling: /src/map/mapper/mapperCreate.c
+`` Compiling: /src/map/mapper/mapperCut.c
+`` Compiling: /src/map/mapper/mapperCutUtils.c
+`` Compiling: /src/map/mapper/mapperLib.c
+`` Compiling: /src/map/mapper/mapperMatch.c
+`` Compiling: /src/map/mapper/mapperRefs.c
+`` Compiling: /src/map/mapper/mapperSuper.c
+`` Compiling: /src/map/mapper/mapperSwitch.c
+`` Compiling: /src/map/mapper/mapperTable.c
+`` Compiling: /src/map/mapper/mapperTime.c
+`` Compiling: /src/map/mapper/mapperTree.c
+`` Compiling: /src/map/mapper/mapperTruth.c
+`` Compiling: /src/map/mapper/mapperUtils.c
+`` Compiling: /src/map/mapper/mapperVec.c
+`` Compiling: /src/map/mio/mio.c
+`` Compiling: /src/map/mio/mioRead.c
+`` Compiling: /src/map/mio/mioUtils.c
+`` Compiling: /src/map/super/super.c
+`` Compiling: /src/map/super/superAnd.c
+`` Compiling: /src/map/super/superGate.c
+`` Compiling: /src/map/if/ifCom.c
+`` Compiling: /src/map/if/ifLibBox.c
+`` Compiling: /src/map/if/ifLibLut.c
+`` Compiling: /src/map/amap/amapCore.c
+`` Compiling: /src/map/amap/amapRead.c
+`` Compiling: /src/map/cov/covBuild.c
+`` Compiling: /src/map/cov/covCore.c
+`` Compiling: /src/map/cov/covMan.c
+`` Compiling: /src/map/cov/covMinEsop.c
+`` Compiling: /src/map/cov/covMinMan.c
+`` Compiling: /src/map/cov/covMinSop.c
+`` Compiling: /src/map/cov/covMinUtil.c
+`` Compiling: /src/map/scl/scl.c
+`` Compiling: /src/map/scl/sclBuffer.c
+`` Compiling: /src/map/scl/sclBufSize.c
+`` Compiling: /src/map/scl/sclDnsize.c
+`` Compiling: /src/map/scl/sclLoad.c
+`` Compiling: /src/map/scl/sclSize.c
+`` Compiling: /src/map/scl/sclUpsize.c
+`` Compiling: /src/map/scl/sclUtil.c
+`` Compiling: /src/map/mpm/mpmGates.c
+`` Compiling: /src/misc/extra/extraUtilProgress.c
+`` Compiling: /src/misc/bar/bar.c
+`` Compiling: /src/opt/fxu/fxu.c
+`` Compiling: /src/opt/fxu/fxuCreate.c
+`` Compiling: /src/opt/fxu/fxuHeapD.c
+`` Compiling: /src/opt/fxu/fxuHeapS.c
+`` Compiling: /src/opt/fxu/fxuList.c
+`` Compiling: /src/opt/fxu/fxuMatrix.c
+`` Compiling: /src/opt/fxu/fxuPair.c
+`` Compiling: /src/opt/fxu/fxuPrint.c
+`` Compiling: /src/opt/fxu/fxuReduce.c
+`` Compiling: /src/opt/fxu/fxuSelect.c
+`` Compiling: /src/opt/fxu/fxuSingle.c
+`` Compiling: /src/opt/fxu/fxuUpdate.c
+`` Compiling: /src/opt/fxch/Fxch.c
+`` Compiling: /src/opt/fxch/FxchDiv.c
+`` Compiling: /src/opt/fxch/FxchMan.c
+`` Compiling: /src/opt/fxch/FxchSCHashTable.c
+`` Compiling: /src/opt/rwr/rwrDec.c
+`` Compiling: /src/opt/rwr/rwrEva.c
+`` Compiling: /src/opt/rwr/rwrExp.c
+`` Compiling: /src/opt/rwr/rwrLib.c
+`` Compiling: /src/opt/rwr/rwrMan.c
+`` Compiling: /src/opt/rwr/rwrPrint.c
+`` Compiling: /src/opt/rwr/rwrUtil.c
+`` Compiling: /src/opt/mfs/mfsCore.c
+`` Compiling: /src/opt/mfs/mfsDiv.c
+`` Compiling: /src/opt/mfs/mfsInter.c
+`` Compiling: /src/opt/mfs/mfsMan.c
+`` Compiling: /src/opt/mfs/mfsResub.c
+`` Compiling: /src/opt/mfs/mfsSat.c
+`` Compiling: /src/opt/mfs/mfsStrash.c
+`` Compiling: /src/opt/mfs/mfsWin.c
+`` Compiling: /src/opt/sim/simMan.c
+`` Compiling: /src/opt/sim/simSeq.c
+`` Compiling: /src/opt/sim/simSupp.c
+`` Compiling: /src/opt/sim/simSwitch.c
+`` Compiling: /src/opt/sim/simSym.c
+`` Compiling: /src/opt/sim/simSymSat.c
+`` Compiling: /src/opt/sim/simSymSim.c
+`` Compiling: /src/opt/sim/simSymStr.c
+`` Compiling: /src/opt/sim/simUtils.c
+`` Compiling: /src/opt/ret/retArea.c
+`` Compiling: /src/opt/ret/retCore.c
+`` Compiling: /src/opt/ret/retDelay.c
+`` Compiling: /src/opt/ret/retFlow.c
+`` Compiling: /src/opt/ret/retIncrem.c
+`` Compiling: /src/opt/ret/retInit.c
+`` Compiling: /src/opt/ret/retLvalue.c
+`` Compiling: /src/opt/fret/fretMain.c
+`` Compiling: /src/opt/fret/fretFlow.c
+`` Compiling: /src/opt/fret/fretInit.c
+`` Compiling: /src/opt/fret/fretTime.c
+`` Compiling: /src/opt/res/resCore.c
+`` Compiling: /src/opt/res/resDivs.c
+`` Compiling: /src/opt/res/resFilter.c
+`` Compiling: /src/opt/res/resSat.c
+`` Compiling: /src/opt/res/resSim.c
+`` Compiling: /src/opt/res/resStrash.c
+`` Compiling: /src/opt/res/resWin.c
+`` Compiling: /src/opt/lpk/lpkAbcDec.c
+`` Compiling: /src/opt/lpk/lpkCore.c
+`` Compiling: /src/opt/lpk/lpkAbcMux.c
+`` Compiling: /src/opt/lpk/lpkAbcDsd.c
+`` Compiling: /src/opt/lpk/lpkAbcUtil.c
+`` Compiling: /src/opt/lpk/lpkCut.c
+`` Compiling: /src/opt/lpk/lpkMan.c
+`` Compiling: /src/opt/lpk/lpkMap.c
+`` Compiling: /src/opt/lpk/lpkMulti.c
+`` Compiling: /src/opt/lpk/lpkMux.c
+`` Compiling: /src/opt/lpk/lpkSets.c
+`` Compiling: /src/opt/rar/rewireRng.c
+`` Compiling: /src/opt/rar/rewireMap.c
+`` Compiling: /src/opt/rar/rewireRar.c
+`` Compiling: /src/opt/sfm/sfmArea.c
+`` Compiling: /src/opt/sfm/sfmCnf.c
+`` Compiling: /src/opt/sfm/sfmCore.c
+`` Compiling: /src/opt/sfm/sfmDec.c
+`` Compiling: /src/opt/sfm/sfmLib.c
+`` Compiling: /src/opt/sfm/sfmNtk.c
+`` Compiling: /src/opt/sfm/sfmSat.c
+`` Compiling: /src/opt/sfm/sfmTim.c
+`` Compiling: /src/opt/sfm/sfmMit.c
+`` Compiling: /src/opt/sfm/sfmWin.c
+`` Compiling: /src/opt/sbd/sbd.c
+`` Compiling: /src/opt/sbd/sbdCnf.c
+`` Compiling: /src/opt/sbd/sbdCore.c
+`` Compiling: /src/opt/sbd/sbdCut.c
+`` Compiling: /src/opt/sbd/sbdCut2.c
+`` Compiling: /src/opt/sbd/sbdLut.c
+`` Compiling: /src/opt/sbd/sbdPath.c
+`` Compiling: /src/opt/sbd/sbdSat.c
+`` Compiling: /src/opt/sbd/sbdWin.c
+`` Compiling: /src/sat/csat/csat_apis.c
+`` Compiling: /src/sat/bmc/bmcExpand.c
+`` Compiling: /src/sat/bmc/bmcMaj.c
+`` Compiling: /src/bool/dec/decAbc.c
+`` Compiling: /src/bool/dec/decFactor.c
+`` Compiling: /src/bool/dec/decMan.c
+`` Compiling: /src/bool/dec/decPrint.c
+`` Compiling: /src/bool/dec/decUtil.c
+`` Compiling: /src/proof/pdr/pdrCore.c
+`` Compiling: /src/proof/pdr/pdrIncr.c
+`` Compiling: /src/proof/abs/absGla.c
+`` Compiling: /src/proof/pdr/pdrInv.c
+`` Compiling: /src/proof/abs/absGlaOld.c
+`` Compiling: /src/proof/abs/absVta.c
+`` Compiling: /src/proof/live/liveness.c
+`` Compiling: /src/proof/live/liveness_sim.c
+`` Compiling: /src/proof/live/ltl_parser.c
+`` Compiling: /src/proof/live/kliveness.c
+`` Compiling: /src/proof/live/monotone.c
+`` Compiling: /src/proof/live/disjunctiveMonotone.c
+`` Compiling: /src/proof/live/arenaViolation.c
+`` Compiling: /src/proof/live/kLiveConstraints.c
+`` Compiling: /src/proof/live/combination.c
+`` Compiling: /src/proof/cec/cecSatG2.c
+`` Compiling: /src/proof/ssw/sswRarity.c
+`` Compiling: /src/aig/saig/saigIso.c
+`` Compiling: /src/aig/saig/saigSimFast.c
+`` Compiling: /src/aig/saig/saigSwitch.c
+`` Compiling: /src/aig/gia/giaAiger.c
+`` Compiling: /src/aig/gia/giaDeep.c
+`` Compiling: /src/aig/gia/giaIf.c
+`` Compiling: /src/aig/gia/giaMini.c
+`` Compiling: /src/aig/gia/giaMinLut.c
+`` Compiling: /src/aig/gia/giaMinLut2.c
+`` Compiling: /src/aig/gia/giaNf.c
+`` Compiling: /src/aig/gia/giaOf.c
+`` Compiling: /src/aig/gia/giaPf.c
+`` Compiling: /src/aig/gia/giaScript.c
+`` Compiling: /src/aig/gia/giaStoch.c
+`` Compiling: /src/aig/gia/giaSupps.c
+`` Compiling: /src/aig/gia/giaSweeper.c
+`` Compiling: /src/aig/gia/giaSwitch.c
+`` Compiling: /src/aig/gia/giaTranStoch.c
+`` Compiling: /src/aig/gia/giaUtil.c
+`` Compiling: /src/bdd/extrab/extraBddThresh.c
+`` Compiling: /src/bdd/cas/casCore.c
+`` Compiling: /src/bdd/llb/llb4Nonlin.c
+3 warnings generated.
+`` Building binary: abc
