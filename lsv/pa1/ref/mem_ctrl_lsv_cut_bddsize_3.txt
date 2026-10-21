@@ -1,0 +1,19 @@
+ABC command line: "strash; lsv_pa1_checker -k 3 -m bdd lsv/pa1/out/mem_ctrl_lsv_cut_bddsize_3.txt".
+
+[CHECK] MISSING    1206: 930 1094
+[CHECK] MISSING    1206: 1206
+[CHECK] MISSING    1207: 1094 1145
+[CHECK] MISSING    1207: 1207
+[CHECK] MISSING    1208: 930 1094 1145
+[CHECK] MISSING    1208: 930 1094 1207
+[CHECK] MISSING    1208: 1094 1145 1206
+[CHECK] MISSING    1208: 1206 1207
+[CHECK] MISSING    1208: 1208
+[CHECK] mode=bdd k=3 strict=0
+[CHECK] reference irredundant cuts : 9
+[CHECK] student lines (total/parsed): 5 / 0
+[CHECK] ignored lines (format/root) : 4 / 0
+[CHECK] dominated cuts printed      : 0 (value unchecked: 0)
+[CHECK] repeated identical lines   : 0
+[CHECK] missing=9 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+Fail!
