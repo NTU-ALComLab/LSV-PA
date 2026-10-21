@@ -1,0 +1,10 @@
+ABC command line: "strash; lsv_pa1_checker -k 3 -m bdd lsv/pa1/out/div_lsv_cut_bddsize_3.txt".
+
+[CHECK] mode=bdd k=3 strict=0
+[CHECK] reference irredundant cuts : 116401
+[CHECK] student lines (total/parsed): 116403 / 116401
+[CHECK] ignored lines (format/root) : 1 / 0
+[CHECK] dominated cuts printed      : 0 (value unchecked: 0)
+[CHECK] repeated identical lines   : 0
+[CHECK] missing=0 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+Pass!
