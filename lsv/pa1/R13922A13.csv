@@ -1,0 +1,26 @@
+Benchmark,Command,k,Result,Reason
+adder,lsv_cut_tt,3,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=714 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+adder,lsv_cut_bddsize,3,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=714 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+adder,lsv_cut_tt,6,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=2288 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+adder,lsv_cut_bddsize,6,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=2288 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+int2float,lsv_cut_tt,3,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=813 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+int2float,lsv_cut_bddsize,3,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=813 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+int2float,lsv_cut_tt,6,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=2556 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+int2float,lsv_cut_bddsize,6,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=2556 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+router,lsv_cut_tt,3,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=966 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+router,lsv_cut_bddsize,3,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=966 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+router,lsv_cut_tt,6,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=6374 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+router,lsv_cut_bddsize,6,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=6374 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+mem_ctrl,lsv_cut_tt,3,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=9 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+mem_ctrl,lsv_cut_bddsize,3,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=9 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+mem_ctrl,lsv_cut_tt,6,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=9 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+mem_ctrl,lsv_cut_bddsize,6,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=9 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+div,lsv_cut_tt,3,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=116401 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+div,lsv_cut_bddsize,3,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=116401 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+log2,lsv_cut_tt,3,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=154294 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+log2,lsv_cut_bddsize,3,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=154294 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+sqrt,lsv_cut_tt,3,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=100044 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+sqrt,lsv_cut_bddsize,3,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=100044 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+square,lsv_cut_tt,3,Fail,Command lsv_cut_tt not found (also tried 'lsv cut tt'); missing=90343 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+square,lsv_cut_bddsize,3,Fail,Command lsv_cut_bddsize not found (also tried 'lsv cut bddsize'); missing=90343 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+Score,,,0,compile 0/16 + lsv_cut_tt defined 0/8 + lsv_cut_bddsize defined 0/8 + cases (lsv_cut_tt 0/12 AC + lsv_cut_bddsize 0/12 AC) [no lsv_cut_tt / lsv_cut_bddsize command]
