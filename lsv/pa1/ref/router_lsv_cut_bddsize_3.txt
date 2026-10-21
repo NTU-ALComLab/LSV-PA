@@ -1,0 +1,20 @@
+ABC command line: "strash; lsv_pa1_checker -k 3 -m bdd lsv/pa1/out/router_lsv_cut_bddsize_3.txt".
+
+[CHECK] MISSING    91: 10 11
+[CHECK] MISSING    91: 91
+[CHECK] MISSING    92: 10 11
+[CHECK] MISSING    92: 92
+[CHECK] MISSING    93: 10 11
+[CHECK] MISSING    93: 91 92
+[CHECK] MISSING    93: 93
+[CHECK] MISSING    94: 10 11 12
+[CHECK] MISSING    94: 12 91
+[CHECK] MISSING    94: 94
+[CHECK] mode=bdd k=3 strict=0
+[CHECK] reference irredundant cuts : 966
+[CHECK] student lines (total/parsed): 5 / 0
+[CHECK] ignored lines (format/root) : 4 / 0
+[CHECK] dominated cuts printed      : 0 (value unchecked: 0)
+[CHECK] repeated identical lines   : 0
+[CHECK] missing=966 wrong=0 not-a-cut=0 unsorted=0 too-large=0 duplicate=0 bad-value=0
+Fail!
