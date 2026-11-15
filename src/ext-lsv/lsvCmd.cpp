@@ -4,16 +4,19 @@
 #include "sat/bsat/satSolver.h"
 #include "sat/cnf/cnf.h"
 #include "sat/cadical/cadicalSolver.h"
-#include "proof/fra/fra.h"
-#include "opt/dar/dar.h"
 #include "aig/gia/gia.h"
 #include "aig/gia/giaAig.h"
 #include "sat/satoko/satoko.h"
+#include "sat/glucose/AbcGlucose.h"
+
+#include <sys/mman.h>
 
 #include <algorithm>
 #include <functional>
 #include <array>
+#include <atomic>
 #include <cerrno>
+#include <climits>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -30,6 +33,7 @@
 #include <poll.h>
 #ifdef __linux__
 #include <sched.h>
+#include <sys/prctl.h>
 #endif
 #include <signal.h>
 #include <sys/wait.h>
@@ -37,7 +41,6 @@
 
 extern "C" {
 Aig_Man_t* Abc_NtkToDar(Abc_Ntk_t* pNtk, int fExors, int fRegisters);
-int Aig_ManCountXors(Aig_Man_t* p);
 }
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t* pAbc, int argc, char** argv);
@@ -314,14 +317,15 @@ static int Lsv_CommandCutBddSize(Abc_Frame_t* frame, int argc, char** argv) {
 //
 // A(u) per base cut (Lsv_KlFlex), cheapest first; only "not allowed" is ever
 // concluded without a proof, from a concrete input pattern:
-//   1. Simulation finds the produced u, their root values cu and most c a PO
-//      observes. SAT finds a pattern for the u simulation missed.
+//   1. Simulation (random, biased, and the counterexamples all cuts share
+//      through LsvCexPool) finds the produced u, their root values cu and
+//      most c a PO observes. SAT finds a pattern for the u simulation missed.
 //   2. Cuts whose roots are gated by PI literals (Lsv_KlGateCube) are split
 //      into disjoint cases over those literals (Lsv_KlChain); fixed PIs fold
 //      most cases away in strash, the rest are small SAT calls (Lsv_KlCase).
 //   3. Otherwise an incremental sweep (LsvKlSat) proves original and flipped
 //      copy equal node by node under the care set U = u.
-//   4. Leftovers: batched fraig, then a race of exact engines (Lsv_Race).
+//   4. Leftovers: a race of exact engines (Lsv_Race).
 // Cuts and queries run in forked children (Lsv_Pool and the loop at the end).
 
 namespace {
@@ -511,7 +515,7 @@ static Abc_Ntk_t* Lsv_KlNewMiter(Abc_Ntk_t* ntk) {
   return mt;
 }
 
-// mt as an Aig_Man_t for SAT and fraig, with po (if given) as a new output.
+// mt as an Aig_Man_t for SAT, with po (if given) as a new output.
 static Aig_Man_t* Lsv_KlToAig(Abc_Ntk_t* mt, Abc_Obj_t* po = nullptr) {
   if (po) Abc_ObjAddFanin(Abc_NtkCreatePo(mt), po);
   Abc_AigCleanup((Abc_Aig_t*)mt->pManFunc);
@@ -851,6 +855,7 @@ struct LsvKlConst {
   std::map<LsvKlKey, int> orig;                              // Lsv_KlOrigConst
   const std::vector<std::map<int, int>>* cubes = nullptr;    // gate cube of each root
   std::map<std::pair<LsvKlKey, unsigned>, std::pair<int, std::vector<char>>> cases;  // Lsv_KlCase
+  std::map<std::pair<LsvKlKey, unsigned>, int> gaveUp;  // Lsv_KlCase: the largest limit that did not settle it
   std::map<unsigned, std::vector<unsigned>> cs;  // u -> the c asked about
   std::map<unsigned, unsigned> cu;               // u -> its original root values
   std::map<LsvKlKey, std::set<unsigned>> allPass;  // per case: u whose PO is constant over cs[u] and cu
@@ -895,10 +900,13 @@ static int Lsv_KlCase(Abc_Ntk_t* ntk, Vec_Ptr_t* order, const LsvKlCut& cut, uns
     if (it->second.first == 0) cex = it->second.second;
     return it->second.first;
   }
+  auto g = cache.gaveUp.find(key);
+  if (g != cache.gaveUp.end() && g->second >= limit) return -1;
   std::vector<char> x;
   int r = Lsv_KlCaseSolve(ntk, order, cut, u, cu, c, pc, limit, x, cache, asked);
   if (r == 0) cex = x;
-  cache.cases[key] = {r, x};
+  if (r >= 0) cache.cases[key] = {r, x};
+  else cache.gaveUp[key] = limit;
   return r;
 }
 
@@ -928,6 +936,27 @@ static uint64_t Lsv_RandWord(std::mt19937_64& rng, int word) {
   if (word % 4 == 2) r |= rng() | rng();
   if (word % 4 == 3) r &= rng() & rng() & rng() & rng();
   return r;
+}
+
+// Counterexamples of one cut often show other cuts observable too: in deep
+// arithmetic they lie in the same narrow region of the inputs. The cut
+// children share them through a mapping made before the forks. A reader may
+// see a slot half written: any pattern is a valid input, and simulation only
+// records what it shows, so that is harmless.
+struct LsvCexPool {
+  std::atomic<unsigned> n;
+  std::atomic<unsigned> sbRuns, sbHits;  // SimBiased calls, and those that observed something
+  unsigned cap, nPis;
+  unsigned char x[1];
+};
+static LsvCexPool* lsvPool = nullptr;
+
+template <class T>
+static void Lsv_PoolAdd(const std::vector<T>& x) {
+  if (!lsvPool || x.size() < lsvPool->nPis) return;
+  unsigned k = lsvPool->n.fetch_add(1);
+  if (k >= lsvPool->cap) return;
+  for (unsigned i = 0; i < lsvPool->nPis; ++i) lsvPool->x[(size_t)k * lsvPool->nPis + i] = x[i] != 0;
 }
 
 // PI words holding x in bit 0 and, in bits 1..63, neighbours of x with 1 to 3
@@ -997,12 +1026,14 @@ static int Lsv_KlCaseSolve(Abc_Ntk_t* ntk, Vec_Ptr_t* order, const LsvKlCut& cut
                            std::vector<char>& cex, LsvKlConst& cache, unsigned asked) {
   if (Lsv_KlDead(ntk, order, cut, u, cu, c, pc)) return 1;
   if (Lsv_KlSolve(ntk, order, cut, u, cu, c, pc, 0, 0, -1, nullptr) == 1) return 1;
+  // The set checks below hold for every c asked about with this u (cs).
+  const std::vector<unsigned>& cs = cache.cs[u];
+  bool inCs = std::find(cs.begin(), cs.end(), asked) != cs.end();
   if (Abc_NtkPoNum(ntk) == 1) {
     // Often the PO is the same constant for cu and every c asked about here:
     // checking that is much easier than the miter. First for all u in one call
     // (values guessed by simulation), then for this u, then for c alone.
-    const std::vector<unsigned>& cs = cache.cs[u];
-    if (std::find(cs.begin(), cs.end(), asked) != cs.end()) {
+    if (inCs) {
       LsvKlKey key = Lsv_KlKeyOf(~0u, pc);
       auto it = cache.allPass.find(key);
       if (it == cache.allPass.end()) {
@@ -1053,7 +1084,7 @@ static int Lsv_KlCaseSolve(Abc_Ntk_t* ntk, Vec_Ptr_t* order, const LsvKlCut& cut
       }
       if (it->second.count(u)) return 1;
     }
-    if (std::find(cs.begin(), cs.end(), asked) != cs.end()) {
+    if (inCs) {
       LsvKlKey key = Lsv_KlKeyOf(u, pc);
       auto it = cache.csPass.find(key);
       if (it == cache.csPass.end()) {
@@ -1070,9 +1101,9 @@ static int Lsv_KlCaseSolve(Abc_Ntk_t* ntk, Vec_Ptr_t* order, const LsvKlCut& cut
     int v = Lsv_KlOrigConst(ntk, order, cut, u, cu, pc, limit, cache);
     if (v >= 0 && Lsv_KlSolve(ntk, order, cut, u, cu, c, pc, 2, !v, limit, nullptr) == 1) return 1;
   }
-  // The full miter, likewise once for all c asked about with this u first.
-  const std::vector<unsigned>& cs = cache.cs[u];
-  if (std::find(cs.begin(), cs.end(), asked) != cs.end()) {
+  // The full miter, likewise once for all c asked about with this u first
+  // (with c alone, that is the same call as below).
+  if (inCs && cs.size() > 1) {
     LsvKlKey key = Lsv_KlKeyOf(u, pc);
     key.second.push_back(-1);
     auto it = cache.csPass.find(key);
@@ -1086,7 +1117,7 @@ static int Lsv_KlCaseSolve(Abc_Ntk_t* ntk, Vec_Ptr_t* order, const LsvKlCut& cut
 // Decides (u, c) by splitting the inputs along chain (PI literals that gate the
 // roots): case i has literals 0..i-1 true and literal i false, the last case all
 // true. Fixed PIs fold most cases to constant 0 in strash; in a divider the
-// difference only lives where the divisor is tiny. 1 / 0 / -1 as Lsv_KlAllowed.
+// difference only lives where the divisor is tiny. 1 allowed, 0 not, -1 gave up.
 static int Lsv_KlChain(Abc_Ntk_t* ntk, Vec_Ptr_t* order, const LsvKlCut& cut, unsigned u,
                        unsigned cu, unsigned c, const std::vector<std::pair<int, int>>& chain,
                        int limit, std::vector<char>& cex, LsvKlConst& cache) {
@@ -1128,74 +1159,6 @@ static int Lsv_KlChain(Abc_Ntk_t* ntk, Vec_Ptr_t* order, const LsvKlCut& cut, un
   return res;
 }
 
-// c is in A(u) iff no X with U(X) = u makes a PO of N[V <- c] differ from N.
-// Under U = u the original roots equal cu, so both copies get constant roots,
-// and leaves outside the TFO of V become constants too; strash then folds most
-// of the miter away before SAT sees it.
-// Returns 1 (allowed), 0 (not) or -1 (gave up; only with a positive limit on
-// the conflicts of fraig's final SAT call). Limit 0: bounded SAT, then fraig,
-// then unbounded SAT; -1: unbounded bsat alone; -2: unbounded CaDiCaL alone.
-static int Lsv_KlAllowed(Abc_Ntk_t* ntk, Vec_Ptr_t* order, const LsvKlCut& cut,
-                         unsigned u, unsigned cu, unsigned c, std::vector<char>& cex,
-                         int limit) {
-  Abc_Ntk_t* mt = Lsv_KlNewMiter(ntk);
-  Abc_Obj_t* one = Abc_AigConst1(mt);
-  Abc_Obj_t* mu = Lsv_KlMiter(mt, ntk, order, cut, u, cu, c);
-  int allowed = mu == Abc_ObjNot(one);
-  if (!allowed) {
-    Aig_Man_t* aig = Lsv_KlToAig(mt, mu);
-    // Plain SAT settles most calls; the rest go to fraig-based CEC, whose SAT
-    // sweeping merges the equal parts of the two copies.
-    Cnf_Dat_t* cnf = Cnf_Derive(aig, 1);
-    if (limit == -2) {  // CaDiCaL, unbounded
-      cadical_solver* cs = cadical_solver_new();
-      cadical_solver_setnvars(cs, cnf->nVars);
-      int *beg, *end, k, unsat = 0;
-      Cnf_CnfForClause(cnf, beg, end, k) if (!unsat && !cadical_solver_addclause(cs, beg, end)) unsat = 1;
-      int l = Abc_Var2Lit(cnf->pVarNums[Aig_ManCo(aig, 0)->Id], 0);
-      int rr = unsat ? -1 : cadical_solver_solve(cs, &l, &l + 1, 0, 0, 0, 0);
-      cadical_solver_delete(cs);
-      Cnf_DataFree(cnf);
-      Aig_ManStop(aig);
-      Abc_NtkDelete(mt);
-      return rr == 1 ? 0 : rr == -1 ? 1 : -1;
-    }
-    sat_solver* sat = (sat_solver*)Cnf_DataWriteIntoSolver(cnf, 1, 0);
-    int r = l_False;
-    if (sat) {
-      lit l = Abc_Var2Lit(cnf->pVarNums[Aig_ManCo(aig, 0)->Id], 0);
-      r = sat_solver_solve(sat, &l, &l + 1, limit < 0 ? 0 : 1000, 0, 0, 0);
-      Aig_Obj_t* ci;
-      int k;
-      if (r == l_True) Aig_ManForEachCi(aig, ci, k) {
-        int v = cnf->pVarNums[ci->Id];
-        cex.push_back(v >= 0 && sat_solver_var_value(sat, v));
-      }
-      sat_solver_delete(sat);
-    }
-    Cnf_DataFree(cnf);
-    if (r == l_Undef) {
-      int cec = Fra_FraigCec(&aig, limit ? limit : 1000000000, 0);
-      r = cec == 1 ? l_False : cec == 0 ? l_True : l_Undef;
-    }
-    if (r == l_Undef && !limit) {  // fraig gave up: settle it with an unlimited SAT call
-      Cnf_Dat_t* cnf2 = Cnf_Derive(aig, 1);
-      sat_solver* sat2 = (sat_solver*)Cnf_DataWriteIntoSolver(cnf2, 1, 0);
-      r = l_False;
-      if (sat2) {
-        lit l = Abc_Var2Lit(cnf2->pVarNums[Aig_ManCo(aig, 0)->Id], 0);
-        r = sat_solver_solve(sat2, &l, &l + 1, 0, 0, 0, 0);
-        sat_solver_delete(sat2);
-      }
-      Cnf_DataFree(cnf2);
-    }
-    allowed = r == l_False ? 1 : r == l_True ? 0 : -1;
-    Aig_ManStop(aig);
-  }
-  Abc_NtkDelete(mt);
-  return allowed;
-}
-
 // One incremental solver per cut, shared by all (u, c): the original network
 // plus a second copy of the TFO of V whose roots are free variables. A query
 // assumes U = u on the original and V = c on the copy. If the plain "some PO
@@ -1211,11 +1174,8 @@ struct LsvKlSat {
   sat_solver* s;
   int N, mu, nVars;
   std::vector<char> tfo, isRoot;
-  std::vector<int> pos, xors;
+  std::vector<int> pos;
   std::map<int, int> poXor;  // PO driver -> var of driver != copy
-  // Conflicts for the first PO-differs call: only the trivial cases settle
-  // there; with more, it mostly just spends them.
-  int limit1 = 1;
   unsigned polU = ~0u;
   std::vector<char> seenDiff, witness;
   std::vector<uint64_t> wO, wF;
@@ -1257,7 +1217,6 @@ struct LsvKlSat {
       if (!tfo[d]) continue;
       sat_solver_add_xor(s, mu + 1 + i, d, N + d, 0);
       poXor[d] = mu + 1 + i;
-      xors.push_back(mu + 1 + i);
       clause.push_back(Abc_Var2Lit(mu + 1 + i, 0));
     }
     sat_solver_addclause(s, clause.data(), clause.data() + clause.size());
@@ -1387,7 +1346,9 @@ struct LsvKlSat {
       }
     }
     a.push_back(Abc_Var2Lit(mu, 0));
-    int r = Solve(a, limit1);
+    // One conflict: only the trivial cases settle in this first PO-differs
+    // call; with more, it mostly just spends them.
+    int r = Solve(a, 1);
     a.pop_back();
     if (r == l_True) which(), Model(cex);
     if (r != l_Undef) return done(r == l_False);
@@ -1496,59 +1457,17 @@ struct LsvKlSat {
   }
 };
 
-// Fraigs the miters of several (u, c) in one AIG, so the logic they share (most
-// of it, for the same PI leaf values) is swept once: the first rounds of
-// Fra_FraigCec's loop, without its prove mode. Returns 1 for each output proved
-// 0 and -1 for the rest.
-static std::vector<int> Lsv_KlBatch(Abc_Ntk_t* ntk, Vec_Ptr_t* order, const LsvKlCut& cut,
-                                    const std::vector<std::array<unsigned, 3>>& items) {
-  std::vector<int> res(items.size(), -1);
-  Abc_Ntk_t* mt = Lsv_KlNewMiter(ntk);
-  Abc_Obj_t* zero = Abc_ObjNot(Abc_AigConst1(mt));
-  bool open = false;
-  for (const auto& it : items) {
-    Abc_Obj_t* mu = Lsv_KlMiter(mt, ntk, order, cut, it[0], it[1], it[2]);
-    open = open || mu != zero;
-    Abc_ObjAddFanin(Abc_NtkCreatePo(mt), mu);
-  }
-  if (open) {
-    Aig_Man_t* aig = Lsv_KlToAig(mt);
-    Aig_Man_t* t = aig;
-    aig = Dar_ManRwsat(t, 1, 0);
-    Aig_ManStop(t);
-    Fra_Par_t pars;
-    Fra_ParamsDefault(&pars);
-    pars.nBTLimitNode = 2;
-    pars.nBTLimitMiter = 300;
-    pars.fDontShowBar = 1;
-    for (int round = 0; round < 4; ++round) {
-      if (Aig_ManCountXors(aig) * 30 > Aig_ManNodeNum(aig) + 300) {
-        t = aig;
-        aig = Dar_ManBalanceXor(t, 1, 0, 0);
-        Aig_ManStop(t);
-      }
-      t = aig;
-      aig = Fra_FraigPerform(t, &pars);
-      Aig_ManStop(t);
-      t = aig;
-      aig = Dar_ManRewriteDefault(t);
-      Aig_ManStop(t);
-      bool done = true;
-      for (size_t k = 0; k < items.size(); ++k) {
-        Aig_Obj_t* co = Aig_ManCo(aig, k);
-        res[k] = Aig_ObjFanin0(co) == Aig_ManConst1(aig) && Aig_ObjFaninC0(co) ? 1 : -1;
-        done = done && res[k] == 1;
-      }
-      if (done) break;
-      pars.nBTLimitNode *= 8;
-      pars.nBTLimitMiter *= 2;
-    }
-    Aig_ManStop(aig);
-  } else {
-    std::fill(res.begin(), res.end(), 1);
-  }
-  Abc_NtkDelete(mt);
-  return res;
+// fork, but on Linux the child dies with its parent: a killed lsv_kl_flex
+// (timeout) leaves no workers behind.
+static pid_t Lsv_Fork() {
+#ifdef __linux__
+  pid_t parent = getpid();
+#endif
+  pid_t pid = fork();
+#ifdef __linux__
+  if (pid == 0 && (prctl(PR_SET_PDEATHSIG, SIGKILL) != 0 || getppid() != parent)) _exit(1);
+#endif
+  return pid;
 }
 
 // Writes all n bytes of data to fd (a child's result to its parent).
@@ -1561,48 +1480,14 @@ static void Lsv_WriteAll(int fd, const void* data, size_t n) {
   }
 }
 
-// Runs f in a forked child and returns its result, or n times -1 if it takes
-// longer than ms: ABC's fraiging cannot be stopped from inside. Without fork,
-// f just runs here.
-static std::vector<int> Lsv_Timed(const std::function<std::vector<int>()>& f, size_t n, int ms) {
-  int fd[2];
-  if (pipe(fd) != 0) return f();
-  fflush(stdout);
-  fflush(stderr);
-  pid_t pid = fork();
-  if (pid < 0) {
-    close(fd[0]);
-    close(fd[1]);
-    return f();
-  }
-  if (pid == 0) {
-    close(fd[0]);
-    std::vector<int> r = f();
-    Lsv_WriteAll(fd[1], r.data(), r.size() * sizeof(int));
-    _exit(0);
-  }
-  close(fd[1]);
-  std::vector<int> res(n, -1), buf(n);
-  size_t want = n * sizeof(int), got = 0;
-  while (got < want) {
-    // ms bounds each wait for data, not the total: enough for one result block.
-    struct pollfd pfd = {fd[0], POLLIN, 0};
-    if (poll(&pfd, 1, ms) <= 0) break;
-    ssize_t k = read(fd[0], (char*)buf.data() + got, want - got);
-    if (k <= 0) break;
-    got += k;
-  }
-  if (got == want) res = buf;
-  else kill(pid, SIGKILL);
-  close(fd[0]);
-  waitpid(pid, nullptr, 0);
-  return res;
-}
-
 // Runs each f in its own forked child and returns the first answer; the
 // others are killed. Every f is exact, so whichever finishes first is right.
-// Without fork, the first f just runs here.
-static int Lsv_Race(const std::vector<std::function<int()>>& fs) {
+// Each child leads its own process group, so the children an f forks die with
+// it. done, polled twice a second, may settle the race first: it then returns
+// 0 (another cut's counterexample showed it). Without fork, the first f just
+// runs here.
+static int Lsv_Race(const std::vector<std::function<int()>>& fs,
+                    const std::function<bool()>& done = {}) {
   fflush(stdout);
   fflush(stderr);
   std::vector<pid_t> pids;
@@ -1610,18 +1495,20 @@ static int Lsv_Race(const std::vector<std::function<int()>>& fs) {
   for (const auto& f : fs) {
     int fd[2];
     if (pipe(fd) != 0) break;
-    pid_t pid = fork();
+    pid_t pid = Lsv_Fork();
     if (pid < 0) {
       close(fd[0]);
       close(fd[1]);
       break;
     }
     if (pid == 0) {
+      setpgid(0, 0);
       close(fd[0]);
       int r = f();
       if (write(fd[1], &r, sizeof r) < 0) {}
       _exit(0);
     }
+    setpgid(pid, pid);
     close(fd[1]);
     pids.push_back(pid);
     pfds.push_back({fd[0], POLLIN, 0});
@@ -1630,7 +1517,12 @@ static int Lsv_Race(const std::vector<std::function<int()>>& fs) {
   if (pids.empty()) return fs[0]();
   size_t open = pfds.size();
   while (res < 0 && open) {
-    if (poll(pfds.data(), pfds.size(), -1) < 0) break;
+    int k = poll(pfds.data(), pfds.size(), done ? 500 : -1);
+    if (k < 0) break;
+    if (k == 0) {
+      if (done()) res = 0;
+      continue;
+    }
     for (auto& p : pfds) {
       if (p.fd < 0 || !p.revents) continue;
       int r;
@@ -1642,7 +1534,7 @@ static int Lsv_Race(const std::vector<std::function<int()>>& fs) {
     }
   }
   for (size_t i = 0; i < pids.size(); ++i) {
-    kill(pids[i], SIGKILL);
+    kill(-pids[i], SIGKILL);
     waitpid(pids[i], nullptr, 0);
     if (pfds[i].fd >= 0) close(pfds[i].fd);
   }
@@ -1674,7 +1566,7 @@ static std::vector<int> Lsv_Pool(size_t n, size_t workers, const std::function<i
   fflush(stderr);
   std::vector<pid_t> pids;
   for (size_t w = 0; w < std::min(workers, groups.size()); ++w) {
-    pid_t pid = fork();
+    pid_t pid = Lsv_Fork();
     if (pid == 0) {
       close(r[0]);
       int g;
@@ -1699,6 +1591,130 @@ static std::vector<int> Lsv_Pool(size_t n, size_t workers, const std::function<i
   close(r[0]);
   for (pid_t pid : pids) waitpid(pid, nullptr, 0);
   return res;
+}
+
+// e with the CIs of fix >= 0 set to those values, strashed. It keeps all CIs.
+static Aig_Man_t* Lsv_KlCof(Aig_Man_t* e, const std::vector<int>& fix) {
+  Aig_Man_t* d = Aig_ManStart(Aig_ManObjNumMax(e));
+  Aig_ManConst1(e)->pData = Aig_ManConst1(d);
+  Aig_Obj_t* o;
+  int i;
+  Aig_ManForEachCi(e, o, i) {
+    o->pData = Aig_ObjCreateCi(d);
+    if (fix[i] >= 0) o->pData = Aig_NotCond(Aig_ManConst1(d), !fix[i]);
+  }
+  Aig_ManForEachNode(e, o, i) o->pData = Aig_And(d, Aig_ObjChild0Copy(o), Aig_ObjChild1Copy(o));
+  Aig_ManForEachCo(e, o, i) Aig_ObjCreateCo(d, Aig_ObjChild0Copy(o));
+  Aig_ManCleanup(d);
+  return d;
+}
+
+static bool Lsv_KlIsZero(Aig_Man_t* e) {
+  return Aig_ObjChild0(Aig_ManCo(e, 0)) == Aig_ManConst0(e);
+}
+
+// Splits the single output of e (consumed) into cubes that are satisfiable
+// iff e is. First every CI whose one cofactor folds to constant 0 is fixed to
+// the other value (any satisfying input has it); then, `depth` times, e splits
+// on the CI whose larger cofactor is smallest. In deep arithmetic, a value of
+// one input often folds a large part of the logic: the cubes are smaller and
+// together much easier than e for SAT.
+// fixed: the CI values fixed so far; each cube comes with its own.
+typedef std::pair<Aig_Man_t*, std::vector<int>> LsvKlCube;
+static void Lsv_KlCubes(Aig_Man_t* e, int depth, std::vector<LsvKlCube>& cubes,
+                        std::vector<int> fixed = {}) {
+  fixed.resize(Aig_ManCiNum(e), -1);
+  while (!Lsv_KlIsZero(e)) {
+    int nCi = Aig_ManCiNum(e), best = -1, bestSize = INT_MAX;
+    std::vector<int> fix(nCi, -1), implied(nCi, -1);
+    bool any = false;
+    for (int v = 0; v < nCi; ++v) {
+      if (Aig_ObjRefs(Aig_ManCi(e, v)) == 0) continue;
+      int size[2];
+      for (int b = 0; b < 2; ++b) {
+        fix[v] = b;
+        Aig_Man_t* d = Lsv_KlCof(e, fix);
+        size[b] = Lsv_KlIsZero(d) ? 0 : Aig_ManNodeNum(d) + 1;
+        Aig_ManStop(d);
+      }
+      fix[v] = -1;
+      if (!size[0] && !size[1]) {  // both fold: e is constant 0
+        Aig_ManStop(e);
+        return;
+      }
+      if (!size[0] || !size[1]) implied[v] = !size[0], any = true;
+      if (std::max(size[0], size[1]) < bestSize) bestSize = std::max(size[0], size[1]), best = v;
+    }
+    if (!any && (depth == 0 || best < 0)) {
+      cubes.push_back({e, fixed});
+      return;
+    }
+    if (any) {
+      for (int v = 0; v < nCi; ++v)
+        if (implied[v] >= 0) fixed[v] = implied[v];
+      Aig_Man_t* d = Lsv_KlCof(e, implied);
+      Aig_ManStop(e);
+      e = d;
+      continue;
+    }
+    for (int b = 0; b < 2; ++b) {
+      fix[best] = fixed[best] = b;
+      Lsv_KlCubes(Lsv_KlCof(e, fix), depth - 1, cubes, fixed);
+    }
+    Aig_ManStop(e);
+    return;
+  }
+  Aig_ManStop(e);
+}
+
+// Unbounded CaDiCaL on the output of cube e: 1 SAT (its input, with the
+// cube's fixed values, goes to the shared pool), 0 UNSAT.
+static int Lsv_KlCadical(const LsvKlCube& cube) {
+  Aig_Man_t* e = cube.first;
+  Cnf_Dat_t* cnf = Cnf_Derive(e, 1);
+  cadical_solver* cs = cadical_solver_new();
+  cadical_solver_setnvars(cs, cnf->nVars);
+  int *beg, *end, k, unsat = 0;
+  Cnf_CnfForClause(cnf, beg, end, k) if (!unsat && !cadical_solver_addclause(cs, beg, end)) unsat = 1;
+  int l = Abc_Var2Lit(cnf->pVarNums[Aig_ManCo(e, 0)->Id], 0);
+  int r = unsat ? -1 : cadical_solver_solve(cs, &l, &l + 1, 0, 0, 0, 0);
+  if (r == 1) {
+    std::vector<int> x = cube.second;
+    Aig_Obj_t* ci;
+    Aig_ManForEachCi(e, ci, k) if (x[k] < 0) {
+      int v = cnf->pVarNums[ci->Id];
+      x[k] = v >= 0 && cadical_solver_get_var_value(cs, v) > 0;
+    }
+    Lsv_PoolAdd(x);
+  }
+  cadical_solver_delete(cs);
+  Cnf_DataFree(cnf);
+  return r == 1;
+}
+
+// Whether c is in A(u), by CaDiCaL on the miter: split into up to 2^depth
+// cubes (Lsv_KlCubes) solved on `workers` children, or whole with depth < 0.
+// Returns 1 (allowed), 0 (not) or -1 (a child died).
+static int Lsv_KlCadicalMiter(Abc_Ntk_t* ntk, Vec_Ptr_t* order, const LsvKlCut& cut,
+                              unsigned u, unsigned cu, unsigned c, int depth, size_t workers) {
+  Abc_Ntk_t* mt = Lsv_KlNewMiter(ntk);
+  Abc_Obj_t* mu = Lsv_KlMiter(mt, ntk, order, cut, u, cu, c);
+  if (mu == Abc_ObjNot(Abc_AigConst1(mt))) {
+    Abc_NtkDelete(mt);
+    return 1;
+  }
+  std::vector<LsvKlCube> cubes;
+  Aig_Man_t* aig = Lsv_KlToAig(mt, mu);
+  if (depth < 0) cubes.push_back({aig, std::vector<int>(Aig_ManCiNum(aig), -1)});
+  else Lsv_KlCubes(aig, depth, cubes);
+  Abc_NtkDelete(mt);
+  std::vector<int> r = Lsv_Pool(cubes.size(), workers, [&](int i) { return Lsv_KlCadical(cubes[i]); });
+  for (auto& cb : cubes) Aig_ManStop(cb.first);
+  int allowed = 1;
+  for (int x : r)
+    if (x == 1) return 0;
+    else if (x < 0) allowed = -1;
+  return allowed;
 }
 
 // A(u) for one base cut, cheapest step first (see the overview at the top of
@@ -1747,8 +1763,13 @@ struct LsvKlFlex {
     BuildMiter();
     FindChain();
     SimRandom();
+    SimPool();
     std::vector<Item> tasks = Tasks();
+    SimBiased(1024, tasks);
+    Unobserved(tasks);
     if (chain.empty()) SolveTogether(tasks);
+    SimPool();
+    Unobserved(tasks);
     SolveLeftovers(SolveEach(tasks));
     return masks;
   }
@@ -1850,7 +1871,14 @@ struct LsvKlFlex {
           if (point[u].empty())
             for (int k = 0; k < nPis; ++k) point[u].push_back((val[Aig_ManCi(aig, k)->Id] >> bit) & 1);
         }
-        if (((mu >> bit) & 1) && !((observed[u] >> c) & 1)) observed[u] |= 1u << c, ++gain;
+        if (((mu >> bit) & 1) && !((observed[u] >> c) & 1)) {
+          observed[u] |= 1u << c, ++gain;
+          if (share) {
+            std::vector<char> x(nPis);
+            for (int k = 0; k < nPis; ++k) x[k] = (val[Aig_ManCi(aig, k)->Id] >> bit) & 1;
+            Lsv_PoolAdd(x);
+          }
+        }
       }
     }
   }
@@ -1902,7 +1930,73 @@ struct LsvKlFlex {
     }
   }
 
+  // The shared counterexamples not simulated yet, 64 per word.
+  unsigned poolDone = 0;
+  void SimPool() {
+    if (!lsvPool) return;
+    unsigned end = std::min(lsvPool->n.load(), lsvPool->cap);
+    while (poolDone < end) {
+      for (int i = 0; i < nPis; ++i) {
+        uint64_t w = 0;
+        for (unsigned b = 0; b < 64; ++b)
+          w |= uint64_t(lsvPool->x[(size_t)std::min(poolDone + b, end - 1) * nPis + i]) << b;
+        val[Aig_ManCi(aig, i)->Id] = w;
+      }
+      SimWord();
+      poolDone = std::min(poolDone + 64, end);
+    }
+  }
+
   bool Observed(unsigned u, unsigned c) const { return (observed[u] >> c) & 1; }
+
+  // Drops the items simulation has decided since.
+  void Unobserved(std::vector<Item>& items) const {
+    std::vector<Item> rest;
+    for (const auto& t : items)
+      if (!Observed(t[0], t[2])) rest.push_back(t);
+    items.swap(rest);
+  }
+
+  // Deep arithmetic observes some roots only on rare inputs (log2: mostly
+  // ones), which a long run of biased random patterns still finds far sooner
+  // than SAT: a second where SAT takes minutes. Stops once all of qs are seen.
+  // Where it rarely finds anything (sqrt: never), it only costs: the budget
+  // shrinks with the success rate over all cuts so far.
+  bool share = false;
+  void SimBiased(int words, const std::vector<Item>& qs) {
+    if (qs.empty()) return;
+    if (lsvPool) {
+      unsigned runs = lsvPool->sbRuns++, hits = lsvPool->sbHits;
+      if (runs >= 16 && 4 * hits < runs) words = std::min(words, 64 + int((long)words * 4 * hits / runs));
+    }
+    long g0 = gain;
+    share = true;
+    struct Done {
+      LsvKlFlex* f;
+      long g0;
+      ~Done() {
+        f->share = false;
+        if (lsvPool && f->gain > g0) lsvPool->sbHits++;
+      }
+    } done{this, g0};
+    for (int word = 0; word < words; ++word) {
+      if (word % 64 == 0 && std::all_of(qs.begin(), qs.end(),
+                                        [&](const Item& t) { return Observed(t[0], t[2]); }))
+        return;
+      for (int i = 0; i < nPis; ++i) {
+        uint64_t r = rng();
+        switch (word % 6) {  // P(1) = 1/2, 3/4, 7/8, 1/4, 15/16, 1/8
+          case 1: r |= rng(); break;
+          case 2: r |= rng() | rng(); break;
+          case 3: r &= rng(); break;
+          case 4: r |= rng() | rng() | rng(); break;
+          case 5: r &= rng() & rng(); break;
+        }
+        val[Aig_ManCi(aig, i)->Id] = r;
+      }
+      SimWord();
+    }
+  }
 
   LsvKlSat* SweepFor(unsigned flip) {
     std::unique_ptr<LsvKlSat>& sw = sweeps[flip];
@@ -1914,27 +2008,40 @@ struct LsvKlFlex {
   // returns the (u, cu, c) no simulation has decided.
   std::vector<Item> Tasks() {
     std::vector<Item> tasks;
+    // Glucose on the logic of the leaves and roots only: proving a u never
+    // occurs can take a minute in deep arithmetic, and there it is several
+    // times faster than bsat on the whole miter.
+    Aig_Man_t* cone = nullptr;
     Cnf_Dat_t* cnf = nullptr;
-    sat_solver* sat = nullptr;
+    bmcg_sat_solver* sat = nullptr;
     for (unsigned u = 0; u < masks.size(); ++u) {
       if (!seen[u]) {
         if (!cnf) {
-          cnf = Cnf_Derive(aig, Aig_ManCoNum(aig));
-          sat = (sat_solver*)Cnf_DataWriteIntoSolver(cnf, 1, 0);
+          cone = Aig_ManDupSimple(aig);
+          Aig_ObjPatchFanin0(cone, Aig_ManCo(cone, n), Aig_ManConst0(cone));  // drop mu
+          Aig_ManCleanup(cone);
+          cnf = Cnf_Derive(cone, Aig_ManCoNum(cone));
+          sat = bmcg_sat_solver_start();
+          bmcg_sat_solver_set_nvars(sat, cnf->nVars);
+          int *beg, *end, k;
+          Cnf_CnfForClause(cnf, beg, end, k) if (sat && !bmcg_sat_solver_addclause(sat, beg, end - beg)) {
+            bmcg_sat_solver_stop(sat);
+            sat = nullptr;
+          }
         }
         if (!sat) continue;  // contradictory at once: no u is produced
-        auto coVar = [&](int i) { return cnf->pVarNums[Aig_ManCo(aig, i)->Id]; };
+        auto coVar = [&](int i) { return cnf->pVarNums[Aig_ManCo(cone, i)->Id]; };
         std::vector<lit> lits(n);
         for (int j = 0; j < n; ++j) lits[j] = Abc_Var2Lit(coVar(j), !((u >> (n - 1 - j)) & 1));
-        int pt = sat_solver_solve(sat, lits.data(), lits.data() + n, 0, 0, 0, 0);
-        if (pt == l_False) continue;  // u is never produced: everything is allowed
+        int pt = bmcg_sat_solver_solve(sat, lits.data(), n);
+        if (pt == -1) continue;  // u is never produced: everything is allowed
         orig_c[u] = 0;
         for (int j = 0; j < m; ++j)
-          orig_c[u] = orig_c[u] << 1 | sat_solver_var_value(sat, coVar(n + 1 + j));
+          orig_c[u] = orig_c[u] << 1 | bmcg_sat_solver_read_cex_varvalue(sat, coVar(n + 1 + j));
         point[u].assign(nPis, 0);
         for (int i = 0; i < nPis; ++i) {
-          int v = cnf->pVarNums[Aig_ManCi(aig, i)->Id];
-          point[u][i] = v >= 0 && sat_solver_var_value(sat, v);
+          int v = cnf->pVarNums[Aig_ManCi(cone, i)->Id];
+          point[u][i] = v >= 0 && bmcg_sat_solver_read_cex_varvalue(sat, v);
         }
       }
       // Patterns near a point with U = u mostly keep U = u: more chances to observe c.
@@ -1943,8 +2050,9 @@ struct LsvKlFlex {
       for (unsigned c = 0; c < (1u << m); ++c)
         if (c != orig_c[u] && !Observed(u, c)) tasks.push_back({u, orig_c[u], c});
     }
-    if (sat) sat_solver_delete(sat);
+    if (sat) bmcg_sat_solver_stop(sat);
     if (cnf) Cnf_DataFree(cnf);
+    if (cone) Aig_ManStop(cone);
     return tasks;
   }
 
@@ -1964,6 +2072,7 @@ struct LsvKlFlex {
         break;
       }
       if (cex.empty() || bad < 0) break;  // a flipped root drives a PO: no single culprit
+      Lsv_PoolAdd(cex);
       SimNear(cex, 4);
       std::vector<Item> rest;
       for (size_t i = 0; i < tasks.size(); ++i)
@@ -1980,7 +2089,23 @@ struct LsvKlFlex {
   int Solve(unsigned u, unsigned cu, unsigned c, std::vector<char>& cex) {
     LsvKlSat* sw = SweepFor(cu ^ c);
     if (chain.empty()) return sw->Query(u, cu, c, cex, 2000);
-    int q = Lsv_KlChain(ntk, order, cut, u, cu, c, chain, 1000000, cex, oc);
+    // The cases settle most queries within a small budget. Where fixing the
+    // chain PIs barely shrinks the miter they stall, and the sweep is quick
+    // instead: alternate, raising the budgets.
+    for (int limit : {100000, 1000000}) {
+      int q = SolveCases(u, cu, c, cex, limit);
+      if (q >= 0) return q;
+      cex.clear();
+      q = sw->Query(u, cu, c, cex, limit < 1000000 ? 200 : 2000);
+      if (q >= 0) return q;
+      cex.clear();
+    }
+    return -1;
+  }
+
+  // The chain cases with a satoko budget of limit conflicts per call.
+  int SolveCases(unsigned u, unsigned cu, unsigned c, std::vector<char>& cex, int limit) {
+    int q = Lsv_KlChain(ntk, order, cut, u, cu, c, chain, limit, cex, oc);
     if (q >= 0) return q;
     for (int j = 0; j < m; ++j) {
       unsigned bit = 1u << (m - 1 - j), c2 = c ^ bit;
@@ -1990,17 +2115,16 @@ struct LsvKlFlex {
       if (q2 == 1) {
         std::vector<int> pc(N, -1);
         for (const auto& kv : cubes[j]) pc[kv.first] = kv.second;
-        q = Lsv_KlCase(ntk, order, cut, u, cu, c, pc, 1000000, cex, oc);
+        q = Lsv_KlCase(ntk, order, cut, u, cu, c, pc, limit, cex, oc);
         if (q >= 0) return q;
       } else if (q2 == 0 && !x.empty()) {
+        Lsv_PoolAdd(x);
         SimNear(x, 1);
         if (Observed(u, c)) return 0;
       }
       break;
     }
-    q = sw->Query(u, cu, c, cex, 200);
-    if (q < 0) q = sw->Query(u, cu, c, cex, 2000);
-    return q;
+    return -1;
   }
 
   // The queries are independent: spread them over the cores. Returns those
@@ -2020,7 +2144,9 @@ struct LsvKlFlex {
     }
     std::vector<int> qs = Lsv_Pool(tasks.size(), workers, [&](int i) {
       std::vector<char> cex;
-      return Solve(tasks[i][0], tasks[i][1], tasks[i][2], cex);
+      int q = Solve(tasks[i][0], tasks[i][1], tasks[i][2], cex);
+      if (q == 0) Lsv_PoolAdd(cex);
+      return q;
     }, byU);
     std::vector<Item> pending;
     for (size_t i = 0; i < tasks.size(); ++i) {
@@ -2030,55 +2156,34 @@ struct LsvKlFlex {
     return pending;
   }
 
-  // Unbounded, exact: batched fraig, a large sweep, then a race of engines.
+  // Unbounded, exact: a race of engines, after one more long run of biased
+  // simulation. Each engine stalls on some of what is left, rarely all on the
+  // same query: the sweep wins most deep UNSAT ones, cube and conquer a few
+  // in div, CaDiCaL the rare-witness SAT ones in log2.
   void SolveLeftovers(const std::vector<Item>& pending) {
-    // Batch by the values of the PI leaves, which the miters fold.
-    unsigned piLeaves = 0;
-    for (int j = 0; j < n; ++j)
-      if (Abc_ObjIsPi(Abc_NtkObj(ntk, cut.leaves[j]))) piLeaves |= 1u << (n - 1 - j);
-    std::map<unsigned, std::vector<Item>> groups;
-    for (const auto& it : pending) groups[it[0] & piLeaves].push_back(it);
-    for (auto& g : groups) {
-      std::vector<Item> items;
-      for (const auto& it : g.second)
-        if (!Observed(it[0], it[2])) items.push_back(it);
-      std::vector<int> res = Lsv_Timed([&] { return Lsv_KlBatch(ntk, order, cut, items); },
-                                       items.size(), 5000);
-      for (size_t k = 0; k < items.size(); ++k) {
-        unsigned u = items[k][0], cu = items[k][1], c = items[k][2];
-        if (Observed(u, c)) continue;  // a later counterexample showed it
-        int q = res[k];
-        std::vector<char> cex;
-        LsvKlSat* sw = SweepFor(cu ^ c);
-        if (q < 0) q = sw->Query(u, cu, c, cex, 20000);
-        // Each engine stalls on some of what is left, rarely all on the same
-        // query: race them.
-        if (q < 0)
-          q = Lsv_Race({[&] {
-                          std::vector<char> x;
-                          return Lsv_KlAllowed(ntk, order, cut, u, cu, c, x, 0);
-                        },
-                        [&] {
-                          std::vector<char> x;
-                          return Lsv_KlAllowed(ntk, order, cut, u, cu, c, x, -1);
-                        },
-                        [&] {
-                          std::vector<char> x;
-                          return Lsv_KlAllowed(ntk, order, cut, u, cu, c, x, -2);
-                        },
-                        [&] {
-                          std::vector<char> x;
-                          return sw->Query(u, cu, c, x, 0);
-                        }});
-        // Every child died (no fork, out of memory): decide it here, unbounded,
-        // rather than report "not allowed" without a counterexample.
-        if (q < 0) {
-          std::vector<char> x;
-          q = Lsv_KlAllowed(ntk, order, cut, u, cu, c, x, 0);
-        }
-        if (!cex.empty()) SimNear(cex, 4);
-        if (q == 1) masks[u] |= 1u << c;
-      }
+    SimBiased(16384, pending);
+    for (const auto& it : pending) {
+      unsigned u = it[0], cu = it[1], c = it[2];
+      SimPool();
+      if (Observed(u, c)) continue;  // a later counterexample showed it
+      LsvKlSat* sw = SweepFor(cu ^ c);
+      auto sweep = [&] {
+        std::vector<char> x;
+        int r = sw->Query(u, cu, c, x, 0);
+        Lsv_PoolAdd(x);
+        return r;
+      };
+      int q = Lsv_Race({[&] { return Lsv_KlCadicalMiter(ntk, order, cut, u, cu, c, -1, 1); },
+                        [&] { return Lsv_KlCadicalMiter(ntk, order, cut, u, cu, c, 4, workers); },
+                        sweep},
+                       [&] {
+                         SimPool();
+                         return Observed(u, c);
+                       });
+      // Every child died (no fork, out of memory): decide it here, rather
+      // than report "not allowed" without a counterexample.
+      if (q < 0) q = sweep();
+      if (q == 1) masks[u] |= 1u << c;
     }
   }
 };
@@ -2200,6 +2305,13 @@ static int Lsv_CommandKlFlex(Abc_Frame_t* frame, int argc, char** argv) {
   // 4x in total: the OS shares them, so cores freed by finished cuts go to the
   // slow ones.
   size_t perCut = std::min(workers, std::max<size_t>(1, 4 * workers / std::max<size_t>(1, std::min(workers, s.results.size()))));
+  size_t poolCap = 1 << 16, poolBytes = sizeof(LsvCexPool) + poolCap * Abc_NtkPiNum(ntk);
+  void* pool = mmap(nullptr, poolBytes, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  if (pool != MAP_FAILED) {
+    lsvPool = new (pool) LsvCexPool;
+    lsvPool->n = 0, lsvPool->sbRuns = 0, lsvPool->sbHits = 0;
+    lsvPool->cap = poolCap, lsvPool->nPis = Abc_NtkPiNum(ntk);
+  }
   struct Job { pid_t pid; int fd; size_t cut; std::string buf; };
   std::vector<Job> jobs;
   size_t next = 0;
@@ -2221,7 +2333,7 @@ static int Lsv_CommandKlFlex(Abc_Frame_t* frame, int argc, char** argv) {
       if (workers > 1 && pipe(fd) == 0) {
         fflush(stdout);
         fflush(stderr);
-        pid = fork();
+        pid = Lsv_Fork();
         if (pid < 0) close(fd[0]), close(fd[1]);
       }
       if (pid == 0) {
@@ -2259,6 +2371,7 @@ static int Lsv_CommandKlFlex(Abc_Frame_t* frame, int argc, char** argv) {
     std::vector<unsigned> roots = s.results[i].roots;
     Lsv_KlPrint(s.results[i], all[i], roots, 0, s.l);
   }
+  if (lsvPool) munmap(pool, poolBytes), lsvPool = nullptr;
   Vec_PtrFree(order);
   return 0;
 }
