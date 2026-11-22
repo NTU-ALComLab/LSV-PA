@@ -2,6 +2,7 @@
 #include "lsvCut.h"
 
 #include <algorithm>
+#include <functional>
 #include <map>
 #include <utility>
 
@@ -179,6 +180,9 @@ struct KlCutSearch
   int l = 0;                                   // root 數量上限
   std::vector<int> andIds;                     // 可選 root 的 ID，已按升冪排列
   std::vector<std::vector<RootOption>> options; // options[index]：andIds[index] 的 PA1 cuts，依 cone 由大到小排列
+  // futureGain[index][t]：從 andIds[index] 之後（含）再挑 t 個 root，上界最多還能增加多少。
+  // 每挑一個 root r，|V| 加 1，cone 總和最多加 r 的最大 cone，所以取後面 (1 + 最大 cone) 前 t 大的總和。
+  std::vector<std::vector<int>> futureGain;
   std::vector<int> roots;                      // 目前這條分支選了哪些 roots
   int maximumSize = 0;                         // 到目前為止最大的合法 cut 大小
   std::vector<KlCut> maximumCuts;              // 所有和 maximumSize 並列的合法 cuts
@@ -187,10 +191,14 @@ struct KlCutSearch
 // 在目前的 roots 後再試選一個 root。start 是下一個可選的 andIds 索引。
 // leafUnions 是加入新 root 前的 U 候選。函式把找到的答案更新到 search。
 //
-// 最後一層的上界剪枝：如果加入這個 root 之後不會再往下遞迴（roots 已滿 l 個，或後面沒有
-// AND 可選），nextUnions 只用來驗證和去重。這時上界小於目前最大值的配對，連合併都不必做。
-// U 依 cone 總和、option 依 cone 都由大到小排列，上界 |V| + cone 總和 + cone 就是單調遞減；
-// maximumSize 只會變大，所以一旦上界不夠，後面的也都不夠，可以直接 break。
+// 子樹上界剪枝：一組配對產生的 (U, V)，以及從它往下再加 root 長出的所有 cut，大小都不超過
+//   |V| + cone 總和 + futureGain（後面最多還能挑的 root 帶來的增量）。
+// 這個值小於目前最大值時，這組配對連同整棵子樹都不可能被印出，連合併都不必做。
+// 最後一層（roots 已滿 l 個，或後面沒有 AND 可選）的 futureGain 是 0，就是只看這組 cut 本身。
+// U 依 cone 總和、option 依 cone 都由大到小排列，上界就是單調遞減；maximumSize 只會變大，
+// 所以一旦上界不夠，後面的也都不夠，可以直接 break。
+// 同一組 leaves 不論從哪條路產生，它的大小都不超過任何一條路算出的上界，所以略過時不會漏掉；
+// KeepMinimalUnions 只會在較小的 U 確實留在 nextUnions 時才刪掉較大的 U，也不受影響。
 static void EnumerateKlCuts(KlCutSearch &search, std::size_t start,
                             const LeafUnions &leafUnions)
 {
@@ -212,9 +220,16 @@ static void EnumerateKlCuts(KlCutSearch &search, std::size_t start,
     const int rootCount = static_cast<int>(search.roots.size()) + 1;
     const bool lastLevel = rootCount == search.l || index + 1 == search.andIds.size();
     const int maxCone = options.empty() ? 0 : options.front().cone;
+    // reach 是 |V| 加上往下最多還能長的量，再加上 cone 總和就是整棵子樹的上界。
+    int reach = rootCount;
+    if (!lastLevel)
+    {
+      const std::vector<int> &gains = search.futureGain[index + 1];
+      reach += gains[std::min<std::size_t>(static_cast<std::size_t>(search.l - rootCount), gains.size() - 1)];
+    }
 
     // 最好的 U 配上最大的 cone 都不夠，這個 root 在這一層完全不用試。
-    if (lastLevel && rootCount + maxConeSum + maxCone < search.maximumSize)
+    if (reach + maxConeSum + maxCone < search.maximumSize)
       continue;
     search.roots.push_back(root);
 
@@ -225,14 +240,14 @@ static void EnumerateKlCuts(KlCutSearch &search, std::size_t start,
     {
       const Cut &leaves = unionIt->first;
       const int coneSum = unionIt->second;
-      if (lastLevel && rootCount + coneSum + maxCone < search.maximumSize)
+      if (reach + coneSum + maxCone < search.maximumSize)
         break;
       if (std::binary_search(leaves.leaves.begin(), leaves.leaves.end(), root))
         continue;
       for (const RootOption &option : options)
       {
         int bound = coneSum + option.cone;
-        if (lastLevel && rootCount + bound < search.maximumSize)
+        if (reach + bound < search.maximumSize)
           break;
 
         // 先用 signature 快篩，再算精確聯集。merged 是獨立的暫存，
@@ -336,6 +351,24 @@ std::vector<KlCut> Lsv_FindMaximumKlCuts(Abc_Ntk_t *pNtk, int k, int l)
     }
     std::stable_sort(options.begin(), options.end(),
                      [](const RootOption &a, const RootOption &b) { return a.cone > b.cone; });
+  }
+
+  // 由後往前維護後面各 root 的 (1 + 最大 cone) 前 l 大的值，算出 futureGain。
+  // 挑的 root 數不會超過 AND 的總數，所以 t 的上限取 min(l, AND 數)，避免 l 很大時浪費記憶體。
+  const std::size_t n = search.andIds.size();
+  const int maxPicks = static_cast<int>(std::min<std::size_t>(static_cast<std::size_t>(l), n));
+  search.futureGain.assign(n + 1, std::vector<int>(maxPicks + 1, 0));
+  std::vector<int> top; // 由大到小，最多 maxPicks 個
+  for (std::size_t index = n; index-- > 0;)
+  {
+    const std::vector<RootOption> &options = search.options[index];
+    int gain = 1 + (options.empty() ? 0 : options.front().cone);
+    top.insert(std::upper_bound(top.begin(), top.end(), gain, std::greater<int>()), gain);
+    if (static_cast<int>(top.size()) > maxPicks)
+      top.pop_back();
+    for (int t = 1; t <= maxPicks; ++t)
+      search.futureGain[index][t] = search.futureGain[index][t - 1] +
+                                    (t - 1 < static_cast<int>(top.size()) ? top[t - 1] : 0);
   }
 
   // 從沒有選任何 root 的狀態開始，起始的 U 候選只有一個空集合，cone 總和為 0。
