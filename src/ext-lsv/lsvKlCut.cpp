@@ -163,49 +163,83 @@ static void KeepMinimalUnions(LeafUnions &unions)
   }
 }
 
+// 一個 root 可選的 PA1 cut，以及這個 cut 的 cone 大小（從 root 走到 cut 為止經過的 AND 數）。
+struct RootOption
+{
+  Cut cut;
+  int cone = 0;
+};
+
 // 搜尋的資料集中放在同一份 search，遞迴時用參考傳下去。
-// singleRootCuts、andIds 和 coneSizes 是進入搜尋前準備好的資料，roots 則會隨分支增減。
+// andIds 和 options 是進入搜尋前準備好的資料，roots 則會隨分支增減。
 struct KlCutSearch
 {
   Abc_Ntk_t *pNtk = nullptr;
-  int k = 0;                              // leaf 數量上限
-  int l = 0;                              // root 數量上限
-  CutTable singleRootCuts;                // PA1 查表，key 是單一 root 的 ID
-  std::vector<int> andIds;                // 可選 root 的 ID，已按升冪排列
-  std::vector<std::vector<int>> coneSizes; // coneSizes[index][j]：andIds[index] 第 j 個 PA1 cut 的 cone 大小
-  std::vector<int> roots;                 // 目前這條分支選了哪些 roots
-  int maximumSize = 0;                    // 到目前為止最大的合法 cut 大小
-  std::vector<KlCut> maximumCuts;         // 所有和 maximumSize 並列的合法 cuts
+  int k = 0;                                   // leaf 數量上限
+  int l = 0;                                   // root 數量上限
+  std::vector<int> andIds;                     // 可選 root 的 ID，已按升冪排列
+  std::vector<std::vector<RootOption>> options; // options[index]：andIds[index] 的 PA1 cuts，依 cone 由大到小排列
+  std::vector<int> roots;                      // 目前這條分支選了哪些 roots
+  int maximumSize = 0;                         // 到目前為止最大的合法 cut 大小
+  std::vector<KlCut> maximumCuts;              // 所有和 maximumSize 並列的合法 cuts
 };
 
 // 在目前的 roots 後再試選一個 root。start 是下一個可選的 andIds 索引。
 // leafUnions 是加入新 root 前的 U 候選。函式把找到的答案更新到 search。
+//
+// 最後一層的上界剪枝：如果加入這個 root 之後不會再往下遞迴（roots 已滿 l 個，或後面沒有
+// AND 可選），nextUnions 只用來驗證和去重。這時上界小於目前最大值的配對，連合併都不必做。
+// U 依 cone 總和、option 依 cone 都由大到小排列，上界 |V| + cone 總和 + cone 就是單調遞減；
+// maximumSize 只會變大，所以一旦上界不夠，後面的也都不夠，可以直接 break。
 static void EnumerateKlCuts(KlCutSearch &search, std::size_t start,
                             const LeafUnions &leafUnions)
 {
+  if (leafUnions.empty())
+    return;
+  std::vector<LeafUnions::const_iterator> byConeSum;
+  for (auto it = leafUnions.begin(); it != leafUnions.end(); ++it)
+    byConeSum.push_back(it);
+  std::stable_sort(byConeSum.begin(), byConeSum.end(),
+                   [](LeafUnions::const_iterator a, LeafUnions::const_iterator b)
+                   { return a->second > b->second; });
+  const int maxConeSum = byConeSum.front()->second;
+
   for (std::size_t index = start; index < search.andIds.size(); ++index)
   {
     int root = search.andIds[index];
+    // options 是新 root 自己的 PA1 cuts。rootCount 是加入新 root 之後的 |V|。
+    const std::vector<RootOption> &options = search.options[index];
+    const int rootCount = static_cast<int>(search.roots.size()) + 1;
+    const bool lastLevel = rootCount == search.l || index + 1 == search.andIds.size();
+    const int maxCone = options.empty() ? 0 : options.front().cone;
+
+    // 最好的 U 配上最大的 cone 都不夠，這個 root 在這一層完全不用試。
+    if (lastLevel && rootCount + maxConeSum + maxCone < search.maximumSize)
+      continue;
     search.roots.push_back(root);
 
-    // options 是新 root 自己的 PA1 cuts，cones 是它們各自的 cone 大小。
     // nextUnions 只收這組新 V 對應的 U。
-    const std::vector<Cut> &options = search.singleRootCuts.at(root);
-    const std::vector<int> &cones = search.coneSizes[index];
     LeafUnions nextUnions;
     Cut merged;
-    for (const auto &[leaves, coneSum] : leafUnions)
+    for (LeafUnions::const_iterator unionIt : byConeSum)
     {
+      const Cut &leaves = unionIt->first;
+      const int coneSum = unionIt->second;
+      if (lastLevel && rootCount + coneSum + maxCone < search.maximumSize)
+        break;
       if (std::binary_search(leaves.leaves.begin(), leaves.leaves.end(), root))
         continue;
-      for (std::size_t j = 0; j < options.size(); ++j)
+      for (const RootOption &option : options)
       {
-        const Cut &option = options[j];
+        int bound = coneSum + option.cone;
+        if (lastLevel && rootCount + bound < search.maximumSize)
+          break;
+
         // 先用 signature 快篩，再算精確聯集。merged 是獨立的暫存，
         // 因為 Lsv_CutMerge 會先清空它的內容。
-        if (__builtin_popcountll(leaves.sign | option.sign) > search.k)
+        if (__builtin_popcountll(leaves.sign | option.cut.sign) > search.k)
           continue;
-        Lsv_CutMerge(leaves, option, merged);
+        Lsv_CutMerge(leaves, option.cut, merged);
         if (merged.leaves.size() > static_cast<std::size_t>(search.k))
           continue;
 
@@ -225,7 +259,6 @@ static void EnumerateKlCuts(KlCutSearch &search, std::size_t start,
 
         // 同一組 roots 下，同一份 U 只驗證一次。重複出現時只把 cone 總和更新成較小值，
         // 讓下一層的上界更緊。
-        int bound = coneSum + cones[j];
         auto [it, inserted] = nextUnions.emplace(merged, bound);
         if (!inserted)
         {
@@ -234,9 +267,9 @@ static void EnumerateKlCuts(KlCutSearch &search, std::size_t start,
         }
 
         // 上界剪枝：|V| + cone 總和已經小於目前最大值，這組 cut 不可能被印出，不必驗證。
-        // 用嚴格小於，因為大小並列的 cut 也要印。它已經在 nextUnions 裡，下一層加了
-        // root 之後仍可能長大，所以只跳過驗證，不跳過遞迴。
-        if (static_cast<int>(search.roots.size()) + bound < search.maximumSize)
+        // 用嚴格小於，因為大小並列的 cut 也要印。不是最後一層時它已經在 nextUnions 裡，
+        // 下一層加了 root 之後仍可能長大，所以只跳過驗證，不跳過遞迴。
+        if (rootCount + bound < search.maximumSize)
           continue;
 
         // 遇到更大的合法 cut 就清空舊答案，大小並列的則一起留下。
@@ -255,7 +288,7 @@ static void EnumerateKlCuts(KlCutSearch &search, std::size_t start,
     // 往下一層只挑後面的 ID，讓同一組 roots 只按一種順序產生。
     // nextUnions 包含所有通過 K1 的 U。加一個 root 可能修復原先的 K4 違規。
     // 展開前先刪掉非最小的 U，理由見 KeepMinimalUnions。
-    if (search.roots.size() < static_cast<std::size_t>(search.l) && !nextUnions.empty())
+    if (!lastLevel && !nextUnions.empty())
     {
       KeepMinimalUnions(nextUnions);
       EnumerateKlCuts(search, index + 1, nextUnions);
@@ -277,30 +310,32 @@ std::vector<KlCut> Lsv_FindMaximumKlCuts(Abc_Ntk_t *pNtk, int k, int l)
   search.pNtk = pNtk;
   search.k = k;
   search.l = l;
-  search.singleRootCuts = Lsv_NtkEnumCuts(pNtk, k);
+  CutTable singleRootCuts = Lsv_NtkEnumCuts(pNtk, k);
 
   Abc_Obj_t *node;
   int i;
   Abc_AigForEachAnd(pNtk, node, i)
     search.andIds.push_back(Abc_ObjId(node));
 
-  // 預先算好每個 (root, PA1 cut) 的 cone 大小，給上界剪枝用。
+  // 預先算好每個 (root, PA1 cut) 的 cone 大小，給上界剪枝用，並依 cone 由大到小排列。
   // 同時把單一 root 的合法 cut 都驗證一次，得到起始的 maximumSize。這些 cut 的 |V| = 1 ≤ l，
   // 所以真正的最大值至少是它；有了它，遞迴一開始就能剪枝，不必等到碰巧走到大的 cut。
   // maximumCuts 先保持空的：完整搜尋會重新產生這些 cut，大小並列時才放進答案，不會重複。
   for (int root : search.andIds)
   {
-    std::vector<int> &cones = search.coneSizes.emplace_back();
-    for (const Cut &option : search.singleRootCuts.at(root))
+    std::vector<RootOption> &options = search.options.emplace_back();
+    for (const Cut &cut : singleRootCuts.at(root))
     {
       std::vector<int> interior;
-      WalkCutBoundary(pNtk, {root}, option.leaves, &interior);
-      cones.push_back(static_cast<int>(interior.size()));
-      if (std::binary_search(option.leaves.begin(), option.leaves.end(), root))
+      WalkCutBoundary(pNtk, {root}, cut.leaves, &interior);
+      options.push_back(RootOption{cut, static_cast<int>(interior.size())});
+      if (std::binary_search(cut.leaves.begin(), cut.leaves.end(), root))
         continue; // trivial cut {root} 違反 K1
       search.maximumSize = std::max(search.maximumSize,
-                                    GetKlCutSize(pNtk, KlCut{{root}, option.leaves}));
+                                    GetKlCutSize(pNtk, KlCut{{root}, cut.leaves}));
     }
+    std::stable_sort(options.begin(), options.end(),
+                     [](const RootOption &a, const RootOption &b) { return a.cone > b.cone; });
   }
 
   // 從沒有選任何 root 的狀態開始，起始的 U 候選只有一個空集合，cone 總和為 0。
