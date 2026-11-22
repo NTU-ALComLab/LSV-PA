@@ -1,4 +1,5 @@
 #include "lsvKlFlex.h"
+#include "lsvCut.h"
 
 #include "sat/bsat/satSolver.h"
 #include "sat/cnf/cnf.h"
@@ -106,6 +107,27 @@ static std::string HexMask(const std::vector<unsigned char> &nibbles)
   return result.empty() ? "0" : result;
 }
 
+// originalRoots[u] 是 leaf 值為 u 時，roots 原本會算出的組合，編號方式和 root 組合 c 相同。
+// 由 K2，roots 的值完全由 leaves 決定，所以用 PA1 的真值表從 leaves 模擬到 roots 即可。
+// PA1 的真值表也是最小 ID 的 leaf 在最高位，和 u 的編號一致。
+// 真值表用 64 位元，leaf 超過 6 個時回傳空 vector，呼叫端就不使用這個捷徑。
+static std::vector<std::size_t> OriginalRootValues(Abc_Ntk_t *pNtk, const KlCut &cut)
+{
+  std::vector<std::size_t> values;
+  if (cut.leaves.size() > 6)
+    return values;
+  Cut leaves;
+  leaves.leaves = cut.leaves;
+  std::vector<uint64_t> tables;
+  for (int root : cut.roots)
+    tables.push_back(Lsv_CutTt(Abc_NtkObj(pNtk, root), leaves));
+  values.assign(std::size_t{1} << cut.leaves.size(), 0);
+  for (std::size_t u = 0; u < values.size(); ++u)
+    for (uint64_t table : tables)
+      values[u] = (values[u] << 1) | ((table >> u) & 1); // 最小 ID 的 root 先放，最後落在最高位
+  return values;
+}
+
 // 用同一個 solver 求解一次。assumptions 是這次才生效的 literals，
 // 回傳 l_True、l_False 或 l_Undef。最後四個 0 表示未設定求解上限。
 static int SolveKlSat(sat_solver *solver, std::vector<lit> &assumptions)
@@ -165,6 +187,7 @@ std::optional<std::vector<std::string>> Lsv_ComputeFlexMasks(Abc_Ntk_t *pNtk, co
   std::vector<std::string> masks;
   std::vector<lit> assumptions;
   assumptions.reserve(leafVars.size() + rootVars.size() + 1);
+  const std::vector<std::size_t> originalRoots = OriginalRootValues(pNtk, cut);
 
   for (std::size_t u = 0; u < leafPatterns; ++u)
   {
@@ -184,6 +207,13 @@ std::optional<std::vector<std::string>> Lsv_ComputeFlexMasks(Abc_Ntk_t *pNtk, co
     std::vector<unsigned char> nibbles(nibbleCount, 0);
     for (std::size_t c = 0; c < rootPatterns; ++c)
     {
+      // c 就是 roots 原本的值時，強制成 c 等於什麼都沒改，輸出不可能變，一定允許。
+      // 這種查詢一定是 UNSAT，但 SAT 要證明兩份電路完全等價，在大型算術電路上可能要好幾分鐘。
+      if (!originalRoots.empty() && c == originalRoots[u])
+      {
+        nibbles[c / 4] |= 1U << (c % 4);
+        continue;
+      }
       // 保留前面的 U=u，換掉上一輪的 p=c，再加上 diff=1 來找反例。
       assumptions.resize(leafVars.size());
       AppendAssumptions(assumptions, rootVars, c);
