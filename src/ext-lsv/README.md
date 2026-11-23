@@ -136,6 +136,14 @@ the masks are exactly those of the plain SAT procedure.
    so it uses a small network of the leaves' fanin cone (`BuildLeafCone`, CNF by `Cnf_DeriveSimple`).
    The full miter is built only if some forcing question is left after simulation, and uses the more
    compact `Cnf_Derive` because those questions are the hard ones.
+4. **Two-stage forcing questions.** A forcing question is first asked on the shared miter above with a
+   limit of 1000 conflicts. Easy questions end there. A question that hits the limit is asked again,
+   without a limit, on a miter whose roots are the constants of c instead of PIs p, built once per c and
+   shared by every u. With constants, ABC propagates them while building the miter and merges every
+   forced node that becomes identical to its original counterpart, so the XORs of unaffected outputs
+   disappear; with p fixed by assumptions, the solver learns the values but must rediscover these
+   equalities by search. On hard queries of large arithmetic circuits this was about 9 times faster.
+   Both miters encode the same question, so the stage never changes an answer.
 
 ## Verification
 
@@ -144,9 +152,13 @@ the masks are exactly those of the plain SAT procedure.
 - An independent brute-force checker written in Python from the definitions enumerates every (U, V),
   checks (K1)–(K4), and computes A(u) by simulating all PI assignments. It reproduces the table of all
   eleven KL cuts of Fig. 1, and agrees with `lsv_kl_flex` on 9 270 (circuit, k, l) cases from 1 854
-  random circuits and on 72 cases from the small example circuits.
-- The output is identical to the first, straightforward implementation on 165 cases of the PA1
-  benchmarks (ctrl, int2float, router, adder, i10, square, div, log2 and smaller circuits).
+  random circuits and on 72 cases from the small example circuits. Simulation settles almost every
+  flexibility question on such small circuits, so the SAT path is also checked separately: with
+  simulation and the original-value shortcut switched off in a test build, the same random cases
+  agree both when the two stages run normally and when every question is sent to the second stage.
+- Every optimization step was checked against the previous one on 172 cases of the PA1 benchmarks
+  (ctrl, int2float, router, adder, i10, square, div, log2 and smaller circuits), with identical output;
+  the first, straightforward implementation also agrees on the 165 of these cases it was run on.
 - AddressSanitizer and UndefinedBehaviorSanitizer report nothing on 21 test and benchmark cases.
 
 ## Performance

@@ -24,9 +24,18 @@ static Abc_Obj_t *CopyMiterFanin(const std::vector<Abc_Obj_t *> &copy,
 
 // Builds the miter of pNtk for the given cut: an AIG that compares the outputs of the original
 // circuit with those of the circuit whose roots are forced. The caller frees the network.
-// PI order: [original PIs][one forcing PI p per root]; PO order: [original leaves][diff].
+// Without a pattern, every root of the forced copy is a new PI p (in root order) that the queries
+// fix by assumptions: one miter serves every root pattern. With a pattern c, the roots are the
+// constants of c instead (the smallest-ID root is the MSB of c).
+// PI order: [original PIs][p, only without a pattern]; PO order: [original leaves][diff].
 // The CNF lookups rely on this order.
-static Abc_Ntk_t *BuildKlMiter(Abc_Ntk_t *pNtk, const KlCut &cut)
+//
+// With constants, Abc_AigAnd propagates them while building, and every forced node that ends up
+// equal to its original counterpart is hashed into the same node, so the XORs of unaffected POs
+// vanish. A SAT solver given PIs p = c only learns the values, not that the two copies of a node
+// are equal, and has to rediscover those equalities by search; on large arithmetic circuits that
+// makes queries several times slower. The price is one miter per c instead of one per cut.
+static Abc_Ntk_t *BuildKlMiter(Abc_Ntk_t *pNtk, const KlCut &cut, std::optional<std::size_t> pattern)
 {
   Abc_Ntk_t *miter = Abc_NtkAlloc(ABC_NTK_STRASH, ABC_FUNC_AIG, 1);
   miter->pName = Extra_UtilStrsav("lsv_kl_flex_miter");
@@ -40,13 +49,14 @@ static Abc_Ntk_t *BuildKlMiter(Abc_Ntk_t *pNtk, const KlCut &cut)
   original[constant] = forced[constant] = Abc_AigConst1(miter);
 
   // Each original PI is created once and shared by both copies, so both see the same input.
-  // Then one more PI per root (in ID order): the forcing value p that the SAT queries fix.
   Abc_Obj_t *node;
   int i;
   Abc_NtkForEachPi(pNtk, node, i)
     original[Abc_ObjId(node)] = forced[Abc_ObjId(node)] = Abc_NtkCreatePi(miter);
-  for (int root : cut.roots)
-    forced[root] = Abc_NtkCreatePi(miter);
+  const std::size_t m = cut.roots.size();
+  for (std::size_t j = 0; j < m; ++j)
+    forced[cut.roots[j]] = pattern ? Abc_ObjNotCond(Abc_AigConst1(miter), !((*pattern >> (m - 1 - j)) & 1))
+                                   : Abc_NtkCreatePi(miter);
 
   // nodes lists the internal ANDs in topological order, so both fanins of each AND already
   // have their signals in the miter when it is copied.
@@ -55,7 +65,7 @@ static Abc_Ntk_t *BuildKlMiter(Abc_Ntk_t *pNtk, const KlCut &cut)
   {
     int id = Abc_ObjId(node);
     original[id] = Abc_AigAnd(manager, CopyMiterFanin(original, node, 0), CopyMiterFanin(original, node, 1));
-    // A forced[id] that is already set belongs to a root and is its forcing PI p. It stays so
+    // A forced[id] that is already set belongs to a root (its PI p or its constant). It stays so
     // even when another root lies in this root's fanin cone.
     if (!forced[id])
       forced[id] = Abc_AigAnd(manager, CopyMiterFanin(forced, node, 0), CopyMiterFanin(forced, node, 1));
@@ -133,13 +143,18 @@ static std::vector<std::size_t> OriginalRootValues(Abc_Ntk_t *pNtk, const KlCut 
   return values;
 }
 
-// Runs one query on a solver. assumptions hold the literals for this query only. Returns
-// l_True, l_False or l_Undef; the four zeros mean no resource limits.
-static int SolveKlSat(sat_solver *solver, std::vector<lit> &assumptions)
+// Runs one query on a solver. assumptions hold the literals for this query only. conflictLimit
+// bounds the conflicts of this call (0 means no limit). Returns l_True, l_False, or l_Undef when
+// the limit was reached.
+static int SolveKlSat(sat_solver *solver, std::vector<lit> &assumptions, int conflictLimit = 0)
 {
   lit *begin = assumptions.data();
-  return sat_solver_solve(solver, begin, begin + assumptions.size(), 0, 0, 0, 0);
+  return sat_solver_solve(solver, begin, begin + assumptions.size(), conflictLimit, 0, 0, 0);
 }
+
+// Conflicts a forcing query may spend on the shared miter before it moves to the miter with
+// constant roots. Easy queries finish far below this; the rest are worth a miter of their own.
+static const int kSharedConflictLimit = 1000;
 
 // Result of the simulation filter. seen[u]: some simulated input gives U = u. changed[u][c]:
 // some simulated input with U = u changes a PO when the roots are forced to c.
@@ -320,9 +335,13 @@ struct FlexSolver
 //
 // Most queries need no SAT call: the original root pattern is always allowed
 // (OriginalRootValues); a u seen in simulation occurs, and a c with a simulated output change is
-// not allowed (SimulateFlex). The rest go to SAT, and both SAT setups are built only when first
-// needed: "does U = u occur?" uses the small cone above the leaves, and only "does forcing c
-// change an output?" needs the full miter.
+// not allowed (SimulateFlex). The rest go to SAT, and every SAT setup is built only when first
+// needed. "Does U = u occur?" uses the small cone above the leaves. "Does forcing c change an
+// output?" is asked in two stages: first, with a conflict limit, on one miter per cut whose roots
+// are PIs p fixed by assumptions, which settles the easy queries without building more; a query
+// that hits the limit is then solved without limit on a miter with the roots fixed to the
+// constants of c, built once per c (see BuildKlMiter). Both miters encode the same question, so
+// the answer does not depend on the stage.
 std::optional<std::vector<std::string>> Lsv_ComputeFlexMasks(Abc_Ntk_t *pNtk, const KlCut &cut)
 {
   // Patterns u and c are indexed by integers and counted with 1 << (number of nodes); make sure
@@ -348,10 +367,31 @@ std::optional<std::vector<std::string>> Lsv_ComputeFlexMasks(Abc_Ntk_t *pNtk, co
   // reach: the cone above the leaves; PO i is the i-th leaf.
   FlexSolver reach;
   std::vector<int> reachLeafVars;
-  // miter: PIs [original PIs][forcing PIs], POs [original leaves][diff]; see BuildKlMiter.
-  FlexSolver miter;
-  std::vector<int> leafVars, rootVars;
-  int diffVar = 0;
+  // A forcing miter with the CNF variables of its leaves, its forcing PIs (shared miter only) and
+  // diff; see BuildKlMiter. shared has PIs p for the roots, constants[c] has the roots fixed to c.
+  struct ForcingMiter
+  {
+    FlexSolver solver;
+    std::vector<int> leafVars, rootVars;
+    int diffVar = 0;
+  };
+  auto initMiter = [&](ForcingMiter &miter, std::optional<std::size_t> pattern) {
+    // Queries that get here were not settled by simulation and may be hard, so use the compact CNF.
+    if (!miter.solver.Init(BuildKlMiter(pNtk, cut, pattern), true))
+      return false;
+    for (std::size_t i = 0; i < n; ++i)
+      miter.leafVars.push_back(miter.solver.CoVar(static_cast<int>(i)));
+    if (!pattern)
+    {
+      const int firstForcingPi = Abc_NtkPiNum(pNtk);
+      for (std::size_t i = 0; i < m; ++i)
+        miter.rootVars.push_back(miter.solver.CiVar(firstForcingPi + static_cast<int>(i)));
+    }
+    miter.diffVar = miter.solver.CoVar(static_cast<int>(n));
+    return true;
+  };
+  ForcingMiter shared;
+  std::vector<ForcingMiter> constants(rootPatterns);
 
   std::vector<std::string> masks;
   std::vector<lit> assumptions;
@@ -397,27 +437,27 @@ std::optional<std::vector<std::string>> Lsv_ComputeFlexMasks(Abc_Ntk_t *pNtk, co
       if (simulation.changed[u][c])
         continue;
 
-      if (!miter.Ready())
-      {
-        // Queries that get here were not settled by simulation and are often hard, while the
-        // miter is rarely needed, so use the compact CNF.
-        if (!miter.Init(BuildKlMiter(pNtk, cut), true))
-          return std::nullopt;
-        for (std::size_t i = 0; i < n; ++i)
-          leafVars.push_back(miter.CoVar(static_cast<int>(i)));
-        const int firstForcingPi = Abc_NtkPiNum(pNtk);
-        for (std::size_t i = 0; i < m; ++i)
-          rootVars.push_back(miter.CiVar(firstForcingPi + static_cast<int>(i)));
-        diffVar = miter.CoVar(static_cast<int>(n));
-      }
-      // Fix U = u and p = c, and ask for diff = 1, i.e. a counterexample.
+      // Stage 1: fix U = u and p = c on the shared miter and ask for diff = 1, a counterexample.
+      if (!shared.solver.Ready() && !initMiter(shared, std::nullopt))
+        return std::nullopt;
       assumptions.clear();
-      AppendAssumptions(assumptions, leafVars, u);
-      AppendAssumptions(assumptions, rootVars, c);
-      assumptions.push_back(Abc_Var2Lit(diffVar, 0));
+      AppendAssumptions(assumptions, shared.leafVars, u);
+      AppendAssumptions(assumptions, shared.rootVars, c);
+      assumptions.push_back(Abc_Var2Lit(shared.diffVar, 0));
+      int counterexample = SolveKlSat(shared.solver.solver.get(), assumptions, kSharedConflictLimit);
+      if (counterexample == l_Undef)
+      {
+        // Stage 2: the roots are already c in this miter, so only U = u and diff = 1 are fixed.
+        ForcingMiter &miter = constants[c];
+        if (!miter.solver.Ready() && !initMiter(miter, c))
+          return std::nullopt;
+        assumptions.clear();
+        AppendAssumptions(assumptions, miter.leafVars, u);
+        assumptions.push_back(Abc_Var2Lit(miter.diffVar, 0));
+        counterexample = SolveKlSat(miter.solver.solver.get(), assumptions);
+      }
       // SAT: some input changes the outputs, so bit c stays 0. UNSAT: no counterexample, so bit c
       // is set (nibble c / 4, bit c % 4). Any other answer is an error and writes no mask.
-      int counterexample = SolveKlSat(miter.solver.get(), assumptions);
       if (counterexample == l_False)
         nibbles[c / 4] |= 1U << (c % 4);
       else if (counterexample != l_True)
