@@ -74,7 +74,6 @@ struct RootOption
 {
   Cut cut;
   std::vector<int> region;
-  std::vector<int> fixedExits;
 };
 
 struct MaximumRegion
@@ -201,7 +200,9 @@ static void RememberRegion(KlCutSearch &search, const Cut &leaves)
     search.maximumSize = size;
     search.maximumRegions.clear();
   }
+  // search.roots is in selection order, which is decreasing; a KlCut lists its roots increasingly.
   MaximumRegion answer{{search.roots, leaves.leaves}, {}};
+  std::sort(answer.base.roots.begin(), answer.base.roots.end());
   for (int id : search.region)
     if (search.exits[id] == 0)
       answer.interior.push_back(id);
@@ -211,8 +212,7 @@ static void RememberRegion(KlCutSearch &search, const Cut &leaves)
 
 // Both regions must stop at the merged leaves. If one region contains a
 // leaf from the other, its stored node set would overcount the merged region.
-static bool CanJoinRegion(const KlCutSearch &search, int root, const Cut &leaves,
-                          const RootOption &option)
+static bool CanJoinRegion(const KlCutSearch &search, const Cut &leaves, const RootOption &option)
 {
   for (int id : option.cut.leaves)
     if (search.exits[id] >= 0)
@@ -220,15 +220,28 @@ static bool CanJoinRegion(const KlCutSearch &search, int root, const Cut &leaves
   for (int id : leaves.leaves)
     if (std::binary_search(option.region.begin(), option.region.end(), id))
       return false;
-  // A PO exit cannot disappear when the region grows. If its ID is already
-  // behind the search position, it must already have been selected as a root.
-  for (int id : option.fixedExits)
-    if (id < root && !std::binary_search(search.roots.begin(), search.roots.end(), id))
-      return false;
   return true;
 }
 
-static void EnumerateBaseCuts(KlCutSearch &search, std::size_t start, const Cut &leaves);
+static void EnumerateBaseCuts(KlCutSearch &search, std::size_t start, const Cut &leaves, int floor);
+
+// Roots are picked in decreasing ID order. Let x be an exit of the current region that is not a
+// root yet. In a base cut every exit is a root, so x must still either become a root, or have each
+// outside fanout t absorbed into the region by a later root r with t in r's cone, i.e. r >= t > x.
+// Either way some later root has an ID of at least x, and the next root is the largest later one.
+// Hence the next root must be at least the largest pending exit: if that exit is above the root
+// just selected the branch is dead, and otherwise it bounds the candidates of the next level from
+// below. When no exit is pending the region is closed and the next root may be any smaller AND.
+// Returns the largest pending exit, or 0 if there is none.
+static int LargestPendingExit(const KlCutSearch &search)
+{
+  int largest = 0;
+  for (int id : search.region)
+    if (search.exits[id] > 0 && id > largest &&
+        !std::binary_search(search.roots.begin(), search.roots.end(), id, std::greater<int>()))
+      largest = id;
+  return largest;
+}
 
 // The root is already selected. Add the option temporarily, evaluate its
 // boundary and grow it, then restore the region for the next option.
@@ -236,7 +249,8 @@ static void VisitRegion(KlCutSearch &search, std::size_t index, const RootOption
                         const Cut &merged, std::size_t previousSize, std::size_t future)
 {
   AddRegion(search, option.region);
-  if (search.region.size() + future >= search.maximumSize)
+  const int floor = LargestPendingExit(search);
+  if (floor < search.roots.back() && search.region.size() + future >= search.maximumSize)
   {
     // A selected root with all fanouts inside cannot become an exit again.
     bool rootsExposed = true;
@@ -250,7 +264,7 @@ static void VisitRegion(KlCutSearch &search, std::size_t index, const RootOption
     {
       RememberRegion(search, merged);
       if (search.roots.size() < search.rootLimit && index + 1 < search.andIds.size())
-        EnumerateBaseCuts(search, index + 1, merged);
+        EnumerateBaseCuts(search, index + 1, merged, floor);
     }
   }
   RestoreRegion(search, previousSize);
@@ -260,7 +274,7 @@ static void VisitRegion(KlCutSearch &search, std::size_t index, const RootOption
 // must be in U. Each option is indexed by that leaf once. The full subset
 // test is still needed, and every passing option keeps U unchanged.
 static void VisitIndexedOptions(KlCutSearch &search, std::size_t start, const Cut &leaves,
-                                const std::vector<IndexedOption> &bucket)
+                                const std::vector<IndexedOption> &bucket, int floor)
 {
   const std::size_t previousSize = search.region.size();
   const std::size_t available = search.rootLimit - search.roots.size();
@@ -270,13 +284,15 @@ static void VisitIndexedOptions(KlCutSearch &search, std::size_t start, const Cu
   {
     std::size_t index = it->rootIndex;
     int root = search.andIds[index];
+    if (root < floor) // entries are in increasing index, i.e. decreasing ID, order
+      break;
     const RootOption &option = *it->option;
     const std::size_t future = search.futureGain[index + 1][available - 1];
     if (search.exits[root] == 0 || previousSize + option.region.size() + future < search.maximumSize ||
         (option.cut.sign & ~leaves.sign) ||
         !std::includes(leaves.leaves.begin(), leaves.leaves.end(),
                        option.cut.leaves.begin(), option.cut.leaves.end()) ||
-        !CanJoinRegion(search, root, leaves, option))
+        !CanJoinRegion(search, leaves, option))
       continue;
     search.roots.push_back(root);
     VisitRegion(search, index, option, leaves, previousSize, future);
@@ -290,7 +306,9 @@ static void VisitIndexedOptions(KlCutSearch &search, std::size_t start, const Cu
 // Rejecting a pair when either option enters the other's leaves only removes
 // noncanonical decompositions. On the remaining paths the exact region grows
 // by set union, and the local option for each root is determined by (V,U).
-static void EnumerateBaseCuts(KlCutSearch &search, std::size_t start, const Cut &leaves)
+// floor is the largest pending exit of the current region (see LargestPendingExit); every root
+// picked on this level must be at least floor.
+static void EnumerateBaseCuts(KlCutSearch &search, std::size_t start, const Cut &leaves, int floor)
 {
   const std::size_t previousSize = search.region.size();
   const std::size_t available = search.rootLimit - search.roots.size();
@@ -300,14 +318,16 @@ static void EnumerateBaseCuts(KlCutSearch &search, std::size_t start, const Cut 
   if (leaves.leaves.size() == static_cast<std::size_t>(search.k))
   {
     for (int id : leaves.leaves)
-      VisitIndexedOptions(search, start, leaves, search.optionsByFirstLeaf[id]);
-    VisitIndexedOptions(search, start, leaves, search.leaflessOptions);
+      VisitIndexedOptions(search, start, leaves, search.optionsByFirstLeaf[id], floor);
+    VisitIndexedOptions(search, start, leaves, search.leaflessOptions, floor);
     return;
   }
 
   for (std::size_t index = start; index < search.andIds.size(); ++index)
   {
     int root = search.andIds[index];
+    if (root < floor) // andIds is in decreasing order, so every later root is smaller too
+      break;
     const auto &options = search.options[index];
     if (options.empty() || search.exits[root] == 0 ||
         std::binary_search(leaves.leaves.begin(), leaves.leaves.end(), root))
@@ -324,7 +344,7 @@ static void EnumerateBaseCuts(KlCutSearch &search, std::size_t start, const Cut 
         break;
       if (__builtin_popcountll(leaves.sign | option.cut.sign) > search.k)
         continue;
-      if (!CanJoinRegion(search, root, leaves, option))
+      if (!CanJoinRegion(search, leaves, option))
         continue;
       Lsv_CutMerge(leaves, option.cut, merged);
       if (merged.leaves.size() > static_cast<std::size_t>(search.k))
@@ -370,6 +390,9 @@ std::vector<KlCut> Lsv_FindMaximumKlCuts(Abc_Ntk_t *pNtk, int k, int l)
   int i;
   Abc_AigForEachAnd(pNtk, node, i)
     search.andIds.push_back(Abc_ObjId(node));
+  // Roots are picked in decreasing ID order, so that a pending exit bounds the next root from
+  // below (see LargestPendingExit). All per-root tables below follow this order.
+  std::reverse(search.andIds.begin(), search.andIds.end());
   const std::size_t n = search.andIds.size();
   search.rootLimit = std::min(static_cast<std::size_t>(l), n);
   if (search.rootLimit == 0)
@@ -383,7 +406,7 @@ std::vector<KlCut> Lsv_FindMaximumKlCuts(Abc_Ntk_t *pNtk, int k, int l)
     {
       if (std::binary_search(cut.leaves.begin(), cut.leaves.end(), root))
         continue;
-      RootOption option{cut, {}, {}};
+      RootOption option{cut, {}};
       if (!WalkCutBoundary(pNtk, {root}, cut.leaves, &option.region))
         continue;
       if (option.region.size() + 1 > search.maximumSize &&
@@ -391,24 +414,6 @@ std::vector<KlCut> Lsv_FindMaximumKlCuts(Abc_Ntk_t *pNtk, int k, int l)
         search.maximumSize = option.region.size() + 1;
       option.region.push_back(root);
       std::sort(option.region.begin(), option.region.end());
-      for (int id : option.region)
-      {
-        Abc_Obj_t *gate = Abc_NtkObj(pNtk, id);
-        if (!Abc_ObjFanoutNum(gate))
-          option.fixedExits.push_back(id);
-        else
-        {
-          Abc_Obj_t *fanout;
-          Abc_ObjForEachFanout(gate, fanout, i)
-          {
-            if (Abc_ObjIsPo(fanout))
-            {
-              option.fixedExits.push_back(id);
-              break;
-            }
-          }
-        }
-      }
       options.push_back(std::move(option));
     }
     std::stable_sort(options.begin(), options.end(), [](const RootOption &a, const RootOption &b) {
@@ -417,7 +422,8 @@ std::vector<KlCut> Lsv_FindMaximumKlCuts(Abc_Ntk_t *pNtk, int k, int l)
   }
 
   // Build after sorting all options so pointers remain valid. Appending in
-  // increasing root index order lets the search skip earlier roots in a bucket.
+  // increasing root index (decreasing ID) order lets the search skip earlier roots in a bucket
+  // and stop at the floor.
   search.optionsByFirstLeaf.resize(Abc_NtkObjNumMax(pNtk));
   for (std::size_t index = 0; index < n; ++index)
     for (const RootOption &option : search.options[index])
@@ -444,7 +450,7 @@ std::vector<KlCut> Lsv_FindMaximumKlCuts(Abc_Ntk_t *pNtk, int k, int l)
 
   // Every non-boundary node of a DAG region reaches an exit within that
   // region. Walking from the base roots thus reconstructs the full region.
-  EnumerateBaseCuts(search, 0, Cut{});
+  EnumerateBaseCuts(search, 0, Cut{}, 0);
   std::vector<KlCut> maximumCuts;
   for (const MaximumRegion &region : search.maximumRegions)
   {

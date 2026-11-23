@@ -85,11 +85,20 @@ cached across candidates.
 
 ### Boundary roots and pruning
 
-The search tries roots in increasing ID order. While adding and removing ANDs it
+The search tries roots in decreasing ID order. While adding and removing ANDs it
 maintains the number of fanout edges leaving the region. An AND with an outgoing
 edge is a required root. An AND with no fanouts is also a required root, so a
 dangling region can be reconstructed from the selected roots. A selected root
 that loses its last exit can never recover it on that branch as the region grows.
+
+The decreasing order bounds the next root from below. Let x be an exit of the
+current region that is not a root yet. In the final cut, x is either a root, or
+each of its outside fanouts t is absorbed by a later root r whose cone contains t,
+so r ≥ t > x. Either way some later root is at least x, and the next root is the
+largest later one. The next root must therefore be at least the largest pending
+exit: if that exit is above the root just added, the branch is dead, and otherwise
+the root loops stop as soon as they reach smaller IDs. Only when the region is
+closed (every exit is a root) may the next root be any smaller AND.
 
 The search records a base cut when the selected roots equal the region's required
 roots and the leaves pass K3. Once the maximum size is known, every subset of
@@ -142,20 +151,21 @@ the masks are exactly those of the plain SAT procedure.
 
 ## Performance
 
-Historical times in seconds, measured before the region-based search:
+Times in seconds on the same machine. "First version" is the straightforward
+implementation; "Current" is the region-based search with roots in decreasing ID order.
 
-| Case (k l) | First version | Final |
+| Case (k l) | First version | Current |
 |---|---|---|
-| int2float 6 4 | 102.1 | 0.74 |
-| int2float 6 3 | 10.9 | 0.11 |
-| i10 4 2 | 6.8 | 0.20 |
-| router 6 3 | 11.8 | 0.79 |
-| adder 6 3 | 4.4 | 0.63 |
-| adder 6 4 | 38.2 | 8.2 |
-| ctrl 6 3 | 20.2 | 3.3 |
-| ctrl 4 4 | 3.5 | 2.2 |
-| i10 6 2 | > 60 | 5.7 |
-| ctrl 6 4 | > 120 | 110 |
+| int2float 6 4 | 102.1 | 1.22 |
+| int2float 6 3 | 10.9 | 0.14 |
+| i10 4 2 | 6.8 | 0.11 |
+| router 6 3 | 11.8 | 0.18 |
+| adder 6 3 | 4.4 | 0.30 |
+| adder 6 4 | 38.2 | 1.17 |
+| ctrl 6 3 | 20.2 | 0.34 |
+| ctrl 4 4 | 3.5 | 0.12 |
+| i10 6 2 | > 60 | 3.17 |
+| ctrl 6 4 | > 120 | 6.40 |
 
 **Limitation.** On large arithmetic circuits such as sqrt, or div with l ≥ 2, some forcing questions
 are hard for SAT (one took 900 s) and simulation rarely finds their counterexamples, so these cases
