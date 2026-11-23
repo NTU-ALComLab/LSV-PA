@@ -67,62 +67,41 @@ so a failure never leaves partial output.
 
 ## Phase 1: Maximum KL Cuts (`lsvKlCut.cpp`)
 
-### Enumeration
+### Precomputed regions and exact cut size
 
-As suggested in the assignment, the leaves that a root reaches without passing another leaf form a
-k-feasible cut of that root, and U is the union of these cuts. `Lsv_FindMaximumKlCuts` therefore
+Each PA1 option stores its leaves and the ANDs reached from its root before any leaf.
+The root is part of this region. Combining options uses the union of their leaves
+and the union of their regions. An AND shared by two options contributes once to
+the size. We reject combinations where either region contains a leaf of the other,
+because the full cut must stop at that leaf.
 
-1. enumerates the PA1 cuts of every node (`Lsv_NtkEnumCuts`), and
-2. picks roots one at a time in ascending ID order (`EnumerateKlCuts`, a recursion up to depth l).
-   For every new root, each leaf set U of the previous level is merged with each PA1 cut of the
-   root. A merge is kept if it has at most k leaves (signature test first, then the exact union)
-   and contains no selected root (K1). Equal leaf sets of the same root set are kept once.
+This compatibility check preserves every legal cut. For each root of a legal
+cut, take the first leaves reached along its fanin paths. K3 gives each such leaf
+a path to a PI that avoids the other leaves, so the first-hit set is a minimal
+PA1 cut of that root. Those local regions all avoid the full leaf set and their
+union reconstructs the cut. On a compatible branch every leaf is already reachable
+from a root. The remaining K3 check depends only on the leaf set, so its result is
+cached across candidates.
 
-Picking roots only in ascending order generates each root set once. Leaf sets that fail a check are
-still passed to the next level, because adding a root may repair a (K4) violation.
+### Boundary roots and pruning
 
-Dominated PA1 cuts are omitted, which loses no KL cut: if the leaves reached by a root r strictly
-contained another cut C of r, take a leaf x outside C. By (K3), x has a path to a PI that avoids
-the other leaves; appended to the path from r to x, it gives a path from r to a PI that avoids C,
-contradicting that C is a cut of r.
+The search tries roots in increasing ID order. While adding and removing ANDs it
+maintains the number of fanout edges leaving the region. An AND with an outgoing
+edge is a required root. An AND with no fanouts is also a required root, so a
+dangling region can be reconstructed from the selected roots. A selected root
+that loses its last exit can never recover it on that branch as the region grows.
 
-### Checking (K2)–(K4)
+The search records a base cut when the selected roots equal the region's required
+roots and the leaves pass K3. Once the maximum size is known, every subset of
+interior nodes that fits the root limit is promoted to roots as well. Each of
+these promotions keeps the same region and leaves, so the size and K2–K4 still hold.
 
-`GetKlCutSize` validates a candidate in four steps and returns |V| + |I|, or -1 if a check fails:
-
-| Step | Function | Check |
-|---|---|---|
-| 1 | `WalkCutBoundary` | (K2): a DFS from V along fanins that stops at U must not reach a PI. The visited nodes other than roots and leaves form the interior I. Roots may lie in each other's fanin cone, so the walk passes through roots. |
-| 2 | `AllLeavesReached` | (K3), part 1: every leaf must have been visited by step 1. |
-| 3 | `IsFanoutFree` | (K4): every fanout of an interior node must be visited by step 1 and not be a leaf. POs are never visited, so an interior node driving a PO fails. |
-| 4 | `AllLeavesNecessary` | (K3), part 2: removing any AND leaf and walking again must reach a PI. A reached PI leaf is always necessary. |
-
-Steps 2 and 3 read the traversal marks left by step 1 (`Abc_NodeIsTravIdCurrent`), so step 4, which
-walks again, runs last.
-
-### Pruning
-
-Only maximum cuts are printed, so a candidate whose size cannot reach the current maximum is skipped.
-All pruning below is exact: the output is the same as without it.
-
-1. **Cone upper bound.** cone(r, C) is the number of AND nodes between root r and its PA1 cut C.
-   Every interior node is reached from some root r along a path that avoids U, and therefore avoids
-   C_r ⊆ U, so |I| ≤ Σ cone(r, C_r). Each leaf set carries the smallest such sum over the cut
-   combinations that produced it, and a candidate with |V| + Σ cone below the current maximum is not
-   validated. The comparison is strict, because tied cuts must be printed.
-2. **Starting maximum.** Before the search, every single-root cut is validated. Since |V| = 1 ≤ l,
-   the maximum is at least this value, so pruning works from the start.
-3. **Minimal leaf sets.** Every leaf set is a union of cuts of its roots, so it is itself a cut. If
-   U1 ⊊ U2 for the same root set, every cut grown from U2 is either equal to one grown from U1 or
-   has a redundant leaf (K3). `KeepMinimalUnions` therefore drops non-minimal leaf sets before
-   recursing.
-4. **Subtree bound.** Adding a root r can raise the bound by at most 1 + (largest cone of r).
-   `futureGain` stores, for every position in the root order, the sum of the t largest such values
-   among the remaining roots. If |V| + Σ cone + futureGain is below the current maximum, the merge is
-   skipped together with everything that would grow from it. On the last level futureGain is 0.
-   Leaf sets are sorted by decreasing cone sum and root cuts by decreasing cone, so the bound only
-   decreases along both loops and they can `break` at the first failure; a root whose best bound
-   is too small is skipped entirely.
+The subtree bound adds the largest remaining option regions to the current size.
+This is an upper bound even if the added regions overlap. Branches below the
+maximum can be skipped. Option regions are sorted by size to skip the rest of a
+loop once the bound is too small. When U already has k leaves, any option must
+be a subset of U. The options are indexed by their smallest leaf, followed by an
+exact subset check, so the search can avoid scanning all roots in that case.
 
 ## Phase 2: Flexibility (`lsvKlFlex.cpp`)
 
@@ -163,7 +142,7 @@ the masks are exactly those of the plain SAT procedure.
 
 ## Performance
 
-Times in seconds, compared with the first, straightforward implementation:
+Historical times in seconds, measured before the region-based search:
 
 | Case (k l) | First version | Final |
 |---|---|---|
