@@ -127,9 +127,10 @@ int Lsv_CommandCutBddSize(Abc_Frame_t *pAbc, int argc, char **argv)
   return 0;
 }
 
-// ABC 進入 lsv_kl_flex 的地方。pAbc 持有目前讀入的電路，argv 依序是
-// 指令名稱、leaf 上限 k、root 上限 l。驗證後先找最大 cut，再算各 cut 的 mask。
-// 成功回傳 0，參數、電路或求解出錯則印訊息並回傳 1。
+// Entry point of lsv_kl_flex. pAbc holds the current network; argv is the command name, the
+// leaf limit k and the root limit l. After validating them, finds the maximum KL cuts and then
+// the masks of each cut. Returns 0 on success; prints a message and returns 1 if the arguments,
+// the network or a SAT computation is invalid.
 int Lsv_CommandKlFlex(Abc_Frame_t *pAbc, int argc, char **argv)
 {
   if (argc != 3 || std::strcmp(argv[1], "-h") == 0)
@@ -138,8 +139,8 @@ int Lsv_CommandKlFlex(Abc_Frame_t *pAbc, int argc, char **argv)
     return 1;
   }
 
-  // limits[0] 是 k，limits[1] 是 l。用 end 確認整個參數都有被轉成數字，
-  // 因此帶了多餘字元的輸入，例如 3abc，也會被拒絕。
+  // limits[0] is k and limits[1] is l. Checking end makes sure the whole argument was parsed,
+  // so input with trailing characters such as 3abc is rejected.
   int limits[2] = {};
   for (int i = 0; i < 2; ++i)
   {
@@ -153,7 +154,7 @@ int Lsv_CommandKlFlex(Abc_Frame_t *pAbc, int argc, char **argv)
     }
   }
 
-  // pNtk 指的是 ABC 目前那張電路。後面兩階段都使用它的 node IDs。
+  // pNtk is ABC's current network; both phases below use its node IDs.
   Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
   if (!pNtk)
   {
@@ -171,8 +172,8 @@ int Lsv_CommandKlFlex(Abc_Frame_t *pAbc, int argc, char **argv)
     return 1;
   }
 
-  // 先把每個最大 cut 的整行結果存進 output，全部成功再一起印。
-  // 如果某一組 SAT 查詢出錯，使用者就不會收到一半的結果。
+  // Collect the line of every maximum cut in output and print only when all succeeded, so a
+  // failing SAT computation never leaves partial output.
   std::ostringstream output;
   for (const KlCut &cut : Lsv_FindMaximumKlCuts(pNtk, limits[0], limits[1]))
   {
@@ -183,7 +184,7 @@ int Lsv_CommandKlFlex(Abc_Frame_t *pAbc, int argc, char **argv)
       return 1;
     }
 
-    // 一行依序輸出 V 的 IDs、U 的 IDs，以及按 u 遞增排列的 masks。
+    // One line: the IDs of V, the IDs of U, and the masks in increasing order of u.
     for (std::size_t i = 0; i < cut.roots.size(); ++i)
       output << (i ? " " : "") << cut.roots[i];
     output << ":";

@@ -4,15 +4,17 @@
 #include "sat/bsat/satSolver.h"
 #include "sat/cnf/cnf.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <limits>
 #include <memory>
 
-// ABC 的 C 函式。將 miter 的 strashed 網路轉成 Cnf_Derive 使用的 AIG，
-// 保留 PI/PO 索引。兩個旗標在這題都使用 0，處理的是組合電路。
+// ABC C function: converts a strashed network into the AIG manager used by the CNF writers,
+// keeping the PI/PO order. Both flags are 0 here because the network is combinational.
 extern "C" Aig_Man_t *Abc_NtkToDar(Abc_Ntk_t *pNtk, int fExors, int fRegisters);
 
-// 讀 obj 的第 index 條輸入線。從 copy 找到舊 driver 在新圖的訊號，
-// 再套用舊線的反相標記。複製 AND 的 fanin 和 PO 都會用到。
+// Returns the signal in the new network that drives input index of obj: the copy of the old
+// driver, complemented if the old edge is complemented. Used when copying ANDs and POs.
 static Abc_Obj_t *CopyMiterFanin(const std::vector<Abc_Obj_t *> &copy,
                                 Abc_Obj_t *obj, int index)
 {
@@ -20,15 +22,16 @@ static Abc_Obj_t *CopyMiterFanin(const std::vector<Abc_Obj_t *> &copy,
   return Abc_ObjNotCond(copy[id], Abc_ObjFaninC(obj, index));
 }
 
-// 依 pNtk 和指定的 cut 建立 miter，也就是比較原版和強制版輸出的 AIG。
-// 回傳新網路由呼叫端釋放。PI 接腳順序是 [原始 PIs][強制用 PIs]，
-// PO 接腳順序是 [原版 leaves][diff]，這個索引順序會用在後續 CNF 轉換。
+// Builds the miter of pNtk for the given cut: an AIG that compares the outputs of the original
+// circuit with those of the circuit whose roots are forced. The caller frees the network.
+// PI order: [original PIs][one forcing PI p per root]; PO order: [original leaves][diff].
+// The CNF lookups rely on this order.
 static Abc_Ntk_t *BuildKlMiter(Abc_Ntk_t *pNtk, const KlCut &cut)
 {
   Abc_Ntk_t *miter = Abc_NtkAlloc(ABC_NTK_STRASH, ABC_FUNC_AIG, 1);
   miter->pName = Extra_UtilStrsav("lsv_kl_flex_miter");
-  // manager 是新 AIG 的管理器，AND/XOR 等操作都在這張圖上建節點。
-  // original[id] 與 forced[id] 記錄原始節點 id 在兩份電路對應的訊號。
+  // manager builds the AND/XOR nodes of the new AIG. original[id] and forced[id] are the
+  // signals of old node id in the two copies.
   auto *manager = static_cast<Abc_Aig_t *>(miter->pManFunc);
   std::vector<Abc_Obj_t *> original(Abc_NtkObjNumMax(pNtk), nullptr);
   std::vector<Abc_Obj_t *> forced(original.size(), nullptr);
@@ -36,8 +39,8 @@ static Abc_Ntk_t *BuildKlMiter(Abc_Ntk_t *pNtk, const KlCut &cut)
   int constant = Abc_ObjId(Abc_AigConst1(pNtk));
   original[constant] = forced[constant] = Abc_AigConst1(miter);
 
-  // 原本一個 PI 只建一次，兩個版本都接同一條線，確保比較時使用同一組 PI。
-  // 後面按 root ID 各加一個 PI，這些才是 SAT 查詢時指定的強制值 p。
+  // Each original PI is created once and shared by both copies, so both see the same input.
+  // Then one more PI per root (in ID order): the forcing value p that the SAT queries fix.
   Abc_Obj_t *node;
   int i;
   Abc_NtkForEachPi(pNtk, node, i)
@@ -45,22 +48,22 @@ static Abc_Ntk_t *BuildKlMiter(Abc_Ntk_t *pNtk, const KlCut &cut)
   for (int root : cut.roots)
     forced[root] = Abc_NtkCreatePi(miter);
 
-  // nodes 依拓撲順序存原網路的內部 AND。走到一個 AND 時，它的兩個
-  // fanin 已經對應到新 miter 的訊號，可以直接接起來。
+  // nodes lists the internal ANDs in topological order, so both fanins of each AND already
+  // have their signals in the miter when it is copied.
   Vec_Ptr_t *nodes = Abc_NtkDfs(pNtk, 1);
   Vec_PtrForEachEntry(Abc_Obj_t *, nodes, node, i)
   {
     int id = Abc_ObjId(node);
     original[id] = Abc_AigAnd(manager, CopyMiterFanin(original, node, 0), CopyMiterFanin(original, node, 1));
-    // forced[id] 若已有值，代表它是 root，剛才已接到指定用的 p。
-    // 即使這個 root 的上游還有另一個 root，這裡也保留自己的 p。
+    // A forced[id] that is already set belongs to a root and is its forcing PI p. It stays so
+    // even when another root lies in this root's fanin cone.
     if (!forced[id])
       forced[id] = Abc_AigAnd(manager, CopyMiterFanin(forced, node, 0), CopyMiterFanin(forced, node, 1));
   }
   Vec_PtrFree(nodes);
 
-  // pairs 依序放原版 PO0、強制版 PO0、原版 PO1、強制版 PO1，依此類推。
-  // Abc_AigMiter 對每對做 XOR，再把結果 OR 起來，任一原本的 PO 不同就有 diff=1。
+  // pairs holds original PO0, forced PO0, original PO1, forced PO1, and so on. Abc_AigMiter
+  // XORs each pair and ORs the results, so diff = 1 iff some PO differs.
   Vec_Ptr_t *pairs = Vec_PtrAlloc(2 * Abc_NtkPoNum(pNtk));
   Abc_NtkForEachPo(pNtk, node, i)
   {
@@ -70,22 +73,22 @@ static Abc_Ntk_t *BuildKlMiter(Abc_Ntk_t *pNtk, const KlCut &cut)
   Abc_Obj_t *diff = Abc_AigMiter(manager, pairs, 0);
   Vec_PtrFree(pairs);
 
-  // 先把原版 leaf 值接到 PO，讓 SAT 能約束 U=u。若某個 leaf 依賴被強制
-  // 的 root，兩份電路的 leaf 可能不同，所以這裡取 original[leaf]。
-  // diff 放在最後一個 PO，和前面只供查詢 leaf 的接腳分開。
+  // Expose the original leaf values as POs so that the queries can constrain U = u. A leaf that
+  // depends on a forced root may differ between the copies, so the original one is used.
+  // diff is the last PO, after the leaves.
   for (int leaf : cut.leaves)
     Abc_ObjAddFanin(Abc_NtkCreatePo(miter), original[leaf]);
   Abc_ObjAddFanin(Abc_NtkCreatePo(miter), diff);
   return miter;
 }
 
-// 把 value 的各個 bit 轉成 SAT literals，追加到本次查詢的 assumptions。
-// variables 按原始節點 ID 排列，所以用 value 的最高位對應第一個變數。
+// Appends one assumption literal per variable, fixing the variables to the bits of value.
+// The variables are in node-ID order, so the first variable takes the most significant bit.
 static void AppendAssumptions(std::vector<lit> &assumptions,
                               const std::vector<int> &variables, std::size_t value)
 {
-  // 例如 value=011 且有三個 variables，會依序加上 var0=0、var1=1、var2=1。
-  // Abc_Var2Lit 的第二個參數代表取反，因此固定成 0 時要傳 true。
+  // For example, value = 011 with three variables gives var0 = 0, var1 = 1, var2 = 1.
+  // The second argument of Abc_Var2Lit negates the literal, so fixing a variable to 0 passes 1.
   for (std::size_t i = 0; i < variables.size(); ++i)
   {
     bool bit = (value >> (variables.size() - 1 - i)) & 1;
@@ -93,24 +96,26 @@ static void AppendAssumptions(std::vector<lit> &assumptions,
   }
 }
 
-// 將低位在前的 nibbles 轉成大寫十六進位字串。每個 nibble 是四個 mask bits，
-// 其值 0 到 15 可直接當作 digits 的索引。全為 0 時回傳 "0"。
+// Turns nibbles (least significant first, four mask bits each) into an uppercase hexadecimal
+// string without leading zeros; an all-zero mask gives "0". A nibble array also covers masks
+// wider than 64 bits.
 static std::string HexMask(const std::vector<unsigned char> &nibbles)
 {
   const char digits[] = "0123456789ABCDEF";
   std::string result;
-  // 十六進位字串從高位往低位寫。看到第一個非零位之前都跳過，
-  // 因此會省略前導零。用 nibble 陣列也能存超過 64 bits 的 mask。
+  // Write from the most significant nibble down and skip zeros until the first non-zero one.
   for (auto it = nibbles.rbegin(); it != nibbles.rend(); ++it)
     if (*it || !result.empty())
       result += digits[*it];
   return result.empty() ? "0" : result;
 }
 
-// originalRoots[u] 是 leaf 值為 u 時，roots 原本會算出的組合，編號方式和 root 組合 c 相同。
-// 由 K2，roots 的值完全由 leaves 決定，所以用 PA1 的真值表從 leaves 模擬到 roots 即可。
-// PA1 的真值表也是最小 ID 的 leaf 在最高位，和 u 的編號一致。
-// 真值表用 64 位元，leaf 超過 6 個時回傳空 vector，呼叫端就不使用這個捷徑。
+// originalRoots[u] is the root pattern that the circuit itself computes when the leaves take
+// value u, numbered like the root patterns c. By K2 the roots are functions of the leaves, so
+// simulating from the leaves with the PA1 truth tables is enough. PA1 also puts the leaf with
+// the smallest ID in the most significant position, matching the numbering of u.
+// The truth tables have 64 bits; with more than 6 leaves an empty vector is returned and the
+// caller does not use this shortcut.
 static std::vector<std::size_t> OriginalRootValues(Abc_Ntk_t *pNtk, const KlCut &cut)
 {
   std::vector<std::size_t> values;
@@ -124,25 +129,204 @@ static std::vector<std::size_t> OriginalRootValues(Abc_Ntk_t *pNtk, const KlCut 
   values.assign(std::size_t{1} << cut.leaves.size(), 0);
   for (std::size_t u = 0; u < values.size(); ++u)
     for (uint64_t table : tables)
-      values[u] = (values[u] << 1) | ((table >> u) & 1); // 最小 ID 的 root 先放，最後落在最高位
+      values[u] = (values[u] << 1) | ((table >> u) & 1); // the smallest-ID root ends up as the MSB
   return values;
 }
 
-// 用同一個 solver 求解一次。assumptions 是這次才生效的 literals，
-// 回傳 l_True、l_False 或 l_Undef。最後四個 0 表示未設定求解上限。
+// Runs one query on a solver. assumptions hold the literals for this query only. Returns
+// l_True, l_False or l_Undef; the four zeros mean no resource limits.
 static int SolveKlSat(sat_solver *solver, std::vector<lit> &assumptions)
 {
   lit *begin = assumptions.data();
   return sat_solver_solve(solver, begin, begin + assumptions.size(), 0, 0, 0, 0);
 }
 
-// 對一組最大 cut 計算 flexibility。masks[u] 是 leaf 值 u 對應的 mask，
-// 其中 bit c 為 1 表示 root 組合 c 在所有符合 U=u 的情況下都安全。
-// 建圖、轉 CNF 或 SAT 查詢若失敗，回傳 nullopt 交給指令入口回報。
+// Result of the simulation filter. seen[u]: some simulated input gives U = u. changed[u][c]:
+// some simulated input with U = u changes a PO when the roots are forced to c.
+struct FlexSimulation
+{
+  std::vector<char> seen;
+  std::vector<std::vector<char>> changed;
+};
+
+// Answers most queries by simulation before any SAT call. Simulation can only prove existence:
+// seeing U = u proves that u occurs, and seeing an output change proves that c is not allowed.
+// Everything it does not prove is still decided by SAT, so the result is exactly the same as
+// with SAT alone; the choice of inputs only affects how many queries are saved. The inputs are
+// pseudo-random with a fixed seed, so every run behaves the same.
+// Each uint64_t simulates 64 inputs at once, 64 * kWords inputs in total.
+static FlexSimulation SimulateFlex(Abc_Ntk_t *pNtk, const KlCut &cut)
+{
+  const int kWords = 32;
+  const std::size_t leafPatterns = std::size_t{1} << cut.leaves.size();
+  const std::size_t rootPatterns = std::size_t{1} << cut.roots.size();
+  FlexSimulation result;
+  result.seen.assign(leafPatterns, 0);
+  result.changed.assign(leafPatterns, std::vector<char>(rootPatterns, 0));
+
+  // value[id * kWords + w] holds the values of node id for the w-th group of 64 inputs.
+  std::vector<uint64_t> value(static_cast<std::size_t>(Abc_NtkObjNumMax(pNtk)) * kWords, 0);
+  auto at = [&](int id) { return value.data() + static_cast<std::size_t>(id) * kWords; };
+  // AND IDs are topological after strashing (fanins have smaller IDs), so ascending ID order works.
+  auto simulateAnd = [&](Abc_Obj_t *node)
+  {
+    const uint64_t *in0 = at(Abc_ObjId(Abc_ObjFanin0(node)));
+    const uint64_t *in1 = at(Abc_ObjId(Abc_ObjFanin1(node)));
+    const uint64_t flip0 = Abc_ObjFaninC0(node) ? ~uint64_t{0} : 0;
+    const uint64_t flip1 = Abc_ObjFaninC1(node) ? ~uint64_t{0} : 0;
+    uint64_t *out = at(Abc_ObjId(node));
+    for (int w = 0; w < kWords; ++w)
+      out[w] = (in0[w] ^ flip0) & (in1[w] ^ flip1);
+  };
+
+  uint64_t state = 0x9E3779B97F4A7C15ULL; // fixed seed of the xorshift64 generator
+  auto next = [&state]()
+  {
+    state ^= state << 13;
+    state ^= state >> 7;
+    state ^= state << 17;
+    return state;
+  };
+  std::fill_n(at(Abc_ObjId(Abc_AigConst1(pNtk))), kWords, ~uint64_t{0});
+  Abc_Obj_t *node;
+  int i;
+  Abc_NtkForEachPi(pNtk, node, i)
+    for (int w = 0; w < kWords; ++w)
+      at(Abc_ObjId(node))[w] = next();
+  Abc_AigForEachAnd(pNtk, node, i)
+    simulateAnd(node);
+
+  // Record the original PO values, and for each leaf value u the inputs that produce it.
+  // The smallest-ID leaf is the most significant bit of u.
+  std::vector<std::vector<uint64_t>> original;
+  Abc_NtkForEachPo(pNtk, node, i)
+  {
+    const uint64_t *driver = at(Abc_ObjId(Abc_ObjFanin0(node)));
+    original.emplace_back(driver, driver + kWords);
+  }
+  const std::size_t n = cut.leaves.size();
+  std::vector<std::vector<uint64_t>> leafMask(leafPatterns, std::vector<uint64_t>(kWords, ~uint64_t{0}));
+  for (std::size_t u = 0; u < leafPatterns; ++u)
+  {
+    for (std::size_t j = 0; j < n; ++j)
+    {
+      const uint64_t *leaf = at(cut.leaves[j]);
+      const bool bit = (u >> (n - 1 - j)) & 1;
+      for (int w = 0; w < kWords; ++w)
+        leafMask[u][w] &= bit ? leaf[w] : ~leaf[w];
+    }
+    for (int w = 0; w < kWords; ++w)
+      result.seen[u] |= leafMask[u][w] != 0;
+  }
+
+  // For each c, set the roots to constants and resimulate. Nodes with IDs up to the smallest
+  // root are not downstream of any root and keep their values, so only later ANDs are
+  // recomputed. Every round overwrites those nodes, so nothing has to be restored.
+  const int firstRoot = cut.roots.front();
+  const std::size_t m = cut.roots.size();
+  for (std::size_t c = 0; c < rootPatterns; ++c)
+  {
+    for (std::size_t j = 0; j < m; ++j)
+      std::fill_n(at(cut.roots[j]), kWords, ((c >> (m - 1 - j)) & 1) ? ~uint64_t{0} : 0);
+    Abc_AigForEachAnd(pNtk, node, i)
+    {
+      int id = Abc_ObjId(node);
+      if (id > firstRoot && !std::binary_search(cut.roots.begin(), cut.roots.end(), id))
+        simulateAnd(node);
+    }
+    // diff marks the inputs on which some PO differs from the original (a PO's complement is
+    // the same on both sides, so it cancels in the XOR).
+    std::vector<uint64_t> diff(kWords, 0);
+    Abc_NtkForEachPo(pNtk, node, i)
+    {
+      const uint64_t *driver = at(Abc_ObjId(Abc_ObjFanin0(node)));
+      for (int w = 0; w < kWords; ++w)
+        diff[w] |= driver[w] ^ original[i][w];
+    }
+    for (std::size_t u = 0; u < leafPatterns; ++u)
+      for (int w = 0; w < kWords && !result.changed[u][c]; ++w)
+        result.changed[u][c] = (diff[w] & leafMask[u][w]) != 0;
+  }
+  return result;
+}
+
+// Builds the transitive fanin of the leaves (keeping all PIs), with one PO per leaf in order.
+// It only answers whether U = u occurs, which depends on nothing but the logic above the leaves,
+// so the whole miter is not needed. The caller frees the network.
+static Abc_Ntk_t *BuildLeafCone(Abc_Ntk_t *pNtk, const KlCut &cut)
+{
+  Abc_Ntk_t *cone = Abc_NtkAlloc(ABC_NTK_STRASH, ABC_FUNC_AIG, 1);
+  cone->pName = Extra_UtilStrsav("lsv_kl_flex_leaf_cone");
+  auto *manager = static_cast<Abc_Aig_t *>(cone->pManFunc);
+  std::vector<Abc_Obj_t *> copy(Abc_NtkObjNumMax(pNtk), nullptr);
+  copy[Abc_ObjId(Abc_AigConst1(pNtk))] = Abc_AigConst1(cone);
+
+  Abc_Obj_t *node;
+  int i;
+  Abc_NtkForEachPi(pNtk, node, i)
+    copy[Abc_ObjId(node)] = Abc_NtkCreatePi(cone);
+  // Abc_NtkDfsNodes collects the ANDs above the leaves in topological order (PI leaves add none).
+  std::vector<Abc_Obj_t *> leafObjs;
+  for (int leaf : cut.leaves)
+    leafObjs.push_back(Abc_NtkObj(pNtk, leaf));
+  Vec_Ptr_t *nodes = Abc_NtkDfsNodes(pNtk, leafObjs.data(), static_cast<int>(leafObjs.size()));
+  Vec_PtrForEachEntry(Abc_Obj_t *, nodes, node, i)
+    copy[Abc_ObjId(node)] = Abc_AigAnd(manager, CopyMiterFanin(copy, node, 0), CopyMiterFanin(copy, node, 1));
+  Vec_PtrFree(nodes);
+
+  for (int leaf : cut.leaves)
+    Abc_ObjAddFanin(Abc_NtkCreatePo(cone), copy[leaf]);
+  return cone;
+}
+
+// One SAT setup: the network, its converted AIG, the CNF and the solver. The unique_ptrs use the
+// ABC release functions, and members are released in reverse declaration order.
+struct FlexSolver
+{
+  std::unique_ptr<Abc_Ntk_t, decltype(&Abc_NtkDelete)> ntk{nullptr, Abc_NtkDelete};
+  std::unique_ptr<Aig_Man_t, decltype(&Aig_ManStop)> aig{nullptr, Aig_ManStop};
+  std::unique_ptr<Cnf_Dat_t, decltype(&Cnf_DataFree)> cnf{nullptr, Cnf_DataFree};
+  std::unique_ptr<sat_solver, decltype(&sat_solver_delete)> solver{nullptr, sat_solver_delete};
+
+  // Takes ownership of network and builds the solver; returns false on failure. Every PO keeps a
+  // CNF variable so that the queries can constrain it.
+  // With compact = false, Cnf_DeriveSimple writes the clauses AND by AND, which is fast to build.
+  // With compact = true, Cnf_Derive first maps the AIG into cuts: slower to build, but the
+  // smaller CNF solves hard queries faster.
+  bool Init(Abc_Ntk_t *network, bool compact)
+  {
+    ntk.reset(network);
+    if (!ntk)
+      return false;
+    aig.reset(Abc_NtkToDar(ntk.get(), 0, 0));
+    if (!aig)
+      return false;
+    const int outputs = Aig_ManCoNum(aig.get());
+    cnf.reset(compact ? Cnf_Derive(aig.get(), outputs) : Cnf_DeriveSimple(aig.get(), outputs));
+    if (!cnf)
+      return false;
+    solver.reset(static_cast<sat_solver *>(Cnf_DataWriteIntoSolver(cnf.get(), 1, 0)));
+    return solver != nullptr;
+  }
+  bool Ready() const { return solver != nullptr; }
+  // Find the converted CI/CO by its creation order, then look up its CNF variable by its new ID.
+  int CoVar(int index) const { return cnf->pVarNums[Aig_ManCo(aig.get(), index)->Id]; }
+  int CiVar(int index) const { return cnf->pVarNums[Aig_ManCi(aig.get(), index)->Id]; }
+};
+
+// Computes the flexibility of one maximum cut. masks[u] is the mask for leaf value u: bit c is 1
+// iff forcing the roots to pattern c changes no PO for any input with U = u. Returns nullopt if
+// building a network or a CNF fails or a SAT call gives no answer; the command reports it.
+//
+// Most queries need no SAT call: the original root pattern is always allowed
+// (OriginalRootValues); a u seen in simulation occurs, and a c with a simulated output change is
+// not allowed (SimulateFlex). The rest go to SAT, and both SAT setups are built only when first
+// needed: "does U = u occur?" uses the small cone above the leaves, and only "does forcing c
+// change an output?" needs the full miter.
 std::optional<std::vector<std::string>> Lsv_ComputeFlexMasks(Abc_Ntk_t *pNtk, const KlCut &cut)
 {
-  // 每種 u、c 都用整數編號，下面會以 1 左移節點個數來算總數。
-  // 先確認位移的位數在 size_t 能表示的範圍。
+  // Patterns u and c are indexed by integers and counted with 1 << (number of nodes); make sure
+  // the shift fits into size_t.
   if (cut.leaves.size() >= std::numeric_limits<std::size_t>::digits ||
       cut.roots.size() >= std::numeric_limits<std::size_t>::digits)
   {
@@ -150,78 +334,90 @@ std::optional<std::vector<std::string>> Lsv_ComputeFlexMasks(Abc_Ntk_t *pNtk, co
     return std::nullopt;
   }
 
-  // 一個 cut 只建一張 miter。aig 是供 CNF 轉換的 ABC 表示法，cnf 是
-  // SAT solver 使用的布林公式。給 Cnf_Derive 全部的 PO 數量，讓每個 PO
-  // 都保留為可約束的變數。第一次查 U=u 時，diff 必須還能自由取值。
-  // unique_ptr 搭配 ABC 的釋放函式，成功或提早返回時都會清理這些資源。
-  const std::unique_ptr<Abc_Ntk_t, decltype(&Abc_NtkDelete)> miter(BuildKlMiter(pNtk, cut), Abc_NtkDelete);
-  const std::unique_ptr<Aig_Man_t, decltype(&Aig_ManStop)> aig(Abc_NtkToDar(miter.get(), 0, 0), Aig_ManStop);
-  if (!aig)
-    return std::nullopt;
-  const std::unique_ptr<Cnf_Dat_t, decltype(&Cnf_DataFree)> cnf(Cnf_Derive(aig.get(), Aig_ManCoNum(aig.get())), Cnf_DataFree);
-  if (!cnf)
-    return std::nullopt;
-  const std::unique_ptr<sat_solver, decltype(&sat_solver_delete)> solver(
-    static_cast<sat_solver *>(Cnf_DataWriteIntoSolver(cnf.get(), 1, 0)), sat_solver_delete);
-  if (!solver)
-    return std::nullopt;
-
-  // leafVars 是原版 leaves 的 CNF 變數，rootVars 是強制輸入 p 的變數，
-  // diffVar 是最後那個比較位元。先依 miter 接腳的建立順序找到轉換後的
-  // CI/CO，才用它的新 ID 查 pVarNums。這裡不能直接用原始電路的 node ID。
-  std::vector<int> leafVars;
-  for (int i = 0; i < static_cast<int>(cut.leaves.size()); ++i)
-    leafVars.push_back(cnf->pVarNums[Aig_ManCo(aig.get(), i)->Id]);
-  std::vector<int> rootVars;
-  int firstForcingPi = Abc_NtkPiNum(pNtk);
-  for (int i = 0; i < static_cast<int>(cut.roots.size()); ++i)
-    rootVars.push_back(cnf->pVarNums[Aig_ManCi(aig.get(), firstForcingPi + i)->Id]);
-  int diffVar = cnf->pVarNums[Aig_ManCo(aig.get(), static_cast<int>(leafVars.size()))->Id];
-
-  // leafPatterns 是要輸出的列數，rootPatterns 是每列要試幾組強制值。
-  // 每四個 bit 用一個 nibble 儲存，allAllowed 是所有選項都允許時的字串。
-  const std::size_t leafPatterns = std::size_t{1} << leafVars.size();
-  const std::size_t rootPatterns = std::size_t{1} << rootVars.size();
+  // leafPatterns is the number of masks to print, rootPatterns the number of root patterns per
+  // mask. Mask bits are stored four per nibble; allAllowed is the mask with every pattern allowed.
+  const std::size_t n = cut.leaves.size();
+  const std::size_t m = cut.roots.size();
+  const std::size_t leafPatterns = std::size_t{1} << n;
+  const std::size_t rootPatterns = std::size_t{1} << m;
   const std::size_t nibbleCount = (rootPatterns + 3) / 4;
   const std::string allAllowed = rootPatterns == 2 ? "3" : std::string(nibbleCount, 'F');
+  const std::vector<std::size_t> originalRoots = OriginalRootValues(pNtk, cut);
+  const FlexSimulation simulation = SimulateFlex(pNtk, cut);
+
+  // reach: the cone above the leaves; PO i is the i-th leaf.
+  FlexSolver reach;
+  std::vector<int> reachLeafVars;
+  // miter: PIs [original PIs][forcing PIs], POs [original leaves][diff]; see BuildKlMiter.
+  FlexSolver miter;
+  std::vector<int> leafVars, rootVars;
+  int diffVar = 0;
+
   std::vector<std::string> masks;
   std::vector<lit> assumptions;
-  assumptions.reserve(leafVars.size() + rootVars.size() + 1);
-  const std::vector<std::size_t> originalRoots = OriginalRootValues(pNtk, cut);
-
+  assumptions.reserve(n + m + 1);
   for (std::size_t u = 0; u < leafPatterns; ++u)
   {
-    // 第一道查詢只固定 U=u，判斷原始 PI 是否能產生這組 leaf 值。
-    assumptions.clear();
-    AppendAssumptions(assumptions, leafVars, u);
-    int reachable = SolveKlSat(solver.get(), assumptions);
-    if (reachable == l_False)
+    // First decide whether any PI assignment produces U = u; simulation may already have seen it.
+    if (!simulation.seen[u])
     {
-      // 若 U=u 是 UNSAT，實際電路用不到這一列，所有 root 組合都允許。
-      masks.push_back(allAllowed);
-      continue;
+      if (!reach.Ready())
+      {
+        // These queries almost always end in propagation, so a fast build matters most.
+        if (!reach.Init(BuildLeafCone(pNtk, cut), false))
+          return std::nullopt;
+        for (std::size_t i = 0; i < n; ++i)
+          reachLeafVars.push_back(reach.CoVar(static_cast<int>(i)));
+      }
+      assumptions.clear();
+      AppendAssumptions(assumptions, reachLeafVars, u);
+      int reachable = SolveKlSat(reach.solver.get(), assumptions);
+      if (reachable == l_False)
+      {
+        // U = u never occurs, so the condition holds vacuously: every root pattern is allowed.
+        masks.push_back(allAllowed);
+        continue;
+      }
+      if (reachable != l_True)
+        return std::nullopt;
     }
-    if (reachable != l_True)
-      return std::nullopt;
 
     std::vector<unsigned char> nibbles(nibbleCount, 0);
     for (std::size_t c = 0; c < rootPatterns; ++c)
     {
-      // c 就是 roots 原本的值時，強制成 c 等於什麼都沒改，輸出不可能變，一定允許。
-      // 這種查詢一定是 UNSAT，但 SAT 要證明兩份電路完全等價，在大型算術電路上可能要好幾分鐘。
+      // Forcing the roots to the values they already compute changes nothing, so this c is
+      // always allowed. Its SAT query is always UNSAT but has to prove two copies of the circuit
+      // equivalent, which can take minutes on large arithmetic circuits.
       if (!originalRoots.empty() && c == originalRoots[u])
       {
         nibbles[c / 4] |= 1U << (c % 4);
         continue;
       }
-      // 保留前面的 U=u，換掉上一輪的 p=c，再加上 diff=1 來找反例。
-      assumptions.resize(leafVars.size());
+      // Simulation already found an input whose outputs change: c is not allowed, bit stays 0.
+      if (simulation.changed[u][c])
+        continue;
+
+      if (!miter.Ready())
+      {
+        // Queries that get here were not settled by simulation and are often hard, while the
+        // miter is rarely needed, so use the compact CNF.
+        if (!miter.Init(BuildKlMiter(pNtk, cut), true))
+          return std::nullopt;
+        for (std::size_t i = 0; i < n; ++i)
+          leafVars.push_back(miter.CoVar(static_cast<int>(i)));
+        const int firstForcingPi = Abc_NtkPiNum(pNtk);
+        for (std::size_t i = 0; i < m; ++i)
+          rootVars.push_back(miter.CiVar(firstForcingPi + static_cast<int>(i)));
+        diffVar = miter.CoVar(static_cast<int>(n));
+      }
+      // Fix U = u and p = c, and ask for diff = 1, i.e. a counterexample.
+      assumptions.clear();
+      AppendAssumptions(assumptions, leafVars, u);
       AppendAssumptions(assumptions, rootVars, c);
       assumptions.push_back(Abc_Var2Lit(diffVar, 0));
-      // SAT 代表找到一組 PI 會讓輸出改變，所以 c 的 bit 留 0。
-      // UNSAT 代表找不到反例，才把 c 的 bit 設成 1。c/4 是十六進位位址，
-      // c%4 是該位址內的哪個 bit。求解結果不明時，回傳錯誤而不寫入 mask。
-      int counterexample = SolveKlSat(solver.get(), assumptions);
+      // SAT: some input changes the outputs, so bit c stays 0. UNSAT: no counterexample, so bit c
+      // is set (nibble c / 4, bit c % 4). Any other answer is an error and writes no mask.
+      int counterexample = SolveKlSat(miter.solver.get(), assumptions);
       if (counterexample == l_False)
         nibbles[c / 4] |= 1U << (c % 4);
       else if (counterexample != l_True)
