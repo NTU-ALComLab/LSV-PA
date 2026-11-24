@@ -1,4 +1,4 @@
-# LSV PA1 — Exercise 4: k-feasible Cuts
+# LSV PA2 — KL Cut Flexibility Computation
 
 R15921090 Tse-Chuan Yang
 
@@ -6,10 +6,12 @@ R15921090 Tse-Chuan Yang
 
 | File | Contents |
 |---|---|
-| `lsvCmd.cpp` | Registers the ABC commands (`init`) and implements their entry points: argument parsing and checking that the network has been strashed |
-| `lsvCut.h` | The `Cut` and `CutTable` types and declarations of the cut functions |
-| `lsvCut.cpp` | Cut enumeration, truth tables (4.1), BDD sizes (4.2), and output |
-| `module.make` | Adds `lsvCmd.cpp` and `lsvCut.cpp` to the ABC build |
+| `lsvCmd.cpp` | Registers the ABC commands and implements their entry points: argument parsing, network checks, and printing |
+| `lsvKlFlex.h` | The `KlCut` type and the two phase functions used by `lsv_kl_flex` |
+| `lsvKlCut.cpp` | Phase 1: enumerates KL cuts, checks (K1)–(K4), and keeps every cut of maximum size |
+| `lsvKlFlex.cpp` | Phase 2: computes the flexibility masks of a KL cut with simulation and SAT |
+| `lsvCut.h`, `lsvCut.cpp` | PA1: k-feasible cut enumeration and truth tables, reused by PA2 |
+| `module.make` | Adds the four source files to the ABC build |
 
 ## Build and Run
 
@@ -18,178 +20,180 @@ make -j8
 ./abc
 ```
 
+Fig. 1 of the assignment (z = ac + bc) as BLIF:
+
 ```
-abc 01> read lsv/pa1/example.blif
+.model pa2_fig1
+.inputs a b c
+.outputs z
+.names a c v5
+11 1
+.names b c v6
+11 1
+.names v5 v6 z
+1- 1
+-1 1
+.end
+```
+
+```
+abc 01> read fig1.blif
 abc 02> strash
-abc 03> lsv_cut_tt 3
-abc 04> lsv_cut_bddsize 3
+abc 03> lsv_kl_flex 3 2
+5 7: 1 2 3: A A A 5 A 5 A 5
+6 7: 1 2 3: A A A 5 A 5 A 5
+7: 1 2 3: 2 2 2 1 2 1 2 1
 ```
 
-## Commands
+## Command
 
-### `lsv_cut_tt <k>` (4.1)
+### `lsv_kl_flex <k> <l>`
 
-Enumerates all k-feasible cuts of every AND node (dominated cuts omitted) and prints the truth
-table of each cut in hexadecimal.
-
-```
-<node>: <cut leaves in ascending order>: <truth table>
-```
-
-Example (Fig. 1 of the assignment, `lsv/pa1/example.blif`):
+Finds every KL cut (U, V) with |U| ≤ k and |V| ≤ l whose size |V| + |I(U, V)| is maximum, and
+prints one line per such cut:
 
 ```
-5: 5: 2
-5: 1 2: 4
-6: 6: 2
-6: 2 3: 8
-7: 7: 2
-7: 5 6: 4
-7: 2 3 5: 2A
-7: 1 2 6: 10
-7: 1 2 3: 30
+<v_1> ... <v_m>: <u_1> ... <u_n>: <F_0> <F_1> ... <F_{2^n-1}>
 ```
 
-### `lsv_cut_bddsize <k>` (4.2)
+- V and U are listed in ascending ID order.
+- Leaf value u and root value c are numbered with the smallest ID as the most significant bit.
+- `F_u` is the uppercase hexadecimal mask of A(u): bit c is 1 iff c is allowed when the leaves show u.
+- If the network has no KL cut, nothing is printed.
 
-Enumerates all k-feasible cuts of every AND node (dominated cuts omitted) and prints the size of each cut's ROBDD
-(`Cudd_DagSize`). Variables are ordered by node ID, with smaller IDs closer to the root.
+The command requires a strashed combinational network. `k` and `l` must be non-negative integers
+(trailing characters such as `3x` are rejected). All lines are computed first and printed together,
+so a failure never leaves partial output.
 
-```
-<node>: <cut leaves in ascending order>: <BDD size>
-```
+## Phase 1: Maximum KL Cuts (`lsvKlCut.cpp`)
 
-Example (Fig. 1):
+### Precomputed regions and exact cut size
 
-```
-5: 5: 2
-5: 1 2: 3
-6: 6: 2
-6: 2 3: 3
-7: 7: 2
-7: 5 6: 3
-7: 2 3 5: 4
-7: 1 2 6: 4
-7: 1 2 3: 3
-```
+Each PA1 option stores its leaves and the ANDs reached from its root before any leaf.
+The root is part of this region. Combining options uses the union of their leaves
+and the union of their regions. An AND shared by two options contributes once to
+the size. We reject combinations where either region contains a leaf of the other,
+because the full cut must stop at that leaf.
 
-## Algorithms
+This compatibility check preserves every legal cut. For each root of a legal
+cut, take the first leaves reached along its fanin paths. K3 gives each such leaf
+a path to a PI that avoids the other leaves, so the first-hit set is a minimal
+PA1 cut of that root. Those local regions all avoid the full leaf set and their
+union reconstructs the cut. On a compatible branch every leaf is already reachable
+from a root. The remaining K3 check depends only on the leaf set, so its result is
+cached across candidates.
 
-### Cut enumeration — `Lsv_NtkEnumCuts`
+### Boundary roots and pruning
 
-Cuts are computed bottom-up and stored in `CutTable cuts` (`cuts[ID]` = all cuts of that node):
+The search tries roots in decreasing ID order. While adding and removing ANDs it
+maintains the number of fanout edges leaving the region. An AND with an outgoing
+edge is a required root. An AND with no fanouts is also a required root, so a
+dangling region can be reconstructed from the selected roots. A selected root
+that loses its last exit can never recover it on that branch as the region grows.
 
-1. A PI has only its trivial cut `{itself}`.
-2. AND nodes n (with fanins n0, n1) are processed in ascending ID order:
-   - add the trivial cut `{n}`;
-   - take the union (`Lsv_CutMerge`) of every pair in `cuts[n0] × cuts[n1]`;
-   - discard unions with more than k leaves and duplicates;
-   - remove dominated cuts (`Lsv_RemoveDominated`).
+The decreasing order bounds the next root from below. Let x be an exit of the
+current region that is not a root yet. In the final cut, x is either a root, or
+each of its outside fanouts t is absorbed by a later root r whose cone contains t,
+so r ≥ t > x. Either way some later root is at least x, and the next root is the
+largest later one. The next root must therefore be at least the largest pending
+exit: if that exit is above the root just added, the branch is dead, and otherwise
+the root loops stop as soon as they reach smaller IDs. Only when the region is
+closed (every exit is a root) may the next root be any smaller AND.
 
-**Dominated cuts.** A cut that strictly contains another cut of the same node is dominated
-(e.g. `{10, 11, 91}` when `{10, 11}` is also a cut). Following the TA's answer in GitHub issue #983,
-dominated cuts are omitted. Filtering at every node loses no valid cut: if a fanin cut is
-dominated, merging the smaller cut instead yields a subset of the original union, so every
-non-dominated cut of the fanout is still produced. The subset test first compares signatures
-(`a.sign & ~b.sign` nonzero means a has a leaf that b lacks) and then uses `std::includes`.
+The search records a base cut when the selected roots equal the region's required
+roots and the leaves pass K3. Once the maximum size is known, every subset of
+interior nodes that fits the root limit is promoted to roots as well. Each of
+these promotions keeps the same region and leaves, so the size and K2–K4 still hold.
 
-In a strashed AIG every fanin has a smaller ID than its fanout (a new object's ID is the
-current object count; see `src/base/abc/abcObj.c`), so the fanins' cuts are always ready when
-a node is processed. This is checked by `assert(id0 < id && id1 < id)`.
+The subtree bound adds the largest remaining option regions to the current size.
+This is an upper bound even if the added regions overlap. Branches below the
+maximum can be skipped. Option regions are sorted by size to skip the rest of a
+loop once the bound is too small. When U already has k leaves, any option must
+be a subset of U. The options are indexed by their smallest leaf, followed by an
+exact subset check, so the search can avoid scanning all roots in that case.
 
-The leaves of a cut are kept in a sorted `std::vector<int>`. `std::set_union` preserves the
-order, so the output already lists the leaves in ascending order.
+## Phase 2: Flexibility (`lsvKlFlex.cpp`)
 
-### Truth table — `Lsv_CutTt`
+For every u ∈ B^n the masks follow Step 2 of the assignment: A(u) = B^m if no PI assignment produces
+U = u; otherwise c ∈ A(u) iff no PI assignment with U = u changes a PO when the roots are forced to c.
+The miter (`BuildKlMiter`) is the one in Fig. 2: two copies sharing the PIs, the roots of the second
+copy replaced by new PIs p, the XORs of the PO pairs ORed into `diff`, and the leaves of the original
+copy exposed as outputs. The questions differ only in the values of U, p and `diff`, so they are asked
+as assumptions to a solver that is built once per cut.
 
-Bit-parallel simulation: bit idx of a `uint64_t` holds row idx of the truth table, so all
-2^m rows (m = cut size ≤ 6) are computed at once.
+Most questions are answered without SAT. Every shortcut only decides answers that are certain, so
+the masks are exactly those of the plain SAT procedure.
 
-1. **Leaf patterns**: in row idx, the j-th leaf (ascending ID) takes bit `(m-1-j)` of idx,
-   so the smallest ID is the most significant bit of the input assignment.
-   For m = 3 the three leaf patterns are `0xF0`, `0xCC`, and `0xAA`.
-2. **Recursion** (`Lsv_NodeTt`): starting at the root, a leaf returns its pattern; any other
-   node combines its two fanins with `&`, applying `~` on complemented edges.
-   The cut blocks every path from the root to the PIs, so the recursion always ends at leaves.
-3. **Mask**: `~` sets the bits above 2^m, so the result is ANDed with `(1 << 2^m) - 1`.
-   For m = 6 all 64 bits are used, and `1 << 64` would be undefined behavior, so the mask is all ones.
+1. **Original root value.** When the leaves show u, the roots compute a fixed value f(u) (by K2 they
+   are functions of the leaves). Forcing them to f(u) changes nothing, so f(u) is always allowed.
+   `OriginalRootValues` computes f(u) from the PA1 truth tables. Its SAT query is always UNSAT but has
+   to prove two copies of the circuit equivalent, which takes minutes on large arithmetic circuits.
+2. **Simulation.** `SimulateFlex` simulates 2048 pseudo-random inputs (fixed seed, 64 per machine word),
+   then, for every c, sets the roots to c and resimulates the nodes after the first root (AND IDs are
+   topological, so earlier nodes cannot change). Seeing U = u proves that u occurs, and
+   an output change proves that c is not allowed. Only what simulation does not prove goes to SAT.
+3. **Solvers on demand.** The question "does U = u occur?" depends only on the logic above the leaves,
+   so it uses a small network of the leaves' fanin cone (`BuildLeafCone`, CNF by `Cnf_DeriveSimple`).
+   The full miter is built only if some forcing question is left after simulation, and uses the more
+   compact `Cnf_Derive` because those questions are the hard ones.
+4. **Two-stage forcing questions.** A forcing question is first asked on the shared miter above with a
+   limit of 1000 conflicts. Easy questions end there. A question that hits the limit is asked again,
+   without a limit, on a miter whose roots are the constants of c instead of PIs p, built once per c and
+   shared by every u. With constants, ABC propagates them while building the miter and merges every
+   forced node that becomes identical to its original counterpart, so the XORs of unaffected outputs
+   disappear; with p fixed by assumptions, the solver learns the values but must rediscover these
+   equalities by search. On hard queries of large arithmetic circuits this was about 9 times faster.
+   Both miters encode the same question, so the stage never changes an answer.
 
-Example: node 7, cut `{2, 3, 5}`
+## Verification
 
-```
-n6 = x1 & x2   = 0xF0 & 0xCC  = 0xC0
-n7 = n5 & ~n6  = 0xAA & ~0xC0 = 0x2A
-```
+- The local regression tests (Fig. 1 and five hand-made circuits covering redundant leaves, external
+  fanouts, POs driven by interior nodes, leaves depending on roots, constants and empty output) pass.
+- An independent brute-force checker written in Python from the definitions enumerates every (U, V),
+  checks (K1)–(K4), and computes A(u) by simulating all PI assignments. It reproduces the table of all
+  eleven KL cuts of Fig. 1, and agrees with `lsv_kl_flex` on 9 270 (circuit, k, l) cases from 1 854
+  random circuits and on 72 cases from the small example circuits. Simulation settles almost every
+  flexibility question on such small circuits, so the SAT path is also checked separately: with
+  simulation and the original-value shortcut switched off in a test build, the same random cases
+  agree both when the two stages run normally and when every question is sent to the second stage.
+- Every optimization step was checked against the previous one on 172 cases of the PA1 benchmarks
+  (ctrl, int2float, router, adder, i10, square, div, log2 and smaller circuits), with identical output;
+  the first, straightforward implementation also agrees on the 165 of these cases it was run on.
+- AddressSanitizer and UndefinedBehaviorSanitizer report nothing on 21 test and benchmark cases.
 
-### BDD size — `Lsv_CutBddSize`
+## Performance
 
-The same recursion as the truth table, with CUDD BDDs instead of `uint64_t`. Only CUDD's basic
-operations (`Cudd_bddIthVar`, `Cudd_bddAnd`, `Cudd_NotCond`) are used; none of ABC's built-in
-BDD construction functions are called.
+Times in seconds on the same machine. "First version" is the straightforward
+implementation; "Current" is the region-based search with roots in decreasing ID order.
 
-1. **Leaves to variables**: the j-th leaf is `Cudd_bddIthVar(dd, j)`. Dynamic reordering is off,
-   so variable j stays at level j and the smallest ID is at the top, as the assignment requires.
-2. **Recursion** (`Lsv_NodeBdd`): a leaf returns its variable; any other node combines its two
-   fanins with `Cudd_bddAnd`, using `Cudd_NotCond` on complemented edges (this only flips a
-   pointer bit and creates no node). CUDD keeps the result reduced.
-   Computed nodes are memoized in `memo` (AIG node ID → BDD), so each node is built once per cut.
-3. **Size**: `Cudd_DagSize`. CUDD uses complemented edges and a single terminal, so the size is
-   the number of internal nodes plus one. For example, `7: 1 2 3` reduces to x0·x1',
-   so x2 disappears and the size is 3.
-4. **Memory**: every BDD in `memo` is referenced once with `Cudd_Ref` and released with
-   `Cudd_RecursiveDeref` after the cut is done. One `DdManager` is shared by the whole command;
-   before `Cudd_Quit`, `assert(Cudd_CheckZeroRef(dd) == 0)` confirms that no reference leaked.
+| Case (k l) | First version | Current |
+|---|---|---|
+| int2float 6 4 | 102.1 | 1.22 |
+| int2float 6 3 | 10.9 | 0.14 |
+| i10 4 2 | 6.8 | 0.11 |
+| router 6 3 | 11.8 | 0.18 |
+| adder 6 3 | 4.4 | 0.30 |
+| adder 6 4 | 38.2 | 1.17 |
+| ctrl 6 3 | 20.2 | 0.34 |
+| ctrl 4 4 | 3.5 | 0.12 |
+| i10 6 2 | > 60 | 3.17 |
+| ctrl 6 4 | > 120 | 6.40 |
 
-`Cudd_NotCond` relies on the `ptrint` type defined in `bdd/cudd/cuddInt.h`, so `lsvCut.cpp`
-includes that header as well.
+**Limitation.** On large arithmetic circuits such as sqrt, or div with l ≥ 2, some forcing questions
+are hard for SAT (one took 900 s) and simulation rarely finds their counterexamples, so these cases
+can exceed the 10-minute limit.
 
-## Optimization
+## PA1 Commands
 
-To speed up enumeration, each cut also stores a signature next to its leaves:
+The PA1 commands are still available:
 
-```cpp
-struct Cut
-{
-  std::vector<int> leaves; // leaf node IDs in ascending order
-  uint64_t sign = 0;       // signature
-};
-```
+- `lsv_cut_tt <k>`: prints every k-feasible cut of every AND node (dominated cuts omitted) with its
+  truth table in hexadecimal, as `<node>: <leaves>: <truth table>`.
+- `lsv_cut_bddsize <k>`: prints the ROBDD size (`Cudd_DagSize`) of every cut, with variables ordered
+  by node ID and smaller IDs closer to the root, as `<node>: <leaves>: <BDD size>`.
 
-The number of candidate cuts of a node is the product of its fanins' cut counts. On large
-circuits with k = 6 a single node can have tens of thousands of pairs to merge, and **almost
-all of them exceed k and are discarded**. The first version allocated a new vector for every
-pair, merged it completely, and only then checked the size; log2 took about two hours.
-The optimized loop works as follows:
-
-1. **Signature filter**: each leaf sets bit `ID % 64` of the cut's 64-bit signature `sign`, and
-   the signature of a union is the OR of the two signatures. Before merging, the loop checks
-   `popcount(c0.sign | c1.sign)`; if it exceeds k, the union must have more than k leaves, so
-   **the pair is skipped without merging**. Two IDs may map to the same bit, which can only
-   lower the count, so a valid cut is never rejected. Most pairs are eliminated here, making
-   this by far the most effective change.
-2. **Reused merge buffer**: unions are written into a single `Cut u` declared outside the loop
-   and cleared before each merge, instead of allocating a new vector each time.
-3. **Duplicate check with `std::set`**: instead of comparing against every existing cut with
-   `std::find`, duplicates are detected by the return value of `std::set::insert`.
-
-The corresponding loop in `Lsv_NtkEnumCuts`:
-
-```cpp
-Cut u; // merge buffer, reused across iterations (2)
-for (const Cut &c0 : cuts[id0])
-{
-  for (const Cut &c1 : cuts[id1])
-  {
-    if (__builtin_popcountll(c0.sign | c1.sign) > k)
-      continue; // too large according to the signature, no merge needed (1)
-    Lsv_CutMerge(c0, c1, u);
-    if ((int)u.leaves.size() > k)
-      continue; // too many leaves
-    if (!seen.insert(u).second)
-      continue; // duplicate; seen is a std::set<Cut> (3)
-    my.push_back(u);
-  }
-}
-```
-
-On log2 with k = 6, `lsv_cut_tt` dropped from about two hours to about 16 seconds.
+Cuts are enumerated bottom-up in ascending ID order: a node's cuts are its trivial cut plus the unions
+of its fanins' cuts with at most k leaves, without duplicates and dominated cuts. Each cut stores a
+64-bit signature (bit `ID % 64` per leaf), so a pair whose OR has more than k bits is rejected without
+merging. Truth tables are computed by bit-parallel simulation, with the smallest leaf ID as the most
+significant input bit.

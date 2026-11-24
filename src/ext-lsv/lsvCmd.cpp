@@ -3,18 +3,24 @@
 #include "base/main/mainInt.h"
 
 #include "lsvCut.h"
+#include "lsvKlFlex.h"
 
+#include <charconv>
 #include <cstdlib>
+#include <cstring>
+#include <sstream>
 
 static int Lsv_CommandPrintNodes(Abc_Frame_t *pAbc, int argc, char **argv);
 static int Lsv_CommandCutTt(Abc_Frame_t *pAbc, int argc, char **argv);
 static int Lsv_CommandCutBddSize(Abc_Frame_t *pAbc, int argc, char **argv);
+static int Lsv_CommandKlFlex(Abc_Frame_t *pAbc, int argc, char **argv);
 
 void init(Abc_Frame_t *pAbc)
 {
   Cmd_CommandAdd(pAbc, "LSV", "lsv_print_nodes", Lsv_CommandPrintNodes, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_tt", Lsv_CommandCutTt, 0);
   Cmd_CommandAdd(pAbc, "LSV", "lsv_cut_bddsize", Lsv_CommandCutBddSize, 0);
+  Cmd_CommandAdd(pAbc, "LSV", "lsv_kl_flex", Lsv_CommandKlFlex, 0);
 }
 
 void destroy(Abc_Frame_t *pAbc) {}
@@ -118,5 +124,79 @@ int Lsv_CommandCutBddSize(Abc_Frame_t *pAbc, int argc, char **argv)
     return 1;
   }
   Lsv_NtkPrintCutBddSize(pNtk, atoi(argv[1]));
+  return 0;
+}
+
+// Entry point of lsv_kl_flex. pAbc holds the current network; argv is the command name, the
+// leaf limit k and the root limit l. After validating them, finds the maximum KL cuts and then
+// the masks of each cut. Returns 0 on success; prints a message and returns 1 if the arguments,
+// the network or a SAT computation is invalid.
+int Lsv_CommandKlFlex(Abc_Frame_t *pAbc, int argc, char **argv)
+{
+  if (argc != 3 || std::strcmp(argv[1], "-h") == 0)
+  {
+    Abc_Print(-2, "usage: lsv_kl_flex <k> <l>\n");
+    return 1;
+  }
+
+  // limits[0] is k and limits[1] is l. Checking end makes sure the whole argument was parsed,
+  // so input with trailing characters such as 3abc is rejected.
+  int limits[2] = {};
+  for (int i = 0; i < 2; ++i)
+  {
+    const char *arg = argv[i + 1];
+    const char *end = arg + std::strlen(arg);
+    const auto result = std::from_chars(arg, end, limits[i]);
+    if (result.ec != std::errc{} || result.ptr != end || limits[i] < 0)
+    {
+      Abc_Print(-1, "k and l must be non-negative integers.\n");
+      return 1;
+    }
+  }
+
+  // pNtk is ABC's current network; both phases below use its node IDs.
+  Abc_Ntk_t *pNtk = Abc_FrameReadNtk(pAbc);
+  if (!pNtk)
+  {
+    Abc_Print(-1, "Empty network.\n");
+    return 1;
+  }
+  if (!Abc_NtkIsStrash(pNtk))
+  {
+    Abc_Print(-1, "Please run \"strash\" first.\n");
+    return 1;
+  }
+  if (!Abc_NtkIsComb(pNtk))
+  {
+    Abc_Print(-1, "lsv_kl_flex requires a combinational AIG.\n");
+    return 1;
+  }
+
+  // Collect the line of every maximum cut in output and print only when all succeeded, so a
+  // failing SAT computation never leaves partial output.
+  std::ostringstream output;
+  for (const KlCut &cut : Lsv_FindMaximumKlCuts(pNtk, limits[0], limits[1]))
+  {
+    auto masks = Lsv_ComputeFlexMasks(pNtk, cut);
+    if (!masks)
+    {
+      Abc_Print(-1, "Could not compute KL cut flexibility.\n");
+      return 1;
+    }
+
+    // One line: the IDs of V, the IDs of U, and the masks in increasing order of u.
+    for (std::size_t i = 0; i < cut.roots.size(); ++i)
+      output << (i ? " " : "") << cut.roots[i];
+    output << ":";
+    for (int leaf : cut.leaves)
+      output << ' ' << leaf;
+    output << ":";
+    for (const auto &mask : *masks)
+      output << ' ' << mask;
+    output << '\n';
+  }
+  const std::string result = output.str();
+  if (!result.empty())
+    Abc_Print(1, "%s", result.c_str());
   return 0;
 }
